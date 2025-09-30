@@ -1,0 +1,46 @@
+ # Archivos de configuración con secretos y claves. ¡NO SUBIR!
+ # Asegúrate de que la ruta a tu archivo de configuración sea correcta.
+ lib/core/constants/cloudinary_config.dart
+
+ # Archivos de configuración de Firebase
+ /android/app/google-services.json
+ /ios/Runner/GoogleService-Info.plist
+
+ # Archivos generados por Dart y Flutter
+ .dart_tool/
+ .idea/
+ .packages
+ .pub/
+ .pub-cache/
+ build/
+
+ # Archivos de configuración del editor
+ *.iml
+ *.ipr
+ *.iws
+ .vscode/
+
+ # Archivos de sistema operativo
+ .DS_Store
+ Thumbs.db
+
+ # Logs y otros archivos temporales
+ app.dSYM/
+ # pubspec.lock
+
+ # Archivos específicos de plataformas
+ /android/app/src/main/assets/flutter_assets/
+ /android/gradle.properties
+ /android/key.properties
+ /android/local.properties
+ /android/.gradle/
+ /ios/Flutter/App.framework
+ /ios/Flutter/Debug.xcconfig
+ /ios/Flutter/Release.xcconfig
+ /ios/Pods/
+ /ios/Podfile.lock
+ /ios/.symlinks/
+ /ios/Runner.xcworkspace/
+ /linux/flutter/ephemeral/
+ /macos/flutter/ephemeral/
+ /windows/flutter/ephemeral/
