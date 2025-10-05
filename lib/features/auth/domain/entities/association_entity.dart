@@ -137,7 +137,7 @@ class AssociationAddress extends Equatable {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'street': street,
       'city': city,
@@ -146,7 +146,7 @@ class AssociationAddress extends Equatable {
     };
   }
 
-  factory AssociationAddress.fromMap(Map<String, dynamic> map) {
+  factory AssociationAddress.fromJson(Map<String, dynamic> map) {
     return AssociationAddress(
       street: map['street'],
       city: map['city'],
@@ -187,7 +187,7 @@ class AssociationSettings extends Equatable {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'allowSelfRegistration': allowSelfRegistration,
       'requireApproval': requireApproval,
@@ -196,7 +196,7 @@ class AssociationSettings extends Equatable {
     };
   }
 
-  factory AssociationSettings.fromMap(Map<String, dynamic> map) {
+  factory AssociationSettings.fromJson(Map<String, dynamic> map) {
     return AssociationSettings(
       allowSelfRegistration: map['allowSelfRegistration'] ?? true,
       requireApproval: map['requireApproval'] ?? false,
@@ -241,7 +241,7 @@ class AssociationStats extends Equatable {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'totalMembers': totalMembers,
       'activeMembers': activeMembers,
@@ -250,7 +250,7 @@ class AssociationStats extends Equatable {
     };
   }
 
-  factory AssociationStats.fromMap(Map<String, dynamic> map) {
+  factory AssociationStats.fromJson(Map<String, dynamic> map) {
     return AssociationStats(
       totalMembers: map['totalMembers'] ?? 0,
       activeMembers: map['activeMembers'] ?? 0,

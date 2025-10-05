@@ -1,10 +1,11 @@
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 enum UserRole {
   superadmin,
   admin,
   editor,
-  member;
+  asociado;
 
   String get value {
     switch (this) {
@@ -14,8 +15,8 @@ enum UserRole {
         return 'admin';
       case UserRole.editor:
         return 'editor';
-      case UserRole.member:
-        return 'member';
+      case UserRole.asociado:
+        return 'asociado';
     }
   }
 
@@ -27,19 +28,26 @@ enum UserRole {
         return UserRole.admin;
       case 'editor':
         return UserRole.editor;
-      case 'member':
-        return UserRole.member;
+      case 'asociado':
+        return UserRole.asociado;
       default:
-        return UserRole.member;
+        return UserRole.asociado;
     }
   }
 
   bool get canManageUsers =>
       this == UserRole.superadmin || this == UserRole.admin;
   bool get canManageAssociations => this == UserRole.superadmin;
-  bool get canListAllAssociations => this == UserRole.superadmin;
-  bool get canEditArticles => this != UserRole.editor;
-  bool get canCreateArticles => this != UserRole.editor;
+  bool get canListAllAssociations =>
+      this == UserRole.superadmin; // For future use
+  bool get canEditArticles =>
+      this == UserRole.superadmin ||
+      this == UserRole.admin ||
+      this == UserRole.editor;
+  bool get canCreateArticles =>
+      this == UserRole.superadmin ||
+      this == UserRole.admin ||
+      this == UserRole.editor;
   bool get canCreateGlobalArticles =>
       this == UserRole.superadmin; // Artículos sin asociación
   bool get canEditAllArticles => this == UserRole.superadmin;
@@ -83,8 +91,6 @@ enum UserStatus {
 // Usuario Tipo 2 - Registrado en Firebase (SIMPLIFICADO)
 class UserEntity extends Equatable {
   final String uid;
-  final String associationId;
-  final UserRole role;
   final UserStatus status;
   final String language;
   final String? timezone;
@@ -107,14 +113,12 @@ class UserEntity extends Equatable {
 
   // Configuraciones
   final NotificationSettings notificationSettings;
-
-  // Estadísticas
   final UserStats stats;
+
+  final List<MembershipEntity> memberships;
 
   const UserEntity({
     required this.uid,
-    required this.associationId,
-    required this.role,
     required this.status,
     this.language = 'es',
     this.timezone,
@@ -130,22 +134,21 @@ class UserEntity extends Equatable {
     this.authProvider = 'password',
     this.notificationSettings = const NotificationSettings(),
     this.stats = const UserStats(),
+    required this.memberships,
   });
 
   String get fullName => '$firstName $lastName';
 
   String get initials => '${firstName[0]}${lastName[0]}'.toUpperCase();
 
-  bool get isSuperAdmin => role == UserRole.superadmin;
-  bool get isAdmin => role == UserRole.admin || role == UserRole.superadmin;
-  bool get isEditor => role == UserRole.editor;
-  bool get isMember => role == UserRole.member;
+  bool get isSuperAdmin => memberships.any((m) => m.role == 'superadmin');
+  bool get isAdmin => memberships.any((m) => m.role == 'admin');
+  bool get isEditor => memberships.any((m) => m.role == 'editor');
+  bool get isAssociated => memberships.any((m) => m.role == 'asociado');
   bool get isActive => status == UserStatus.active;
 
   UserEntity copyWith({
     String? uid,
-    String? associationId,
-    UserRole? role,
     UserStatus? status,
     String? language,
     String? timezone,
@@ -161,11 +164,10 @@ class UserEntity extends Equatable {
     String? authProvider,
     NotificationSettings? notificationSettings,
     UserStats? stats,
+    List<MembershipEntity>? memberships,
   }) {
     return UserEntity(
       uid: uid ?? this.uid,
-      associationId: associationId ?? this.associationId,
-      role: role ?? this.role,
       status: status ?? this.status,
       language: language ?? this.language,
       timezone: timezone ?? this.timezone,
@@ -181,14 +183,13 @@ class UserEntity extends Equatable {
       authProvider: authProvider ?? this.authProvider,
       notificationSettings: notificationSettings ?? this.notificationSettings,
       stats: stats ?? this.stats,
+      memberships: memberships ?? this.memberships,
     );
   }
 
   @override
   List<Object?> get props => [
         uid,
-        associationId,
-        role,
         status,
         language,
         timezone,
@@ -204,6 +205,7 @@ class UserEntity extends Equatable {
         authProvider,
         notificationSettings,
         stats,
+        memberships,
       ];
 }
 

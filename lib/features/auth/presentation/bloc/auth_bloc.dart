@@ -1,37 +1,70 @@
+// lib/features/auth/presentation/bloc/auth_bloc.dart
+
 import 'dart:async';
-import 'package:conectasoc/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
-import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:conectasoc/features/auth/domain/repositories/repositories.dart';
+import 'package:conectasoc/features/auth/domain/usecases/usecases.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthRepository _authRepository;
-  StreamSubscription<User?>? _authStatusSubscription;
+  final AuthRepository repository;
+  final LoginUseCase loginUseCase;
+  final RegisterUseCase registerUseCase;
+  final LogoutUseCase logoutUseCase;
+  final SaveLocalUserUseCase saveLocalUserUseCase;
+  final GetAssociationsUseCase getAssociationsUseCase;
+
+  StreamSubscription<firebase.User?>? _userSubscription;
 
   AuthBloc({
-    required AuthRepository authRepository,
-  })  : _authRepository = authRepository,
-        super(AuthInitial()) {
-    // Registrar manejadores de eventos
+    required this.repository,
+    required this.loginUseCase,
+    required this.registerUseCase,
+    required this.logoutUseCase,
+    required this.saveLocalUserUseCase,
+    required this.getAssociationsUseCase,
+  }) : super(AuthInitial()) {
+    _userSubscription = repository.authStateChanges.listen(_onUserChanged);
+    on<AuthLoadRegisterData>(_onLoadRegisterData);
+    on<AuthSwitchMembership>(_onSwitchMembership);
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<AuthSaveLocalUser>(_onSaveLocalUser);
-    on<AuthRegisterRequested>(_onRegisterRequested);
-    on<AuthUpgradeToRegistered>(_onUpgradeToRegistered);
     on<AuthSignInRequested>(_onSignInRequested);
-    on<AuthPasswordResetRequested>(_onPasswordResetRequested);
+    on<AuthRegisterRequested>(_onRegisterRequested);
+    // on<AuthUpgradeToRegistered>(_onUpgradeToRegistered); // This event seems to have no implementation yet
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthDeleteLocalUser>(_onDeleteLocalUser);
-
-    // Escuchar cambios en el estado de autenticación de Firebase
-    _authStatusSubscription = _authRepository.authStateChanges.listen(
-      (user) => add(AuthCheckRequested()),
-    );
+    on<AuthPasswordResetRequested>(_onPasswordResetRequested);
   }
 
-  // ============================================
-  // VERIFICAR ESTADO INICIAL
-  // ============================================
+  @override
+  Future<void> close() {
+    _userSubscription?.cancel();
+    return super.close();
+  }
+
+  void _onUserChanged(firebase.User? firebaseUser) {
+    if (firebaseUser == null) {
+      // Si no hay usuario de Firebase, comprobamos si hay uno local
+      add(AuthCheckRequested());
+    } else {
+      // Si hay usuario de Firebase, obtenemos sus datos completos
+      add(AuthCheckRequested());
+    }
+  }
+
+  void _onSwitchMembership(
+    AuthSwitchMembership event,
+    Emitter<AuthState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AuthAuthenticated) {
+      // Emitir un nuevo estado autenticado con la nueva membresía
+      emit(AuthAuthenticated(currentState.user, event.newMembership));
+    }
+  }
 
   Future<void> _onAuthCheckRequested(
     AuthCheckRequested event,
@@ -39,41 +72,70 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    try {
-      final firebaseUser = _authRepository.currentUser;
+    // 1. Verificar usuario Firebase
+    final currentUserResult = await repository.getCurrentUser();
 
-      if (firebaseUser != null) {
-        // Usuario autenticado en Firebase (Tipo 2)
-        final userProfile =
-            await _authRepository.getUserProfile(firebaseUser.uid);
+    await currentUserResult.fold(
+      (failure) async {
+        // Si falla obtener usuario remoto, verificar local
+        final hasLocalResult = await repository.hasLocalUser();
 
-        if (userProfile != null && userProfile.isActive) {
-          emit(AuthAuthenticated(userProfile));
+        hasLocalResult.fold(
+          (failure) => emit(AuthUnauthenticated()),
+          (hasLocal) async {
+            if (hasLocal) {
+              final localUserResult = await repository.getLocalUser();
+              localUserResult.fold(
+                (failure) => emit(AuthUnauthenticated()),
+                (localUser) {
+                  if (localUser != null) {
+                    emit(AuthLocalUser(localUser));
+                  } else {
+                    emit(AuthUnauthenticated());
+                  }
+                },
+              );
+            } else {
+              emit(AuthUnauthenticated());
+            }
+          },
+        );
+      },
+      (user) async {
+        if (user != null) {
+          // Si el usuario está autenticado, seleccionamos la primera membresía como la actual por defecto.
+          // En el futuro, se podría guardar la última seleccionada o preguntar al usuario.
+          final currentMembership =
+              user.memberships.isNotEmpty ? user.memberships.first : null;
+          emit(AuthAuthenticated(user, currentMembership));
         } else {
-          await _authRepository.signOut();
-          emit(AuthUnauthenticated());
+          // No hay usuario Firebase, verificar local
+          final hasLocalResult = await repository.hasLocalUser();
+
+          hasLocalResult.fold(
+            (failure) => emit(AuthUnauthenticated()),
+            (hasLocal) async {
+              if (hasLocal) {
+                final localUserResult = await repository.getLocalUser();
+                localUserResult.fold(
+                  (failure) => emit(AuthUnauthenticated()),
+                  (localUser) {
+                    if (localUser != null) {
+                      emit(AuthLocalUser(localUser));
+                    } else {
+                      emit(AuthUnauthenticated());
+                    }
+                  },
+                );
+              } else {
+                emit(AuthUnauthenticated());
+              }
+            },
+          );
         }
-      } else {
-        // No hay usuario de Firebase, verificar si hay usuario local (Tipo 1)
-        if (_authRepository.hasLocalUser()) {
-          final localUser = _authRepository.getLocalUser();
-          if (localUser != null) {
-            emit(AuthLocalUser(localUser));
-          } else {
-            emit(AuthUnauthenticated());
-          }
-        } else {
-          emit(AuthUnauthenticated());
-        }
-      }
-    } catch (e) {
-      emit(AuthError('Error verificando autenticación: $e'));
-    }
+      },
+    );
   }
-
-  // ============================================
-  // GUARDAR USUARIO LOCAL (Tipo 1)
-  // ============================================
 
   Future<void> _onSaveLocalUser(
     AuthSaveLocalUser event,
@@ -81,106 +143,52 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    try {
-      await _authRepository.saveLocalUser(
-        displayName: event.displayName,
-        associationId: event.associationId,
-      );
+    final result = await saveLocalUserUseCase(
+      displayName: event.displayName,
+      associationId: event.associationId,
+    );
 
-      final localUser = _authRepository.getLocalUser();
-      if (localUser != null) {
-        emit(AuthLocalUser(localUser));
-      } else {
-        emit(const AuthError('Error guardando usuario local'));
-      }
-    } catch (e) {
-      emit(AuthError('Error: $e'));
-    }
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) async {
+        final localUserResult = await repository.getLocalUser();
+        localUserResult.fold(
+          (failure) => emit(AuthError(failure.message)),
+          (localUser) {
+            if (localUser != null) {
+              emit(AuthLocalUser(localUser));
+            } else {
+              emit(const AuthError('Error obteniendo usuario local'));
+            }
+          },
+        );
+      },
+    );
   }
 
-  // ============================================
-  // REGISTRO (Tipo 2)
-  // ============================================
-
-  Future<void> _onRegisterRequested(
-    AuthRegisterRequested event,
+  Future<void> _onLoadRegisterData(
+    AuthLoadRegisterData event,
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-
     try {
-      final user = await _authRepository.registerWithEmail(
-        email: event.email,
-        password: event.password,
-        firstName: event.firstName,
-        lastName: event.lastName,
-        phone: event.phone,
-        associationId: event.associationId,
-        createAssociation: event.createAssociation,
-        newAssociationName: event.newAssociationName,
-        newAssociationLongName: event.newAssociationLongName,
-        newAssociationEmail: event.newAssociationEmail,
-        newAssociationContactName: event.newAssociationContactName,
-        newAssociationPhone: event.newAssociationPhone,
+      // Cargar las asociaciones disponibles para el formulario de registro.
+      // La lógica de 'primer usuario' se ha eliminado por seguridad.
+      // El rol de 'superadmin' debe ser asignado manualmente desde Firebase.
+      final associationsResult = await getAssociationsUseCase();
+      associationsResult.fold(
+        (failure) => emit(AuthError(failure.message)),
+        (associations) {
+          emit(AuthRegisterDataLoaded(
+            isFirstUser: false, // Se mantiene en false siempre.
+            associations: associations,
+          ));
+        },
       );
-
-      emit(AuthRegistrationSuccess(
-        user: user,
-        emailVerificationSent: true,
-      ));
-
-      // Después de mostrar el mensaje de éxito, pasar a autenticado
-      await Future.delayed(const Duration(seconds: 2));
-      emit(AuthAuthenticated(user));
     } catch (e) {
-      emit(AuthError('Error en registro: $e'));
-      emit(AuthUnauthenticated());
+      emit(AuthError('Error cargando datos de registro: $e'));
     }
   }
-
-  // ============================================
-  // UPGRADE DE LOCAL A REGISTRADO
-  // ============================================
-
-  Future<void> _onUpgradeToRegistered(
-    AuthUpgradeToRegistered event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-
-    try {
-      final user = await _authRepository.upgradeLocalToRegistered(
-        email: event.email,
-        password: event.password,
-        firstName: event.firstName,
-        lastName: event.lastName,
-        phone: event.phone,
-      );
-
-      emit(AuthRegistrationSuccess(
-        user: user,
-        emailVerificationSent: true,
-      ));
-
-      // Después de mostrar el mensaje de éxito, pasar a autenticado
-      await Future.delayed(const Duration(seconds: 2));
-      emit(AuthAuthenticated(user));
-    } catch (e) {
-      emit(AuthError('Error actualizando cuenta: $e'));
-
-      // Volver a mostrar usuario local si falla
-      final localUser = _authRepository.getLocalUser();
-      if (localUser != null) {
-        emit(AuthLocalUser(localUser));
-      } else {
-        emit(AuthUnauthenticated());
-      }
-    }
-  }
-
-  // ============================================
-  // LOGIN
-  // ============================================
 
   Future<void> _onSignInRequested(
     AuthSignInRequested event,
@@ -188,52 +196,75 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    try {
-      final user = await _authRepository.signInWithEmail(
-        email: event.email,
-        password: event.password,
-        associationId: event.associationId,
-      );
+    final result = await loginUseCase(
+      email: event.email,
+      password: event.password,
+    );
 
-      emit(AuthAuthenticated(user));
-    } catch (e) {
-      emit(AuthError('Error en login: $e'));
-      emit(AuthUnauthenticated());
-    }
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (user) {
+        final currentMembership =
+            user.memberships.isNotEmpty ? user.memberships.first : null;
+        emit(AuthAuthenticated(user, currentMembership));
+      },
+    );
   }
 
-  // ============================================
-  // RECUPERACIÓN DE CONTRASEÑA
-  // ============================================
-
-  Future<void> _onPasswordResetRequested(
-    AuthPasswordResetRequested event,
+  Future<void> _onRegisterRequested(
+    AuthRegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
-    final currentState = state;
+    emit(AuthLoading());
 
-    try {
-      await _authRepository.resetPasswordWithEmail(event.email);
+    final result = await registerUseCase(
+      email: event.email,
+      password: event.password,
+      firstName: event.firstName,
+      lastName: event.lastName,
+      phone: event.phone,
+      createAssociation: event.createAssociation,
+      associationId: event.associationId,
+      newAssociationName: event.newAssociationName,
+      newAssociationLongName: event.newAssociationLongName,
+      newAssociationEmail: event.newAssociationEmail,
+      newAssociationContactName: event.newAssociationContactName,
+      newAssociationPhone: event.newAssociationPhone,
+    );
 
-      // Mantener el estado actual pero mostrar mensaje de éxito
-      // (esto se manejará en la UI)
-    } catch (e) {
-      emit(AuthError('Error enviando recuperación: $e'));
-
-      // Restaurar estado anterior
-      if (currentState is AuthLocalUser) {
-        emit(currentState);
-      } else if (currentState is AuthAuthenticated) {
-        emit(currentState);
-      } else {
-        emit(AuthUnauthenticated());
-      }
-    }
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (user) {
+        // Tras un registro exitoso, autenticamos al usuario directamente.
+        final currentMembership =
+            user.memberships.isNotEmpty ? user.memberships.first : null;
+        emit(AuthAuthenticated(user, currentMembership));
+      },
+    );
   }
 
-  // ============================================
-  // LOGOUT
-  // ============================================
+  // Future<void> _onUpgradeToRegistered(
+  //   AuthUpgradeToRegistered event,
+  //   Emitter<AuthState> emit,
+  // ) async {
+  //   emit(AuthLoading());
+
+  //   final result = await repository.upgradeLocalToRegistered(
+  //     email: event.email,
+  //     password: event.password,
+  //     firstName: event.firstName,
+  //     lastName: event.lastName,
+  //     phone: event.phone,
+  //   );
+
+  //   result.fold(
+  //     (failure) => emit(AuthError(failure.message)),
+  //     (user) => emit(AuthRegistrationSuccess(
+  //       user: user,
+  //       emailVerificationSent: true,
+  //     )),
+  //   );
+  // }
 
   Future<void> _onSignOutRequested(
     AuthSignOutRequested event,
@@ -241,35 +272,43 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    try {
-      await _authRepository.signOut();
-      emit(AuthUnauthenticated());
-    } catch (e) {
-      emit(AuthError('Error cerrando sesión: $e'));
-    }
-  }
+    final result = await logoutUseCase();
 
-  // ============================================
-  // ELIMINAR USUARIO LOCAL
-  // ============================================
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) {
+        // No emitimos AuthUnauthenticated directamente,
+        // el stream de authStateChanges se encargará de ello.
+      },
+    );
+  }
 
   Future<void> _onDeleteLocalUser(
     AuthDeleteLocalUser event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    final result = await repository.deleteLocalUser();
 
-    try {
-      await _authRepository.deleteLocalUser();
-      emit(AuthUnauthenticated());
-    } catch (e) {
-      emit(AuthError('Error eliminando usuario local: $e'));
-    }
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) => emit(AuthUnauthenticated()),
+    );
   }
 
-  @override
-  Future<void> close() {
-    _authStatusSubscription?.cancel();
-    return super.close();
+  Future<void> _onPasswordResetRequested(
+    AuthPasswordResetRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await repository.resetPasswordWithEmail(event.email);
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) {
+        // El stream de authStateChanges se encargará de emitir AuthUnauthenticated
+        // tras el logout de Firebase.
+      },
+    );
   }
 }

@@ -1,0 +1,29 @@
+// lib/features/auth/domain/usecases/save_local_user_usecase.dart
+
+import 'package:dartz/dartz.dart';
+import '../../../../core/errors/failures.dart';
+import '../repositories/auth_repository.dart';
+
+class SaveLocalUserUseCase {
+  final AuthRepository repository;
+
+  SaveLocalUserUseCase(this.repository);
+
+  Future<Either<Failure, void>> call({
+    required String displayName,
+    required String associationId,
+  }) async {
+    if (displayName.isEmpty) {
+      return const Left(ValidationFailure('El nombre es requerido'));
+    }
+
+    if (associationId.isEmpty) {
+      return const Left(ValidationFailure('Debe seleccionar una asociación'));
+    }
+
+    return await repository.saveLocalUser(
+      displayName: displayName,
+      associationId: associationId,
+    );
+  }
+}

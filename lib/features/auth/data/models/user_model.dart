@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:conectasoc/features/auth/data/models/models.dart';
 import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   const UserModel({
     required super.uid,
-    required super.associationId,
-    required super.role,
     required super.status,
     super.language,
     super.timezone,
@@ -21,6 +20,7 @@ class UserModel extends UserEntity {
     super.authProvider,
     super.notificationSettings,
     super.stats,
+    required super.memberships,
   });
 
   // Convertir desde Firestore
@@ -29,8 +29,6 @@ class UserModel extends UserEntity {
 
     return UserModel(
       uid: doc.id,
-      associationId: data['associationId'] ?? '',
-      role: UserRole.fromString(data['role'] ?? 'member'),
       status: UserStatus.fromString(data['status'] ?? 'active'),
       language: data['language'] ?? 'es',
       timezone: data['timezone'],
@@ -55,14 +53,16 @@ class UserModel extends UserEntity {
       stats: data['stats'] != null
           ? UserStats.fromMap(Map<String, dynamic>.from(data['stats']))
           : const UserStats(),
+      memberships: (data['memberships'] as List<dynamic>?)
+              ?.map((m) => MembershipModel.fromMap(m as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
   // Convertir a Firestore
   Map<String, dynamic> toFirestore() {
     final map = <String, dynamic>{
-      'associationId': associationId,
-      'role': role.value,
       'status': status.value,
       'language': language,
       'timezone': timezone,
@@ -76,6 +76,8 @@ class UserModel extends UserEntity {
       'authProvider': authProvider,
       'notificationSettings': notificationSettings.toMap(),
       'stats': stats.toMap(),
+      'memberships':
+          memberships.map((m) => (m as MembershipModel).toMap()).toList(),
     };
 
     // Agregar campos opcionales solo si existen
@@ -93,8 +95,6 @@ class UserModel extends UserEntity {
   factory UserModel.fromEntity(UserEntity entity) {
     return UserModel(
       uid: entity.uid,
-      associationId: entity.associationId,
-      role: entity.role,
       status: entity.status,
       language: entity.language,
       timezone: entity.timezone,
@@ -110,6 +110,7 @@ class UserModel extends UserEntity {
       authProvider: entity.authProvider,
       notificationSettings: entity.notificationSettings,
       stats: entity.stats,
+      memberships: entity.memberships,
     );
   }
 
@@ -117,8 +118,6 @@ class UserModel extends UserEntity {
   UserEntity toEntity() {
     return UserEntity(
       uid: uid,
-      associationId: associationId,
-      role: role,
       status: status,
       language: language,
       timezone: timezone,
@@ -134,6 +133,7 @@ class UserModel extends UserEntity {
       authProvider: authProvider,
       notificationSettings: notificationSettings,
       stats: stats,
+      memberships: memberships,
     );
   }
 }

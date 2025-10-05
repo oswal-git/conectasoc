@@ -1,0 +1,165 @@
+rules_version = '2';
+
+service cloud.firestore {
+match /databases/{database}/documents {
+    
+    // Helper function: verificar si el usuario está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Helper function: obtener datos del usuario
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    // Helper function: verificar si es superadmin
+    function isSuperAdmin() {
+      return isSignedIn() && getUserData().memberships.exists(m, m.role == 'superadmin');
+    }
+    
+    // Helper function: verificar si es admin de la asociación
+    function isAdmin(associationId) {
+      return isSignedIn() && getUserData().memberships.exists(m, m.associationId == associationId && m.role == 'admin');
+    }
+
+    function isEditor(associationId) {
+      return isSignedIn() && getUserData().memberships.exists(m, m.associationId == associationId && m.role == 'editor');
+    }
+    
+    // =========================================
+    // COLECCIÓN: users
+    // =========================================
+    match /users/{userId} {
+      
+      // NUEVA REGLA: Permite a CUALQUIER usuario (autenticado o no)
+      // realizar consultas sobre la colección. Esencial para "isFirstUser".
+      // NO permite leer el contenido de los documentos.
+      allow list: if true;
+
+      // Leer: el propio usuario, superadmin, o admin de su asociación
+      // Esta regla se mantiene para proteger los datos de cada usuario.
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId ||
+        isSuperAdmin() ||
+        getUserData().memberships.exists(m, m.role == 'admin' && get(/databases/$(database)/documents/users/$(userId)).data.memberships.exists(m2, m2.associationId == m.associationId))
+      );
+      
+      // Crear: cualquier usuario autenticado puede crear su propio documento
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      
+      // Actualizar: el propio usuario, superadmin, o admin de su asociación
+      allow update: if isSignedIn() && (
+        request.auth.uid == userId ||
+        isSuperAdmin() ||
+        getUserData().memberships.exists(m, m.role == 'admin' && resource.data.memberships.exists(m2, m2.associationId == m.associationId))
+      );
+      
+      // Eliminar: solo superadmin o admin de la asociación
+      allow delete: if isSuperAdmin() || getUserData().memberships.exists(m, m.role == 'admin' && resource.data.memberships.exists(m2, m2.associationId == m.associationId));
+    }
+    
+    // =========================================
+    // COLECCIÓN: associations
+    // =========================================
+    // Asociaciones:
+    // Lectura pública para que los nuevos usuarios puedan ver la lista.
+    match /associations/{associationId} {
+      // Leer y Listar: Cualquiera puede ver la lista de asociaciones para registrarse.
+      allow read, list: if true;
+      
+      // Crear: cualquier usuario autenticado (para registro)
+      allow create: if isSignedIn();
+      
+      // Actualizar: superadmin o admin de esa asociación
+      allow update: if isSuperAdmin() || isAdmin(associationId);
+      
+      // Eliminar: solo superadmin
+      allow delete: if isSuperAdmin();
+    }
+
+    // =========================================
+    // COLECCIÓN: articles
+    // =========================================
+    match /articles/{articleId} {
+      // Leer: usuarios autenticados pueden leer artículos publicados
+      // o artículos de su asociación (sin importar estado)
+      allow read: if isSignedIn();
+      
+      // Crear: superadmin, admin, o editor
+      allow create: if isSignedIn() && (
+        isSuperAdmin() ||
+        getUserData().memberships.exists(m, m.role == 'admin') ||
+        getUserData().memberships.exists(m, m.role == 'editor')
+      );
+      
+      // Actualizar: superadmin, admin de la asociación, o el autor
+      allow update: if isSignedIn() && (
+        isSuperAdmin() ||
+        isAdmin(resource.data.associationId) ||
+        request.auth.uid == resource.data.authorId
+      );
+      
+      // Eliminar: superadmin o admin de la asociación
+      allow delete: if isSuperAdmin() || isAdmin(resource.data.associationId);
+    }
+    
+    // =========================================
+    // COLECCIÓN: itemArticles
+    // =========================================
+    match /itemArticles/{itemId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (
+        isSuperAdmin() ||
+        getUserData().memberships.exists(m, m.role == 'admin') ||
+        getUserData().memberships.exists(m, m.role == 'editor')
+      );
+    }
+    
+    // =========================================
+    // COLECCIÓN: images
+    // =========================================
+    match /images/{imageId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (
+        isSuperAdmin() ||
+        getUserData().memberships.exists(m, m.role == 'admin') ||
+        getUserData().memberships.exists(m, m.role == 'editor')
+      );
+    }
+    
+    // =========================================
+    // COLECCIÓN: notifications
+    // =========================================
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (
+        isSuperAdmin() ||
+        getUserData().memberships.exists(m, m.role == 'admin') ||
+        getUserData().memberships.exists(m, m.role == 'editor')
+      );
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+    
+    // =========================================
+    // COLECCIÓN: notificationUsers
+    // =========================================
+    match /notificationUsers/{notificationUserId} {
+      // Leer: el propio usuario o superadmin
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isSuperAdmin()
+      );
+      
+      // Crear: sistema (notificaciones automáticas)
+      allow create: if isSignedIn();
+      
+      // Actualizar: el propio usuario (marcar como leída)
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Eliminar: solo superadmin
+      allow delete: if isSuperAdmin();
+    }
+  }
+}

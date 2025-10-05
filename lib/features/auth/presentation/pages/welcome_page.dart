@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'local_user_setup_page.dart';
+import 'package:conectasoc/app/router/route_names.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -19,89 +19,91 @@ class WelcomePage extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                const Spacer(),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 40), // Espacio superior
 
-                // Logo
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
+                  // Logo
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color.fromARGB(51, 0, 0, 0),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.people,
+                      size: 64,
+                      color: Colors.blue,
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Título
+                  const Text(
+                    'ConectaSoc',
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  const Text(
+                    'Portal de Asociaciones',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white70,
+                    ),
+                  ),
+
+                  const SizedBox(height: 60), // Espacio antes de las tarjetas
+
+                  // Opciones de acceso
+                  _ModeCard(
+                    icon: Icons.visibility,
+                    title: 'Solo Lectura',
+                    description: 'Explora contenido sin registro',
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+                    onTap: () => _navigateToLocalSetup(context),
                   ),
-                  child: const Icon(
-                    Icons.people,
-                    size: 64,
-                    color: Colors.blue,
-                  ),
-                ),
 
-                const SizedBox(height: 32),
+                  const SizedBox(height: 16),
 
-                // Título
-                const Text(
-                  'ConectaSoc',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
+                  _ModeCard(
+                    icon: Icons.login,
+                    title: 'Iniciar Sesión',
+                    description: 'Ya tengo una cuenta',
                     color: Colors.white,
+                    onTap: () => _navigateToLogin(context),
                   ),
-                ),
 
-                const SizedBox(height: 8),
+                  const SizedBox(height: 16),
 
-                const Text(
-                  'Portal de Asociaciones',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white70,
+                  _ModeCard(
+                    icon: Icons.person_add,
+                    title: 'Crear Cuenta',
+                    description: 'Registro completo con notificaciones',
+                    color: Colors.white,
+                    onTap: () => _navigateToRegister(context),
                   ),
-                ),
 
-                const Spacer(),
-
-                // Opciones de acceso
-                _ModeCard(
-                  icon: Icons.visibility,
-                  title: 'Solo Lectura',
-                  description: 'Explora contenido sin registro',
-                  color: Colors.white,
-                  onTap: () => _navigateToLocalSetup(context),
-                ),
-
-                const SizedBox(height: 16),
-
-                _ModeCard(
-                  icon: Icons.login,
-                  title: 'Iniciar Sesión',
-                  description: 'Ya tengo una cuenta',
-                  color: Colors.white,
-                  onTap: () => _navigateToLogin(context),
-                ),
-
-                const SizedBox(height: 16),
-
-                _ModeCard(
-                  icon: Icons.person_add,
-                  title: 'Crear Cuenta',
-                  description: 'Registro completo con notificaciones',
-                  color: Colors.white,
-                  onTap: () => _navigateToRegister(context),
-                ),
-
-                const SizedBox(height: 32),
-              ],
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),
@@ -110,21 +112,15 @@ class WelcomePage extends StatelessWidget {
   }
 
   void _navigateToLocalSetup(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const LocalUserSetupPage()),
-    );
+    Navigator.of(context).pushNamed(RouteNames.localUserSetup);
   }
 
   void _navigateToLogin(BuildContext context) {
-    // Navigator.of(context).push(
-    //   MaterialPageRoute(builder: (_) => const LoginPage()),
-    // );
+    Navigator.of(context).pushNamed(RouteNames.login);
   }
 
   void _navigateToRegister(BuildContext context) {
-    // Navigator.of(context).push(
-    //   MaterialPageRoute(builder: (_) => const RegisterPage()),
-    // );
+    Navigator.of(context).pushNamed(RouteNames.register);
   }
 }
 

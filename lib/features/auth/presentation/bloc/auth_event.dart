@@ -1,3 +1,6 @@
+// lib/features/auth/presentation/bloc/auth_event.dart
+
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class AuthEvent extends Equatable {
@@ -10,6 +13,22 @@ abstract class AuthEvent extends Equatable {
 // Verificar estado inicial
 class AuthCheckRequested extends AuthEvent {}
 
+// Cambiar la membresía activa
+class AuthSwitchMembership extends AuthEvent {
+  final MembershipEntity newMembership;
+
+  const AuthSwitchMembership(this.newMembership);
+
+  @override
+  List<Object?> get props => [newMembership];
+}
+
+// ============================================
+// DATOS PARA REGISTRO
+// ============================================
+
+class AuthLoadRegisterData extends AuthEvent {}
+
 // ============================================
 // USUARIO LOCAL (Tipo 1)
 // ============================================
@@ -18,13 +37,25 @@ class AuthSaveLocalUser extends AuthEvent {
   final String displayName;
   final String associationId;
 
-  const AuthSaveLocalUser({
-    required this.displayName,
-    required this.associationId,
-  });
+  const AuthSaveLocalUser(
+      {required this.displayName, required this.associationId});
 
   @override
   List<Object?> get props => [displayName, associationId];
+}
+
+// ============================================
+// LOGIN
+// ============================================
+
+class AuthSignInRequested extends AuthEvent {
+  final String email;
+  final String password;
+
+  const AuthSignInRequested({required this.email, required this.password});
+
+  @override
+  List<Object?> get props => [email, password];
 }
 
 // ============================================
@@ -45,20 +76,19 @@ class AuthRegisterRequested extends AuthEvent {
   final String? newAssociationContactName;
   final String? newAssociationPhone;
 
-  const AuthRegisterRequested({
-    required this.email,
-    required this.password,
-    required this.firstName,
-    required this.lastName,
-    this.phone,
-    this.associationId,
-    this.createAssociation = false,
-    this.newAssociationName,
-    this.newAssociationLongName,
-    this.newAssociationEmail,
-    this.newAssociationContactName,
-    this.newAssociationPhone,
-  });
+  const AuthRegisterRequested(
+      {required this.email,
+      required this.password,
+      required this.firstName,
+      required this.lastName,
+      this.phone,
+      this.associationId,
+      this.createAssociation = false,
+      this.newAssociationName,
+      this.newAssociationLongName,
+      this.newAssociationEmail,
+      this.newAssociationContactName,
+      this.newAssociationPhone});
 
   @override
   List<Object?> get props => [
@@ -88,48 +118,15 @@ class AuthUpgradeToRegistered extends AuthEvent {
   final String lastName;
   final String? phone;
 
-  const AuthUpgradeToRegistered({
-    required this.email,
-    required this.password,
-    required this.firstName,
-    required this.lastName,
-    this.phone,
-  });
+  const AuthUpgradeToRegistered(
+      {required this.email,
+      required this.password,
+      required this.firstName,
+      required this.lastName,
+      this.phone});
 
   @override
   List<Object?> get props => [email, password, firstName, lastName, phone];
-}
-
-// ============================================
-// LOGIN
-// ============================================
-
-class AuthSignInRequested extends AuthEvent {
-  final String email;
-  final String password;
-  final String? associationId;
-
-  const AuthSignInRequested({
-    required this.email,
-    required this.password,
-    this.associationId,
-  });
-
-  @override
-  List<Object?> get props => [email, password, associationId];
-}
-
-// ============================================
-// RECUPERACIÓN DE CONTRASEÑA
-// ============================================
-
-class AuthPasswordResetRequested extends AuthEvent {
-  final String email;
-
-  const AuthPasswordResetRequested(this.email);
-
-  @override
-  List<Object?> get props => [email];
 }
 
 // ============================================
@@ -140,3 +137,15 @@ class AuthSignOutRequested extends AuthEvent {}
 
 // Eliminar usuario local
 class AuthDeleteLocalUser extends AuthEvent {}
+
+// ============================================
+// RECUPERACIÓN DE CONTRASEÑA
+// ============================================
+
+class AuthPasswordResetRequested extends AuthEvent {
+  final String email;
+  const AuthPasswordResetRequested(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}

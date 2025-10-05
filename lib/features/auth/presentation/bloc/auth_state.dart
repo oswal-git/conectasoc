@@ -1,4 +1,6 @@
-import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
+// lib/features/auth/presentation/bloc/auth_state.dart
+
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class AuthState extends Equatable {
@@ -27,11 +29,13 @@ class AuthLocalUser extends AuthState {
 // Usuario Tipo 2 - Autenticado en Firebase
 class AuthAuthenticated extends AuthState {
   final UserEntity user;
+  final MembershipEntity? currentMembership;
 
-  const AuthAuthenticated(this.user);
+  const AuthAuthenticated(this.user, this.currentMembership);
 
   @override
-  List<Object?> get props => [user];
+  @override
+  List<Object?> get props => [user, currentMembership];
 }
 
 // Sin autenticación (ni local ni Firebase)
@@ -52,13 +56,23 @@ class AuthRegistrationSuccess extends AuthState {
   final UserEntity user;
   final bool emailVerificationSent;
 
-  const AuthRegistrationSuccess({
-    required this.user,
-    this.emailVerificationSent = true,
-  });
+  const AuthRegistrationSuccess(
+      {required this.user, this.emailVerificationSent = true});
 
   @override
   List<Object?> get props => [user, emailVerificationSent];
+}
+
+// Estado para cargar datos en la página de registro
+class AuthRegisterDataLoaded extends AuthState {
+  final bool isFirstUser;
+  final List<AssociationEntity> associations;
+
+  const AuthRegisterDataLoaded(
+      {required this.isFirstUser, required this.associations});
+
+  @override
+  List<Object?> get props => [isFirstUser, associations];
 }
 
 // Estado para upgrade de local a registrado

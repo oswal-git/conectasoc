@@ -1,54 +1,110 @@
-import 'package:get_it/get_it.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// lib/injection_container.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/services/local_storage_service.dart';
-import 'features/auth/data/repositories/auth_repository_impl.dart';
-import 'features/auth/presentation/bloc/auth_bloc.dart';
+// Users - Data
+import 'package:conectasoc/features/users/data/datasources/users_remote_datasource.dart';
+import 'package:conectasoc/features/users/data/repositories/users_repository_impl.dart';
 
-final getIt = GetIt.instance;
+// Users - Presentation
+import 'package:conectasoc/features/users/presentation/bloc/blocs.dart';
 
-Future<void> initializeDependencies() async {
+// Users - Domain
+import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
+import 'package:conectasoc/features/users/domain/usecases/usecases.dart';
+
+// Core
+import 'package:conectasoc/core/services/local_storage_service.dart';
+
+// Auth - Data
+import 'package:conectasoc/features/auth/data/datasources/datasources.dart';
+import 'package:conectasoc/features/auth/data/repositories/auth_repository_impl.dart';
+
+// Auth - Domain
+import 'package:conectasoc/features/auth/domain/repositories/repositories.dart';
+import 'package:conectasoc/features/auth/domain/usecases/usecases.dart';
+
+// Auth - Presentation
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+
+final sl = GetIt.instance;
+
+Future<void> init() async {
   // ============================================
-  // SERVICIOS EXTERNOS (Firebase)
-  // ============================================
-
-  getIt.registerLazySingleton<FirebaseAuth>(
-    () => FirebaseAuth.instance,
-  );
-
-  getIt.registerLazySingleton<FirebaseFirestore>(
-    () => FirebaseFirestore.instance,
-  );
-
-  // ============================================
-  // SERVICIOS LOCALES
-  // ============================================
-
-  // Local Storage Service (Singleton asíncrono)
-  final localStorage = await LocalStorageService.getInstance();
-  getIt.registerSingleton<LocalStorageService>(localStorage);
-
-  // ============================================
-  // REPOSITORIOS
-  // ============================================
-
-  getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepository(
-      firebaseAuth: getIt<FirebaseAuth>(),
-      firestore: getIt<FirebaseFirestore>(),
-      localStorage: getIt<LocalStorageService>(),
-    ),
-  );
-
-  // ============================================
-  // BLoCs
+  // FEATURES - AUTH
   // ============================================
 
-  // AuthBloc como Factory (nueva instancia cada vez que se necesite)
-  getIt.registerFactory<AuthBloc>(
+  // Bloc
+  sl.registerFactory(
     () => AuthBloc(
-      authRepository: getIt<AuthRepository>(),
+      repository: sl(),
+      loginUseCase: sl(),
+      registerUseCase: sl(),
+      logoutUseCase: sl(),
+      saveLocalUserUseCase: sl(),
+      getAssociationsUseCase: sl(),
     ),
   );
+
+  // Use Cases
+  sl.registerLazySingleton(() => LoginUseCase(sl()));
+  sl.registerLazySingleton(() => RegisterUseCase(sl()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => SaveLocalUserUseCase(sl()));
+  sl.registerLazySingleton(() => GetAssociationsUseCase(sl()));
+
+  // Repository
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+    ),
+  );
+
+  // Data Sources
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(
+      firebaseAuth: sl(),
+      firestore: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(
+      localStorage: sl(),
+    ),
+  );
+
+  // User Feature
+  sl.registerLazySingleton<UserBloc>(
+      () => UserBloc(joinAssociationUseCase: sl(), authBloc: sl()));
+  sl.registerLazySingleton(() => JoinAssociationUseCase(sl()));
+  sl.registerLazySingleton<UserRepository>(
+      () => UserRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<UserRemoteDataSource>(
+      () => UserRemoteDataSourceImpl(firestore: sl()));
+
+  // ============================================
+  // CORE
+  // ============================================
+
+  // Services
+  sl.registerLazySingleton<LocalStorageService>(
+    () => LocalStorageService(sl()),
+  );
+
+  // ============================================
+  // EXTERNAL
+  // ============================================
+
+  // Firebase
+  sl.registerLazySingleton(() => FirebaseAuth.instance);
+  sl.registerLazySingleton(() => FirebaseFirestore.instance);
+
+  // SharedPreferences
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
 }
