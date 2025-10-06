@@ -2,7 +2,7 @@
 
 import 'package:conectasoc/features/auth/domain/domain.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
-import 'package:conectasoc/features/users/presentation/bloc/blocs.dart';
+import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

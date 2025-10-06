@@ -326,4 +326,18 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure('Error creando asociación: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> leaveAssociation(
+      MembershipEntity membership) async {
+    try {
+      await remoteDataSource.removeMembership(
+          membership.associationId, membership.role);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Error al abandonar la asociación: $e'));
+    }
+  }
 }

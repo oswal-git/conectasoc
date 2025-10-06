@@ -1,0 +1,30 @@
+{
+    "@@locale": "es",
+    "appTitle": "ConectAsoc",
+    "homePage": "Inicio",
+    "noArticlesYet": "No hay artículos por ahora.",
+    "changeAssociation": "Cambiar de Asociación",
+    "unknownAssociation": "Asociación desconocida",
+    "role": "Rol: {roleName}",
+    "@role": {
+        "placeholders": {
+            "roleName": {}
+        }
+    },
+    "cancel": "Cancelar",
+    "errorLoadingAssociations": "Error al cargar las asociaciones: {error}",
+    "retry": "Reintentar",
+    "createAccount": "Crear Cuenta",
+    "registrationError": "Error en el Registro",
+    "accept": "Aceptar",
+    "unexpectedError": "Ocurrió un error inesperado.",
+    "leaveAssociation": "Abandonar Asociación",
+    "leave": "Abandonar",
+    "leaveAssociationConfirmationTitle": "Confirmar abandono",
+    "leaveAssociationConfirmationMessage": "¿Estás seguro de que quieres abandonar la asociación '{associationName}'? Esta acción no se puede deshacer.",
+    "@leaveAssociationConfirmationMessage": {
+        "placeholders": {
+            "associationName": {}
+        }
+    }
+}

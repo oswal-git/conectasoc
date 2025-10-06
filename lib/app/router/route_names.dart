@@ -8,4 +8,5 @@ class RouteNames {
   static const String localUserSetup = '/local-user-setup';
   static const String home = '/home';
   static const String joinAssociation = '/joinAssociation';
+  static const String profile = '/profile';
 }

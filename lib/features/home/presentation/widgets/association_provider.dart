@@ -1,5 +1,6 @@
 // lib/features/home/presentation/widgets/association_provider.dart
 
+import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:conectasoc/features/auth/domain/domain.dart';
 import 'package:conectasoc/injection_container.dart';
@@ -23,6 +24,7 @@ class AssociationProvider extends StatefulWidget {
 class _AssociationProviderState extends State<AssociationProvider> {
   List<AssociationEntity> _associations = [];
   bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -34,7 +36,12 @@ class _AssociationProviderState extends State<AssociationProvider> {
     final result = await sl<GetAssociationsUseCase>()();
     result.fold(
       (failure) {
-        // Handle error, maybe show a snackbar
+        if (mounted) {
+          setState(() {
+            _error = failure.message;
+            _isLoading = false;
+          });
+        }
       },
       (associations) {
         if (mounted) {
@@ -49,12 +56,47 @@ class _AssociationProviderState extends State<AssociationProvider> {
 
   @override
   Widget build(BuildContext context) {
-    return _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : _AssociationProviderScope(
-            associations: _associations,
-            child: widget.child,
-          );
+    final l10n = AppLocalizations.of(context)!;
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                l10n.errorLoadingAssociations(_error ?? ''),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _loadAssociations,
+                icon: const Icon(Icons.refresh),
+                label: Text(l10n.retry),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_associations.isEmpty) {
+      return Center(
+        child: Text(l10n.noArticlesYet),
+      );
+    }
+
+    return _AssociationProviderScope(
+      associations: _associations,
+      child: widget.child,
+    );
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
+import 'package:conectasoc/features/users/domain/entities/profile_entity.dart';
 import 'package:equatable/equatable.dart';
 
 enum UserRole {
@@ -146,6 +147,18 @@ class UserEntity extends Equatable {
   bool get isEditor => memberships.any((m) => m.role == 'editor');
   bool get isAssociated => memberships.any((m) => m.role == 'asociado');
   bool get isActive => status == UserStatus.active;
+
+  ProfileEntity toProfileEntity() {
+    return ProfileEntity(
+      uid: uid,
+      name: firstName,
+      lastname: lastName,
+      email: email,
+      phone: phone,
+      language: language,
+      photoUrl: avatarUrl,
+    );
+  }
 
   UserEntity copyWith({
     String? uid,

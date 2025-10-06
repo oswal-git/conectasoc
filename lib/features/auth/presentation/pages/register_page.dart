@@ -4,6 +4,7 @@ import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:conectasoc/features/auth/presentation/widgets/register_form.dart';
+import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,7 +17,7 @@ class RegisterPage extends StatelessWidget {
       value: BlocProvider.of<AuthBloc>(context)..add(AuthLoadRegisterData()),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Crear Cuenta'),
+          title: Text(AppLocalizations.of(context)!.createAccount),
           elevation: 0,
         ),
         body: const RegisterView(),
@@ -38,26 +39,29 @@ class _RegisterViewState extends State<RegisterView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocListener<AuthBloc, AuthState>(listener: (context, state) {
       // La navegación al home en caso de éxito se gestiona en main.dart
       // Aquí solo mostramos los errores.
       if (state is AuthError) {
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Error en el Registro'),
+          builder: (dialogContext) => AlertDialog(
+            title: Text(l10n.registrationError),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.error_outline, color: Colors.red, size: 60),
                 const SizedBox(height: 16),
-                Text(state.message, textAlign: TextAlign.center),
+                Text(state.message,
+                    textAlign: TextAlign
+                        .center), // El mensaje de error viene de la API/BBDD
               ],
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Aceptar'),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(l10n.accept),
               ),
             ],
           ),
@@ -98,7 +102,7 @@ class _RegisterViewState extends State<RegisterView> {
 
         // Si llegamos aquí, es porque hubo un error inicial antes de poder cargar datos
         return const Center(
-          child: Text('Ocurrió un error inesperado.'),
+          child: Text(''), // El error se maneja en el provider
         );
       },
     ));

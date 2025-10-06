@@ -1,5 +1,6 @@
 // lib/main.dart
 
+import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +14,7 @@ import 'package:conectasoc/features/auth/presentation/presentation.dart';
 
 // Router
 import 'package:conectasoc/app/router/router.dart';
+import 'package:conectasoc/services/snackbar_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +45,9 @@ class ConectaSocApp extends StatelessWidget {
           final navigator = _navigatorKey.currentState;
           if (navigator == null) return;
 
-          if (state is AuthAuthenticated || state is AuthLocalUser) {
+          if (state is AuthError) {
+            SnackBarService.showSnackBar(state.message, isError: true);
+          } else if (state is AuthAuthenticated || state is AuthLocalUser) {
             navigator.pushNamedAndRemoveUntil(
                 RouteNames.home, (route) => false);
           } else if (state is AuthUnauthenticated) {
@@ -51,75 +55,92 @@ class ConectaSocApp extends StatelessWidget {
                 RouteNames.welcome, (route) => false);
           }
         },
-        child: MaterialApp(
-          title: 'AsocApp',
-          navigatorKey: _navigatorKey,
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-            useMaterial3: true,
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            Locale? currentLocale;
+            if (state is AuthAuthenticated) {
+              currentLocale = Locale(state.user.language);
+            }
 
-            // AppBar Theme
-            appBarTheme: const AppBarTheme(
-              elevation: 0,
-              centerTitle: true,
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-            ),
+            return MaterialApp(
+              scaffoldMessengerKey: SnackBarService.scaffoldMessengerKey,
+              onGenerateTitle: (context) =>
+                  AppLocalizations.of(context)!.appTitle,
+              navigatorKey: _navigatorKey,
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale:
+                  currentLocale, // Aquí se establece el idioma dinámicamente
 
-            // Input Decoration Theme
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: Colors.grey[50],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.blue, width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
+              // THEME
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+                visualDensity: VisualDensity.adaptivePlatformDensity,
+                useMaterial3: true,
 
-            // Elevated Button Theme
-            elevatedButtonTheme: ElevatedButtonThemeData(
-              style: ElevatedButton.styleFrom(
-                elevation: 2,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
+                // AppBar Theme
+                appBarTheme: const AppBarTheme(
+                  elevation: 0,
+                  centerTitle: true,
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+
+                // Input Decoration Theme
+                inputDecorationTheme: InputDecorationTheme(
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.red),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+
+                // Elevated Button Theme
+                elevatedButtonTheme: ElevatedButtonThemeData(
+                  style: ElevatedButton.styleFrom(
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+
+                // Card Theme
+                cardTheme: CardThemeData(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
-            ),
 
-            // Card Theme
-            cardTheme: CardThemeData(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-
-          // Sistema de navegación con rutas nombradas
-          initialRoute: RouteNames.splash,
-          onGenerateRoute: AppRouter.onGenerateRoute,
+              // Sistema de navegación con rutas nombradas
+              initialRoute: RouteNames.splash,
+              onGenerateRoute: AppRouter.onGenerateRoute,
+            );
+          },
         ),
       ),
     );

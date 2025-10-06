@@ -48,7 +48,7 @@ class AppDrawer extends StatelessWidget {
                   icon: Icons.person_outline,
                   text: 'Mi Perfil',
                   onTap: () {
-                    // TODO: Navegar a la pantalla de perfil
+                    Navigator.of(context).pushNamed(RouteNames.profile);
                   },
                 ),
               if (state is AuthAuthenticated)

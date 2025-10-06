@@ -6,7 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:conectasoc/features/auth/domain/repositories/repositories.dart';
 import 'package:conectasoc/features/auth/domain/usecases/usecases.dart';
-import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository repository;
@@ -30,9 +31,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoadRegisterData>(_onLoadRegisterData);
     on<AuthSwitchMembership>(_onSwitchMembership);
     on<AuthCheckRequested>(_onAuthCheckRequested);
+    on<AuthLeaveAssociation>(_onLeaveAssociation);
     on<AuthSaveLocalUser>(_onSaveLocalUser);
     on<AuthSignInRequested>(_onSignInRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
+    on<AuthUserUpdated>(_onUserUpdated);
     // on<AuthUpgradeToRegistered>(_onUpgradeToRegistered); // This event seems to have no implementation yet
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthDeleteLocalUser>(_onDeleteLocalUser);
@@ -43,6 +46,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> close() {
     _userSubscription?.cancel();
     return super.close();
+  }
+
+  void _onUserUpdated(AuthUserUpdated event, Emitter<AuthState> emit) {
+    final currentState = state;
+    if (currentState is AuthAuthenticated) {
+      // Emitir un nuevo estado con el usuario actualizado, manteniendo la membresía actual.
+      emit(AuthAuthenticated(event.user, currentState.currentMembership));
+    } else if (currentState is AuthLocalUser) {
+      // Si es un usuario local, también actualizamos sus datos.
+    }
   }
 
   void _onUserChanged(firebase.User? firebaseUser) {
@@ -308,6 +321,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (_) {
         // El stream de authStateChanges se encargará de emitir AuthUnauthenticated
         // tras el logout de Firebase.
+      },
+    );
+  }
+
+  Future<void> _onLeaveAssociation(
+    AuthLeaveAssociation event,
+    Emitter<AuthState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AuthAuthenticated) return;
+
+    // Regla de negocio: No se puede abandonar la última asociación.
+    if (currentState.user.memberships.length <= 1) {
+      emit(const AuthError(
+          'No puedes abandonar tu última asociación. Debes eliminar tu cuenta.'));
+      // Volver al estado autenticado anterior para que la UI no se quede en error.
+      emit(currentState);
+      return;
+    }
+
+    emit(AuthLoading());
+
+    final result = await repository.leaveAssociation(event.membership);
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) {
+        add(AuthCheckRequested()); // Recargar el estado del usuario
       },
     );
   }

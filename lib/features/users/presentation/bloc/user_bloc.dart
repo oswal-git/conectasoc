@@ -3,8 +3,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/domain/usecases/usecases.dart';
-import 'package:conectasoc/features/users/presentation/bloc/users_event.dart';
-import 'package:conectasoc/features/users/presentation/bloc/users_state.dart';
+import 'package:conectasoc/features/users/presentation/bloc/user_event.dart';
+import 'package:conectasoc/features/users/presentation/bloc/user_state.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final JoinAssociationUseCase joinAssociationUseCase;

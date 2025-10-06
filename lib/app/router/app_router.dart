@@ -1,9 +1,13 @@
 // lib/app/router/app_router.dart
 
-import 'package:conectasoc/features/auth/presentation/presentation.dart';
-import 'package:conectasoc/features/users/presentation/pages/pages.dart';
-import 'package:conectasoc/features/home/presentation/pages/pages.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+
+import 'package:conectasoc/features/auth/presentation/presentation.dart';
+import 'package:conectasoc/features/home/presentation/pages/pages.dart';
+import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/users/presentation/pages/pages.dart';
+import 'package:conectasoc/injection_container.dart';
 
 import 'route_names.dart';
 
@@ -43,6 +47,14 @@ class AppRouter {
       case RouteNames.joinAssociation:
         return MaterialPageRoute(
           builder: (_) => const JoinAssociationPage(),
+        );
+
+      case RouteNames.profile:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<ProfileBloc>(),
+            child: const ProfilePage(),
+          ),
         );
 
       default:

@@ -1,16 +1,16 @@
 // lib/injection_container.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:conectasoc/features/users/data/repositories/users_repository_impl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Users - Data
-import 'package:conectasoc/features/users/data/datasources/users_remote_datasource.dart';
-import 'package:conectasoc/features/users/data/repositories/users_repository_impl.dart';
+import 'package:conectasoc/features/users/data/datasources/user_remote_datasource.dart';
 
 // Users - Presentation
-import 'package:conectasoc/features/users/presentation/bloc/blocs.dart';
+import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 
 // Users - Domain
 import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
@@ -84,8 +84,15 @@ Future<void> init() async {
   sl.registerLazySingleton(() => JoinAssociationUseCase(sl()));
   sl.registerLazySingleton<UserRepository>(
       () => UserRepositoryImpl(remoteDataSource: sl()));
+  // Se elimina la dependencia de FirebaseStorage, ya que se usa CloudinaryService.
   sl.registerLazySingleton<UserRemoteDataSource>(
       () => UserRemoteDataSourceImpl(firestore: sl()));
+
+  sl.registerFactory(
+    () => ProfileBloc(
+      userRepository: sl(),
+    ),
+  );
 
   // ============================================
   // CORE

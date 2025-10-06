@@ -63,4 +63,6 @@ abstract class AuthRepository {
     required String phone,
     String? description,
   });
+
+  Future<Either<Failure, void>> leaveAssociation(MembershipEntity membership);
 }

@@ -1,0 +1,30 @@
+{
+    "@@locale": "en",
+    "appTitle": "ConectAsoc",
+    "homePage": "Home",
+    "noArticlesYet": "No articles yet.",
+    "changeAssociation": "Change Association",
+    "unknownAssociation": "Unknown Association",
+    "role": "Role: {roleName}",
+    "@role": {
+        "placeholders": {
+            "roleName": {}
+        }
+    },
+    "cancel": "Cancel",
+    "errorLoadingAssociations": "Error loading associations: {error}",
+    "retry": "Retry",
+    "createAccount": "Create Account",
+    "registrationError": "Registration Error",
+    "accept": "Accept",
+    "unexpectedError": "An unexpected error occurred.",
+    "leaveAssociation": "Leave Association",
+    "leave": "Leave",
+    "leaveAssociationConfirmationTitle": "Confirm Leave",
+    "leaveAssociationConfirmationMessage": "Are you sure you want to leave the association '{associationName}'? This action cannot be undone.",
+    "@leaveAssociationConfirmationMessage": {
+        "placeholders": {
+            "associationName": {}
+        }
+    }
+}

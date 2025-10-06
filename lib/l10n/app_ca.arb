@@ -1,0 +1,30 @@
+{
+    "@@locale": "ca",
+    "appTitle": "ConectAsoc",
+    "homePage": "Inici",
+    "noArticlesYet": "No hi ha articles per ara.",
+    "changeAssociation": "Canviar d'Associació",
+    "unknownAssociation": "Associació desconeguda",
+    "role": "Rol: {roleName}",
+    "@role": {
+        "placeholders": {
+            "roleName": {}
+        }
+    },
+    "cancel": "Cancel·lar",
+    "errorLoadingAssociations": "Error en carregar les associacions: {error}",
+    "retry": "Reintentar",
+    "createAccount": "Crear Compte",
+    "registrationError": "Error en el Registre",
+    "accept": "Acceptar",
+    "unexpectedError": "Ha ocorregut un error inesperat.",
+    "leaveAssociation": "Abandonar Associació",
+    "leave": "Abandonar",
+    "leaveAssociationConfirmationTitle": "Confirmar abandó",
+    "leaveAssociationConfirmationMessage": "Estàs segur que vols abandonar l'associació '{associationName}'? Aquesta acció no es pot desfer.",
+    "@leaveAssociationConfirmationMessage": {
+        "placeholders": {
+            "associationName": {}
+        }
+    }
+}

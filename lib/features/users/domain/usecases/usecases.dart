@@ -1,5 +1,5 @@
-export 'create_users_usecase.dart';
+export 'create_user_usecase.dart';
 export 'join_association_usecase.dart';
-export 'get_users_usecase.dart';
-export 'update_users_usecase.dart';
-export 'delete_users_usecase.dart';
+export 'get_user_usecase.dart';
+export 'update_user_usecase.dart';
+export 'delete_user_usecase.dart';

@@ -24,6 +24,7 @@ abstract class AuthRemoteDataSource {
   Future<void> signOut();
   Future<void> resetPasswordWithEmail(String email);
   Future<List<AssociationModel>> getAllAssociations();
+  Future<void> removeMembership(String associationId, String role);
   Future<AssociationModel> createAssociation(AssociationModel association);
 }
 
@@ -233,6 +234,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return 'Demasiados intentos. Intente más tarde';
       default:
         return 'Error de autenticación: $code';
+    }
+  }
+
+  @override
+  Future<void> removeMembership(String associationId, String role) async {
+    final user = firebaseAuth.currentUser;
+    if (user == null) {
+      throw ServerException('Usuario no autenticado');
+    }
+
+    try {
+      await firestore.collection('users').doc(user.uid).update({
+        'memberships': FieldValue.arrayRemove([
+          {
+            'associationId': associationId,
+            'role': role,
+          }
+        ])
+      });
+    } catch (e) {
+      throw ServerException('Error al eliminar la membresía: $e');
     }
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as path;
 import 'package:crypto/crypto.dart';
 import 'package:conectasoc/core/constants/cloudinary_config.dart';
+import 'package:conectasoc/services/snackbar_service.dart';
 
 // Solo importar image si no es web
 import 'package:image/image.dart' as img
@@ -93,7 +94,7 @@ class CloudinaryService {
 
       return false;
     } catch (e) {
-      print('Error eliminando imagen: $e');
+      SnackBarService.showSnackBar('Error eliminando imagen: $e', isError: true);
       return false;
     }
   }
@@ -150,7 +151,7 @@ class CloudinaryService {
     // En web, no podemos usar la librería image para optimización pesada
     // Enviamos directamente con transformaciones en Cloudinary
     if (kIsWeb) {
-      print(
+      SnackBarService.showSnackBar(
           'Web detected: Skipping client-side optimization, using Cloudinary transformations');
       return originalBytes;
     }
@@ -187,7 +188,7 @@ class CloudinaryService {
 
       return Uint8List.fromList(compressedBytes);
     } catch (e) {
-      print('Error in image optimization: $e');
+      SnackBarService.showSnackBar('Error in image optimization: $e', isError: true);
       // Si falla la optimización, enviar original
       return originalBytes;
     }
