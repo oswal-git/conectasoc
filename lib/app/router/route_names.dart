@@ -9,4 +9,6 @@ class RouteNames {
   static const String home = '/home';
   static const String joinAssociation = '/joinAssociation';
   static const String profile = '/profile';
+  static const String associationsList = '/associations';
+  static const String associationEdit = '/association/edit';
 }

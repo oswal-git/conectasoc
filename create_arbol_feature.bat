@@ -50,8 +50,8 @@ mkdir lib\features\home\presentation
 :: home/presentation/bloc/
 mkdir lib\features\home\presentation\bloc
 echo. > lib\features\home\presentation\bloc\home_bloc.dart
-echo. > lib\features\home\presentation\bloc\home_detail_bloc.dart
-echo. > lib\features\home\presentation\bloc\home_editor_bloc.dart
+echo. > lib\features\home\presentation\bloc\home_event_bloc.dart
+echo. > lib\features\home\presentation\bloc\home_state_bloc.dart
 
 :: home/presentation/pages/
 mkdir lib\features\home\presentation\pages

@@ -321,6 +321,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Recortar Imagen'**
   String get cropImage;
+
+  /// No description provided for @association.
+  ///
+  /// In es, this message translates to:
+  /// **'Asociación'**
+  String get association;
+
+  /// No description provided for @search.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar...'**
+  String get search;
+
+  /// No description provided for @contact.
+  ///
+  /// In es, this message translates to:
+  /// **'Contacto'**
+  String get contact;
+
+  /// No description provided for @noResultsFound.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontraron resultados'**
+  String get noResultsFound;
+
+  /// No description provided for @associationsListTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Listado de asociaciones'**
+  String get associationsListTitle;
 }
 
 class _AppLocalizationsDelegate

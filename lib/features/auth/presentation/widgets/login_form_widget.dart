@@ -4,16 +4,16 @@ import 'package:conectasoc/injection_container.dart';
 import 'package:flutter/material.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
-import 'auth_text_field.dart';
+import 'auth_text_field_widget.dart';
 
-class LoginForm extends StatefulWidget {
-  const LoginForm({super.key});
+class LoginFormWidget extends StatefulWidget {
+  const LoginFormWidget({super.key});
 
   @override
-  State<LoginForm> createState() => _LoginFormState();
+  State<LoginFormWidget> createState() => _LoginFormWidgetState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _LoginFormWidgetState extends State<LoginFormWidget> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -44,7 +44,7 @@ class _LoginFormState extends State<LoginForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthTextField(
+          AuthTextFieldWidget(
             controller: _emailController,
             label: 'Email',
             hint: 'tu@email.com',
@@ -62,7 +62,7 @@ class _LoginFormState extends State<LoginForm> {
             },
           ),
           const SizedBox(height: 16),
-          AuthTextField(
+          AuthTextFieldWidget(
             controller: _passwordController,
             label: 'Contraseña',
             obscureText: _obscurePassword,
@@ -92,7 +92,6 @@ class _LoginFormState extends State<LoginForm> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
-                // TODO: Navegar a recuperar contraseña
                 _showPasswordResetDialog();
               },
               child: const Text('¿Olvidaste tu contraseña?'),

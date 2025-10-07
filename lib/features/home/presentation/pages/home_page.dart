@@ -2,8 +2,8 @@
 
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
-import 'package:conectasoc/features/home/presentation/widgets/association_provider.dart';
-import 'package:conectasoc/features/home/presentation/widgets/app_drawer.dart';
+import 'package:conectasoc/features/home/presentation/widgets/app_drawer_widget.dart';
+import 'package:conectasoc/features/home/presentation/widgets/association_provider_widget.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,13 +15,13 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        return AssociationProvider(
+        return AssociationProviderWidget(
           child: Builder(
             builder: (innerContext) => Scaffold(
               appBar: AppBar(
                 title: _buildAppBarTitle(innerContext, state),
               ),
-              drawer: const AppDrawer(),
+              drawer: const AppDrawerWidget(),
               body: const Center(
                 child: Text(''), // El texto se mostrará dentro del provider
               ),
@@ -34,7 +34,7 @@ class HomePage extends StatelessWidget {
 
   Widget _buildAppBarTitle(BuildContext context, AuthState state) {
     final l10n = AppLocalizations.of(context)!;
-    final allAssociations = AssociationProvider.of(context);
+    final allAssociations = AssociationProviderWidget.of(context);
 
     if (state is AuthAuthenticated && state.currentMembership != null) {
       // Si el usuario tiene más de una membresía, muestra un selector
@@ -68,7 +68,7 @@ class HomePage extends StatelessWidget {
 
   void _showMembershipSwitcher(
       BuildContext context, AuthAuthenticated authState) {
-    final allAssociations = AssociationProvider.of(context);
+    final allAssociations = AssociationProviderWidget.of(context);
     final authBloc = context.read<AuthBloc>();
 
     showDialog(
@@ -98,6 +98,17 @@ class HomePage extends StatelessWidget {
                 return Column(
                   children: [
                     ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        backgroundImage: association?.logoUrl != null &&
+                                association!.logoUrl!.isNotEmpty
+                            ? NetworkImage(association.logoUrl!)
+                            : null,
+                        child: association?.logoUrl == null ||
+                                association!.logoUrl!.isEmpty
+                            ? const Icon(Icons.group, color: Colors.grey)
+                            : null,
+                      ),
                       title: Text(associationName ?? l10n.unknownAssociation),
                       subtitle: Text(l10n.role(membership.role)),
                       trailing: isCurrent

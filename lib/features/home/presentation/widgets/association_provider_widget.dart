@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:conectasoc/features/auth/domain/domain.dart';
 import 'package:conectasoc/injection_container.dart';
 
-class AssociationProvider extends StatefulWidget {
+class AssociationProviderWidget extends StatefulWidget {
   final Widget child;
 
-  const AssociationProvider({super.key, required this.child});
+  const AssociationProviderWidget({super.key, required this.child});
 
   static List<AssociationEntity> of(BuildContext context) {
     final _AssociationProviderScope? scope =
@@ -18,10 +18,11 @@ class AssociationProvider extends StatefulWidget {
   }
 
   @override
-  State<AssociationProvider> createState() => _AssociationProviderState();
+  State<AssociationProviderWidget> createState() =>
+      _AssociationProviderWidgetState();
 }
 
-class _AssociationProviderState extends State<AssociationProvider> {
+class _AssociationProviderWidgetState extends State<AssociationProviderWidget> {
   List<AssociationEntity> _associations = [];
   bool _isLoading = true;
   String? _error;

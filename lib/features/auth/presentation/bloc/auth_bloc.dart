@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:conectasoc/features/auth/domain/repositories/repositories.dart';
@@ -51,8 +52,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _onUserUpdated(AuthUserUpdated event, Emitter<AuthState> emit) {
     final currentState = state;
     if (currentState is AuthAuthenticated) {
-      // Emitir un nuevo estado con el usuario actualizado, manteniendo la membresía actual.
-      emit(AuthAuthenticated(event.user, currentState.currentMembership));
+      // Al actualizar el usuario, es posible que sus membresías hayan cambiado.
+      // Buscamos la membresía actual en la nueva lista de membresías.
+      final updatedMembership = event.user.memberships.firstWhereOrNull(
+            (m) =>
+                m.associationId ==
+                currentState.currentMembership?.associationId,
+          ) ??
+          event.user.memberships
+              .firstOrNull; // Si no se encuentra, usamos la primera o null.
+
+      emit(AuthAuthenticated(event.user, updatedMembership));
     } else if (currentState is AuthLocalUser) {
       // Si es un usuario local, también actualizamos sus datos.
     }

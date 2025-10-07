@@ -2,7 +2,7 @@
 
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
-import '../entities/association_entity.dart';
+import '../../../associations/domain/entities/association_entity.dart';
 import '../repositories/auth_repository.dart';
 
 class GetAssociationsUseCase {

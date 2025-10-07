@@ -1,27 +1,27 @@
 // lib/features/auth/presentation/widgets/register_form.dart
 
-import 'package:conectasoc/features/auth/domain/entities/association_entity.dart';
+import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
-import 'package:conectasoc/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:conectasoc/features/auth/presentation/widgets/auth_text_field_widget.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:flutter/material.dart';
 
-class RegisterForm extends StatefulWidget {
+class RegisterFormWidget extends StatefulWidget {
   final List<AssociationEntity> associations;
   final bool isFirstUser;
 
-  const RegisterForm({
+  const RegisterFormWidget({
     super.key,
     required this.associations,
     this.isFirstUser = false,
   });
 
   @override
-  State<RegisterForm> createState() => _RegisterFormState();
+  State<RegisterFormWidget> createState() => _RegisterFormWidgetState();
 }
 
-class _RegisterFormState extends State<RegisterForm> {
+class _RegisterFormWidgetState extends State<RegisterFormWidget> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -111,7 +111,7 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             const SizedBox(height: 16),
 
-            AuthTextField(
+            AuthTextFieldWidget(
               controller: _firstNameController,
               label: 'Nombre *',
               prefixIcon: const Icon(Icons.person_outline),
@@ -124,7 +124,7 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             const SizedBox(height: 12),
 
-            AuthTextField(
+            AuthTextFieldWidget(
               controller: _lastNameController,
               label: 'Apellidos *',
               prefixIcon: const Icon(Icons.person_outline),
@@ -137,7 +137,7 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             const SizedBox(height: 12),
 
-            AuthTextField(
+            AuthTextFieldWidget(
               controller: _emailController,
               label: 'Email *',
               hint: 'tu@email.com',
@@ -156,7 +156,7 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             const SizedBox(height: 12),
 
-            AuthTextField(
+            AuthTextFieldWidget(
               controller: _phoneController,
               label: 'Teléfono',
               keyboardType: TextInputType.phone,
@@ -173,7 +173,7 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             const SizedBox(height: 16),
 
-            AuthTextField(
+            AuthTextFieldWidget(
               controller: _passwordController,
               label: 'Contraseña *',
               obscureText: _obscurePassword,
@@ -198,7 +198,7 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             const SizedBox(height: 12),
 
-            AuthTextField(
+            AuthTextFieldWidget(
               controller: _confirmPasswordController,
               label: 'Confirmar Contraseña *',
               obscureText: _obscureConfirmPassword,
@@ -275,7 +275,7 @@ class _RegisterFormState extends State<RegisterForm> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    AuthTextField(
+                    AuthTextFieldWidget(
                       controller: _newAssocShortNameController,
                       label: 'Nombre Corto *',
                       hint: 'Ej: ASOC2024',
@@ -288,7 +288,7 @@ class _RegisterFormState extends State<RegisterForm> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    AuthTextField(
+                    AuthTextFieldWidget(
                       controller: _newAssocLongNameController,
                       label: 'Nombre Completo *',
                       hint: 'Ej: Asociación de Vecinos 2024',
@@ -301,20 +301,20 @@ class _RegisterFormState extends State<RegisterForm> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    AuthTextField(
+                    AuthTextFieldWidget(
                       controller: _newAssocEmailController,
                       label: 'Email de Contacto',
                       keyboardType: TextInputType.emailAddress,
                       hint: 'Opcional (se usará tu email)',
                     ),
                     const SizedBox(height: 12),
-                    AuthTextField(
+                    AuthTextFieldWidget(
                       controller: _newAssocContactController,
                       label: 'Persona de Contacto',
                       hint: 'Opcional (se usará tu nombre)',
                     ),
                     const SizedBox(height: 12),
-                    AuthTextField(
+                    AuthTextFieldWidget(
                       controller: _newAssocPhoneController,
                       label: 'Teléfono de Contacto',
                       keyboardType: TextInputType.phone,

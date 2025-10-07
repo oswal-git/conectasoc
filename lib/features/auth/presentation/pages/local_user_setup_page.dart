@@ -1,11 +1,11 @@
 // lib/features/auth/presentation/pages/local_user_setup_page.dart
 
-import 'package:conectasoc/features/auth/domain/entities/association_entity.dart';
+import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/auth/domain/repositories/auth_repository.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
-import 'package:conectasoc/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:conectasoc/features/auth/presentation/widgets/auth_text_field_widget.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -157,7 +157,7 @@ class _LocalUserSetupPageState extends State<LocalUserSetupPage> {
                         const SizedBox(height: 32),
 
                         // NOMBRE
-                        AuthTextField(
+                        AuthTextFieldWidget(
                           controller: _nameController,
                           label: 'Tu Nombre *',
                           hint: 'Cómo quieres que te llamemos',

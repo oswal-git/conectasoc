@@ -1,6 +1,8 @@
 // lib/injection_container.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:conectasoc/features/associations/domain/usecases/get_all_associations_usecase.dart';
+import 'package:conectasoc/features/associations/presentation/bloc/association_bloc.dart';
 import 'package:conectasoc/features/users/data/repositories/users_repository_impl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
@@ -93,6 +95,16 @@ Future<void> init() async {
       userRepository: sl(),
     ),
   );
+
+  // Associations Feature
+  sl.registerFactory(
+    () => AssociationBloc(
+      getAllAssociationsUseCase: sl(),
+    ),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetAllAssociationsUseCase(sl()));
 
   // ============================================
   // CORE

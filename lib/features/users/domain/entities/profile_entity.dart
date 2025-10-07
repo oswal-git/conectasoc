@@ -52,7 +52,7 @@ class ProfileEntity extends Equatable {
       lastName: lastname,
       phone: phone,
       language: language,
-      avatarUrl: photoUrl,
+      avatarUrl: photoUrl, // Asegurarse de que la nueva URL se propaga
       // Se mantiene el resto de la información del usuario original.
       // uid, email, status, memberships, etc. no se modifican aquí.
     );

@@ -3,7 +3,7 @@
 import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
-import 'package:conectasoc/features/auth/presentation/widgets/register_form.dart';
+import 'package:conectasoc/features/auth/presentation/widgets/register_form_widget.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -90,7 +90,7 @@ class _RegisterViewState extends State<RegisterView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: RegisterForm(
+                  child: RegisterFormWidget(
                     associations: _loadedData!.associations,
                     isFirstUser: _loadedData!.isFirstUser,
                   ),

@@ -199,7 +199,7 @@ echo. > lib\features\articles\data\models\category_model.dart
 
 :: articles/data/repositories/
 mkdir lib\features\articles\data\repositories
-echo. > lib\features\articles\data\repositories\articles_repository_impl.dart
+echo. > lib\features\articles\data\repositories\article_repository_impl.dart
 
 :: articles/domain/
 mkdir lib\features\articles\domain
@@ -211,7 +211,7 @@ echo. > lib\features\articles\domain\entities\item_article_entity.dart
 
 :: articles/domain/repositories/
 mkdir lib\features\articles\domain\repositories
-echo. > lib\features\articles\domain\repositories\articles_repository.dart
+echo. > lib\features\articles\domain\repositories\article_repository.dart
 
 :: articles/domain/usecases/
 mkdir lib\features\articles\domain\usecases
@@ -225,13 +225,13 @@ mkdir lib\features\articles\presentation
 
 :: articles/presentation/bloc/
 mkdir lib\features\articles\presentation\bloc
-echo. > lib\features\articles\presentation\bloc\articles_bloc.dart
-echo. > lib\features\articles\presentation\bloc\article_detail_bloc.dart
-echo. > lib\features\articles\presentation\bloc\article_editor_bloc.dart
+echo. > lib\features\articles\presentation\bloc\article_bloc.dart
+echo. > lib\features\articles\presentation\bloc\article_event_bloc.dart
+echo. > lib\features\articles\presentation\bloc\article_state_bloc.dart
 
 :: articles/presentation/pages/
 mkdir lib\features\articles\presentation\pages
-echo. > lib\features\articles\presentation\pages\articles_list_page.dart
+echo. > lib\features\articles\presentation\pages\article_list_page.dart
 echo. > lib\features\articles\presentation\pages\article_detail_page.dart
 echo. > lib\features\articles\presentation\pages\article_editor_page.dart
 
@@ -273,7 +273,7 @@ echo. > lib\features\users\domain\entities\item_user_entity.dart
 
 :: users/domain/repositories/
 mkdir lib\features\users\domain\repositories
-echo. > lib\features\users\domain\repositories\users_repository.dart
+echo. > lib\features\users\domain\repositories\user_repository.dart
 
 :: users/domain/usecases/
 mkdir lib\features\users\domain\usecases
@@ -287,13 +287,13 @@ mkdir lib\features\users\presentation
 
 :: users/presentation/bloc/
 mkdir lib\features\users\presentation\bloc
-echo. > lib\features\users\presentation\bloc\users_bloc.dart
-echo. > lib\features\users\presentation\bloc\user_detail_bloc.dart
-echo. > lib\features\users\presentation\bloc\user_editor_bloc.dart
+echo. > lib\features\users\presentation\bloc\user_bloc.dart
+echo. > lib\features\users\presentation\bloc\user_event_bloc.dart
+echo. > lib\features\users\presentation\bloc\user_state_bloc.dart
 
 :: users/presentation/pages/
 mkdir lib\features\users\presentation\pages
-echo. > lib\features\users\presentation\pages\users_list_page.dart
+echo. > lib\features\users\presentation\pages\user_list_page.dart
 echo. > lib\features\users\presentation\pages\user_detail_page.dart
 echo. > lib\features\users\presentation\pages\user_editor_page.dart
 
@@ -323,7 +323,7 @@ echo. > lib\features\associations\data\models\type_model.dart
 
 :: associations/data/repositories/
 mkdir lib\features\associations\data\repositories
-echo. > lib\features\associations\data\repositories\associations_repository_impl.dart
+echo. > lib\features\associations\data\repositories\association_repository_impl.dart
 
 :: associations/domain/
 mkdir lib\features\associations\domain
@@ -335,7 +335,7 @@ echo. > lib\features\associations\domain\entities\item_association_entity.dart
 
 :: associations/domain/repositories/
 mkdir lib\features\associations\domain\repositories
-echo. > lib\features\associations\domain\repositories\associations_repository.dart
+echo. > lib\features\associations\domain\repositories\association_repository.dart
 
 :: associations/domain/usecases/
 mkdir lib\features\associations\domain\usecases
@@ -349,13 +349,13 @@ mkdir lib\features\associations\presentation
 
 :: associations/presentation/bloc/
 mkdir lib\features\associations\presentation\bloc
-echo. > lib\features\associations\presentation\bloc\associations_bloc.dart
-echo. > lib\features\associations\presentation\bloc\association_detail_bloc.dart
-echo. > lib\features\associations\presentation\bloc\association_editor_bloc.dart
+echo. > lib\features\associations\presentation\bloc\association_bloc.dart
+echo. > lib\features\associations\presentation\bloc\association_event_bloc.dart
+echo. > lib\features\associations\presentation\bloc\association_state_bloc.dart
 
 :: associations/presentation/pages/
 mkdir lib\features\associations\presentation\pages
-echo. > lib\features\associations\presentation\pages\associations_list_page.dart
+echo. > lib\features\associations\presentation\pages\association_list_page.dart
 echo. > lib\features\associations\presentation\pages\association_detail_page.dart
 echo. > lib\features\associations\presentation\pages\association_editor_page.dart
 
@@ -412,8 +412,8 @@ mkdir lib\features\notifications\presentation
 :: notifications/presentation/bloc/
 mkdir lib\features\notifications\presentation\bloc
 echo. > lib\features\notifications\presentation\bloc\notifications_bloc.dart
-echo. > lib\features\notifications\presentation\bloc\notification_detail_bloc.dart
-echo. > lib\features\notifications\presentation\bloc\notification_editor_bloc.dart
+echo. > lib\features\notifications\presentation\bloc\notification_event_bloc.dart
+echo. > lib\features\notifications\presentation\bloc\notification_state_bloc.dart
 
 :: notifications/presentation/pages/
 mkdir lib\features\notifications\presentation\pages

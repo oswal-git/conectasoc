@@ -36,5 +36,10 @@
     "langCatalan": "Català",
     "gallery": "Galería",
     "camera": "Cámara",
-    "cropImage": "Recortar Imagen"
+    "cropImage": "Recortar Imagen",
+    "association": "Asociación",
+    "search": "Buscar...",
+    "contact": "Contacto",
+    "noResultsFound": "No se encontraron resultados",
+    "associationsListTitle": "Listado de asociaciones"
 }

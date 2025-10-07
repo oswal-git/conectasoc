@@ -1,5 +1,6 @@
 // lib/app/router/app_router.dart
 
+import 'package:conectasoc/features/associations/presentation/pages/association_list_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
@@ -56,6 +57,15 @@ class AppRouter {
             child: const ProfilePage(),
           ),
         );
+      case RouteNames.associationsList:
+        return MaterialPageRoute(builder: (_) => const AssociationListPage());
+      case RouteNames.associationEdit:
+        // TODO: Crear la página de edición de asociación
+        return MaterialPageRoute(
+            builder: (_) => Scaffold(
+                appBar: AppBar(title: const Text('Editar Asociación')),
+                body: Center(
+                    child: Text('ID de Asociación: ${settings.arguments}'))));
 
       default:
         return MaterialPageRoute(

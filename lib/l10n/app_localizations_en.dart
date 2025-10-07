@@ -124,4 +124,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cropImage => 'Crop Image';
+
+  @override
+  String get association => 'Association';
+
+  @override
+  String get search => 'Search...';
+
+  @override
+  String get contact => 'Contact';
+
+  @override
+  String get noResultsFound => 'No results found';
+
+  @override
+  String get associationsListTitle => 'Associations List';
 }

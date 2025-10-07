@@ -7,8 +7,8 @@ import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+class AppDrawerWidget extends StatelessWidget {
+  const AppDrawerWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,23 +26,43 @@ class AppDrawer extends StatelessWidget {
                 onTap: () =>
                     Navigator.of(context).pushReplacementNamed(RouteNames.home),
               ),
-              if (_shouldShowAdminMenu(state)) ...[
-                _buildDrawerItem(
-                  context: context,
-                  icon: Icons.people_outline,
-                  text: AppLocalizations.of(context)!.users,
-                  onTap: () {
-                    // TODO: Navegar a la pantalla de usuarios
-                  },
-                ),
-                _buildDrawerItem(
-                  context: context,
-                  icon: Icons.business_outlined,
-                  text: AppLocalizations.of(context)!.associations,
-                  onTap: () {
-                    // TODO: Navegar a la pantalla de asociaciones
-                  },
-                ),
+              // Menú de Administración
+              if (state is AuthAuthenticated) ...[
+                // Las opciones de administración aparecen si el rol en la membresía
+                // actual es 'admin' o 'superadmin'.
+                if (state.currentMembership?.role == 'admin' ||
+                    state.currentMembership?.role == 'superadmin') ...[
+                  _buildDrawerItem(
+                    context: context,
+                    icon: Icons.people_outline,
+                    text: AppLocalizations.of(context)!.users,
+                    onTap: () {
+                      // TODO: Navegar a la pantalla de usuarios
+                      // Por ejemplo: Navigator.of(context).pushNamed(RouteNames.usersList);
+                    },
+                  ),
+                  // Si el usuario es superadmin global, puede ver todas las asociaciones.
+                  // Si es solo admin, puede editar la suya.
+                  // La propiedad `isSuperAdmin` del usuario global indica si tiene ese rol en CUALQUIER membresía.
+                  // Esto es útil para decidir si mostrar la lista completa de asociaciones o solo la actual.
+                  if (state.user.isSuperAdmin &&
+                      state.currentMembership?.role == 'superadmin')
+                    _buildDrawerItem(
+                        context: context,
+                        icon: Icons.business_outlined,
+                        text:
+                            AppLocalizations.of(context)!.associationsListTitle,
+                        onTap: () => Navigator.of(context)
+                            .pushNamed(RouteNames.associationsList))
+                  else
+                    _buildDrawerItem(
+                        context: context,
+                        icon: Icons.business_outlined,
+                        text: AppLocalizations.of(context)!.association,
+                        onTap: () => Navigator.of(context).pushNamed(
+                            RouteNames.associationEdit,
+                            arguments: state.currentMembership!.associationId)),
+                ],
               ],
               if (state is AuthAuthenticated)
                 _buildDrawerItem(
@@ -69,13 +89,6 @@ class AppDrawer extends StatelessWidget {
         },
       ),
     );
-  }
-
-  bool _shouldShowAdminMenu(AuthState state) {
-    if (state is AuthAuthenticated) {
-      return state.user.isSuperAdmin || state.user.isAdmin;
-    }
-    return false;
   }
 
   Widget _buildDrawerHeader(BuildContext context, AuthState state) {

@@ -44,7 +44,7 @@ class UserModel extends UserEntity {
       firstName: data['firstName'] ?? '',
       lastName: data['lastName'] ?? '',
       phone: data['phone'],
-      avatarUrl: data['avatar'],
+      avatarUrl: data['avatarUrl'],
       authProvider: data['authProvider'] ?? 'password',
       notificationSettings: data['notificationSettings'] != null
           ? NotificationSettings.fromMap(

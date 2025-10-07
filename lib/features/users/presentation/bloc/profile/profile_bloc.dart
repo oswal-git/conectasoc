@@ -109,8 +109,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
                 .add(AuthUserUpdated(updatedUser.toAuthUser(originalAuthUser)));
             // Emitir un estado de éxito para que la UI pueda reaccionar (mostrar SnackBar).
             emit(ProfileUpdateSuccess());
-            // Volver al estado cargado con los datos actualizados.
-            emit(ProfileLoaded(user: updatedUser, isSaving: false));
+            // Volver al estado cargado, asegurando que la UI tenga los datos más recientes,
+            // incluyendo la nueva URL de la imagen si se subió una.
+            // También limpiamos el newImagePath local ya que la subida ha finalizado.
+            emit(ProfileLoaded(
+                user: updatedUser, isSaving: false, newImagePath: null));
           }
         },
       );

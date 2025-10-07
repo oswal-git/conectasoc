@@ -124,4 +124,19 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get cropImage => 'Retallar Imatge';
+
+  @override
+  String get association => 'Associació';
+
+  @override
+  String get search => 'Cercar...';
+
+  @override
+  String get contact => 'Contacte';
+
+  @override
+  String get noResultsFound => 'No s\'han trobat resultats';
+
+  @override
+  String get associationsListTitle => 'Llistat d\'associacions';
 }
