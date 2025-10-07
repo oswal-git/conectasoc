@@ -94,8 +94,31 @@ class CloudinaryService {
 
       return false;
     } catch (e) {
-      SnackBarService.showSnackBar('Error eliminando imagen: $e', isError: true);
+      SnackBarService.showSnackBar('Error eliminando imagen: $e',
+          isError: true);
       return false;
+    }
+  }
+
+  /// Extrae el public_id de una URL de Cloudinary.
+  ///
+  /// Ejemplo:
+  /// De: "https://res.cloudinary.com/demo/image/upload/v1629293892/folder/image.jpg"
+  /// Extrae: "folder/image"
+  static String? getPublicIdFromUrl(String imageUrl) {
+    try {
+      final uri = Uri.parse(imageUrl);
+      // La ruta suele ser /<cloud_name>/image/upload/<version>/<public_id_con_extension>
+      final pathSegments = uri.pathSegments;
+      if (pathSegments.length > 4) {
+        // Unimos los segmentos desde 'upload' en adelante y quitamos la versión
+        final publicIdWithExtension = pathSegments.sublist(4).join('/');
+        return publicIdWithExtension.substring(
+            0, publicIdWithExtension.lastIndexOf('.'));
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 
@@ -188,7 +211,8 @@ class CloudinaryService {
 
       return Uint8List.fromList(compressedBytes);
     } catch (e) {
-      SnackBarService.showSnackBar('Error in image optimization: $e', isError: true);
+      SnackBarService.showSnackBar('Error in image optimization: $e',
+          isError: true);
       // Si falla la optimización, enviar original
       return originalBytes;
     }

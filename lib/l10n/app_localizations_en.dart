@@ -64,4 +64,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String leaveAssociationConfirmationMessage(Object associationName) {
     return 'Are you sure you want to leave the association \'$associationName\'? This action cannot be undone.';
   }
+
+  @override
+  String get users => 'Users';
+
+  @override
+  String get associations => 'Associations';
+
+  @override
+  String get myProfile => 'My Profile';
+
+  @override
+  String get joinAssociation => 'Join Association';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get editProfile => 'Edit Profile';
+
+  @override
+  String get profileSavedSuccess => 'Profile saved successfully';
+
+  @override
+  String get profileLoadError => 'Error loading profile.';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get lastname => 'Lastname';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get phone => 'Phone';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get langSpanish => 'Spanish';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get langCatalan => 'Catalan';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get cropImage => 'Crop Image';
 }

@@ -6,11 +6,6 @@
     "changeAssociation": "Cambiar de Asociación",
     "unknownAssociation": "Asociación desconocida",
     "role": "Rol: {roleName}",
-    "@role": {
-        "placeholders": {
-            "roleName": {}
-        }
-    },
     "cancel": "Cancelar",
     "errorLoadingAssociations": "Error al cargar las asociaciones: {error}",
     "retry": "Reintentar",
@@ -22,9 +17,24 @@
     "leave": "Abandonar",
     "leaveAssociationConfirmationTitle": "Confirmar abandono",
     "leaveAssociationConfirmationMessage": "¿Estás seguro de que quieres abandonar la asociación '{associationName}'? Esta acción no se puede deshacer.",
-    "@leaveAssociationConfirmationMessage": {
-        "placeholders": {
-            "associationName": {}
-        }
-    }
+    "users": "Usuarios",
+    "associations": "Asociaciones",
+    "myProfile": "Mi Perfil",
+    "joinAssociation": "Unirse a Asociación",
+    "logout": "Cerrar Sesión",
+    "login": "Acceder",
+    "editProfile": "Editar Perfil",
+    "profileSavedSuccess": "Perfil guardado con éxito",
+    "profileLoadError": "Error al cargar el perfil.",
+    "name": "Nombre",
+    "lastname": "Apellidos",
+    "email": "Email",
+    "phone": "Teléfono",
+    "language": "Idioma",
+    "langSpanish": "Español",
+    "langEnglish": "English",
+    "langCatalan": "Català",
+    "gallery": "Galería",
+    "camera": "Cámara",
+    "cropImage": "Recortar Imagen"
 }

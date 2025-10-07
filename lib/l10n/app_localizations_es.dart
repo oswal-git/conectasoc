@@ -64,4 +64,64 @@ class AppLocalizationsEs extends AppLocalizations {
   String leaveAssociationConfirmationMessage(Object associationName) {
     return '¿Estás seguro de que quieres abandonar la asociación \'$associationName\'? Esta acción no se puede deshacer.';
   }
+
+  @override
+  String get users => 'Usuarios';
+
+  @override
+  String get associations => 'Asociaciones';
+
+  @override
+  String get myProfile => 'Mi Perfil';
+
+  @override
+  String get joinAssociation => 'Unirse a Asociación';
+
+  @override
+  String get logout => 'Cerrar Sesión';
+
+  @override
+  String get login => 'Acceder';
+
+  @override
+  String get editProfile => 'Editar Perfil';
+
+  @override
+  String get profileSavedSuccess => 'Perfil guardado con éxito';
+
+  @override
+  String get profileLoadError => 'Error al cargar el perfil.';
+
+  @override
+  String get name => 'Nombre';
+
+  @override
+  String get lastname => 'Apellidos';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get phone => 'Teléfono';
+
+  @override
+  String get language => 'Idioma';
+
+  @override
+  String get langSpanish => 'Español';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get langCatalan => 'Català';
+
+  @override
+  String get gallery => 'Galería';
+
+  @override
+  String get camera => 'Cámara';
+
+  @override
+  String get cropImage => 'Recortar Imagen';
 }

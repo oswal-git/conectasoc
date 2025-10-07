@@ -6,11 +6,6 @@
     "changeAssociation": "Change Association",
     "unknownAssociation": "Unknown Association",
     "role": "Role: {roleName}",
-    "@role": {
-        "placeholders": {
-            "roleName": {}
-        }
-    },
     "cancel": "Cancel",
     "errorLoadingAssociations": "Error loading associations: {error}",
     "retry": "Retry",
@@ -22,9 +17,24 @@
     "leave": "Leave",
     "leaveAssociationConfirmationTitle": "Confirm Leave",
     "leaveAssociationConfirmationMessage": "Are you sure you want to leave the association '{associationName}'? This action cannot be undone.",
-    "@leaveAssociationConfirmationMessage": {
-        "placeholders": {
-            "associationName": {}
-        }
-    }
+    "users": "Users",
+    "associations": "Associations",
+    "myProfile": "My Profile",
+    "joinAssociation": "Join Association",
+    "logout": "Logout",
+    "login": "Login",
+    "editProfile": "Edit Profile",
+    "profileSavedSuccess": "Profile saved successfully",
+    "profileLoadError": "Error loading profile.",
+    "name": "Name",
+    "lastname": "Lastname",
+    "email": "Email",
+    "phone": "Phone",
+    "language": "Language",
+    "langSpanish": "Spanish",
+    "langEnglish": "English",
+    "langCatalan": "Catalan",
+    "gallery": "Gallery",
+    "camera": "Camera",
+    "cropImage": "Crop Image"
 }

@@ -64,4 +64,64 @@ class AppLocalizationsCa extends AppLocalizations {
   String leaveAssociationConfirmationMessage(Object associationName) {
     return 'Estàs segur que vols abandonar l\'associació \'$associationName\'? Aquesta acció no es pot desfer.';
   }
+
+  @override
+  String get users => 'Usuaris';
+
+  @override
+  String get associations => 'Associacions';
+
+  @override
+  String get myProfile => 'El Meu Perfil';
+
+  @override
+  String get joinAssociation => 'Unir-se a Associació';
+
+  @override
+  String get logout => 'Tancar Sessió';
+
+  @override
+  String get login => 'Accedir';
+
+  @override
+  String get editProfile => 'Editar Perfil';
+
+  @override
+  String get profileSavedSuccess => 'Perfil desat amb èxit';
+
+  @override
+  String get profileLoadError => 'Error en carregar el perfil.';
+
+  @override
+  String get name => 'Nom';
+
+  @override
+  String get lastname => 'Cognoms';
+
+  @override
+  String get email => 'Correu electrònic';
+
+  @override
+  String get phone => 'Telèfon';
+
+  @override
+  String get language => 'Idioma';
+
+  @override
+  String get langSpanish => 'Español';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get langCatalan => 'Català';
+
+  @override
+  String get gallery => 'Galeria';
+
+  @override
+  String get camera => 'Càmera';
+
+  @override
+  String get cropImage => 'Retallar Imatge';
 }

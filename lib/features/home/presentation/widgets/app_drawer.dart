@@ -1,7 +1,9 @@
 // lib/features/home/presentation/widgets/app_drawer.dart
 
 import 'package:conectasoc/app/router/router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,7 +22,7 @@ class AppDrawer extends StatelessWidget {
               _buildDrawerItem(
                 context: context,
                 icon: Icons.home_outlined,
-                text: 'Inicio',
+                text: AppLocalizations.of(context)!.homePage,
                 onTap: () =>
                     Navigator.of(context).pushReplacementNamed(RouteNames.home),
               ),
@@ -28,7 +30,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context: context,
                   icon: Icons.people_outline,
-                  text: 'Usuarios',
+                  text: AppLocalizations.of(context)!.users,
                   onTap: () {
                     // TODO: Navegar a la pantalla de usuarios
                   },
@@ -36,7 +38,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context: context,
                   icon: Icons.business_outlined,
-                  text: 'Asociaciones',
+                  text: AppLocalizations.of(context)!.associations,
                   onTap: () {
                     // TODO: Navegar a la pantalla de asociaciones
                   },
@@ -46,7 +48,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context: context,
                   icon: Icons.person_outline,
-                  text: 'Mi Perfil',
+                  text: AppLocalizations.of(context)!.myProfile,
                   onTap: () {
                     Navigator.of(context).pushNamed(RouteNames.profile);
                   },
@@ -55,7 +57,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context: context,
                   icon: Icons.add_business_outlined,
-                  text: 'Unirse a Asociación',
+                  text: AppLocalizations.of(context)!.joinAssociation,
                   onTap: () {
                     Navigator.of(context).pushNamed(RouteNames.joinAssociation);
                   },
@@ -87,9 +89,17 @@ class AppDrawer extends StatelessWidget {
       return UserAccountsDrawerHeader(
         accountName: Text(user.fullName),
         accountEmail: Text(accountEmailText),
-        currentAccountPicture: CircleAvatar(
-          // TODO: Usar user.avatarUrl si existe
-          child: Text(user.initials),
+        currentAccountPicture: GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop(); // Cierra el drawer
+            Navigator.of(context).pushNamed(RouteNames.profile);
+          },
+          child: CircleAvatar(
+            backgroundImage: user.avatarUrl != null
+                ? CachedNetworkImageProvider(user.avatarUrl!)
+                : null,
+            child: user.avatarUrl == null ? Text(user.initials) : null,
+          ),
         ),
         decoration: const BoxDecoration(
           color: Colors.blue,
@@ -132,14 +142,14 @@ class AppDrawer extends StatelessWidget {
       return _buildDrawerItem(
         context: context,
         icon: Icons.logout,
-        text: 'Cerrar Sesión',
+        text: AppLocalizations.of(context)!.logout,
         onTap: () => context.read<AuthBloc>().add(AuthSignOutRequested()),
       );
     }
     return _buildDrawerItem(
       context: context,
       icon: Icons.login,
-      text: 'Acceder',
+      text: AppLocalizations.of(context)!.login,
       onTap: () => Navigator.of(context)
           .pushNamedAndRemoveUntil(RouteNames.welcome, (route) => false),
     );

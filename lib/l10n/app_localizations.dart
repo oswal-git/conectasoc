@@ -201,6 +201,126 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'¿Estás seguro de que quieres abandonar la asociación \'{associationName}\'? Esta acción no se puede deshacer.'**
   String leaveAssociationConfirmationMessage(Object associationName);
+
+  /// No description provided for @users.
+  ///
+  /// In es, this message translates to:
+  /// **'Usuarios'**
+  String get users;
+
+  /// No description provided for @associations.
+  ///
+  /// In es, this message translates to:
+  /// **'Asociaciones'**
+  String get associations;
+
+  /// No description provided for @myProfile.
+  ///
+  /// In es, this message translates to:
+  /// **'Mi Perfil'**
+  String get myProfile;
+
+  /// No description provided for @joinAssociation.
+  ///
+  /// In es, this message translates to:
+  /// **'Unirse a Asociación'**
+  String get joinAssociation;
+
+  /// No description provided for @logout.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar Sesión'**
+  String get logout;
+
+  /// No description provided for @login.
+  ///
+  /// In es, this message translates to:
+  /// **'Acceder'**
+  String get login;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Perfil'**
+  String get editProfile;
+
+  /// No description provided for @profileSavedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Perfil guardado con éxito'**
+  String get profileSavedSuccess;
+
+  /// No description provided for @profileLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al cargar el perfil.'**
+  String get profileLoadError;
+
+  /// No description provided for @name.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get name;
+
+  /// No description provided for @lastname.
+  ///
+  /// In es, this message translates to:
+  /// **'Apellidos'**
+  String get lastname;
+
+  /// No description provided for @email.
+  ///
+  /// In es, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @phone.
+  ///
+  /// In es, this message translates to:
+  /// **'Teléfono'**
+  String get phone;
+
+  /// No description provided for @language.
+  ///
+  /// In es, this message translates to:
+  /// **'Idioma'**
+  String get language;
+
+  /// No description provided for @langSpanish.
+  ///
+  /// In es, this message translates to:
+  /// **'Español'**
+  String get langSpanish;
+
+  /// No description provided for @langEnglish.
+  ///
+  /// In es, this message translates to:
+  /// **'English'**
+  String get langEnglish;
+
+  /// No description provided for @langCatalan.
+  ///
+  /// In es, this message translates to:
+  /// **'Català'**
+  String get langCatalan;
+
+  /// No description provided for @gallery.
+  ///
+  /// In es, this message translates to:
+  /// **'Galería'**
+  String get gallery;
+
+  /// No description provided for @camera.
+  ///
+  /// In es, this message translates to:
+  /// **'Cámara'**
+  String get camera;
+
+  /// No description provided for @cropImage.
+  ///
+  /// In es, this message translates to:
+  /// **'Recortar Imagen'**
+  String get cropImage;
 }
 
 class _AppLocalizationsDelegate

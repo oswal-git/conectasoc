@@ -41,6 +41,13 @@ class UserRepositoryImpl implements UserRepository {
   }) async {
     try {
       String? newImageUrl;
+      String? oldPublicId;
+
+      // Si se va a subir una nueva imagen y ya existía una, obtenemos su public_id para borrarla.
+      if (newImageFile != null && user.photoUrl != null) {
+        oldPublicId = CloudinaryService.getPublicIdFromUrl(user.photoUrl!);
+      }
+
       if (newImageFile != null) {
         final uploadResult = await CloudinaryService.uploadImage(
           imageFile: newImageFile,
@@ -55,6 +62,12 @@ class UserRepositoryImpl implements UserRepository {
       }
 
       final updatedUser = await remoteDataSource.updateUser(user, newImageUrl);
+
+      // Si la actualización fue exitosa y tenemos un oldPublicId, lo borramos.
+      // Lo hacemos después para no borrar la imagen vieja si la actualización falla.
+      if (oldPublicId != null) {
+        await CloudinaryService.deleteImage(oldPublicId);
+      }
       return Right(updatedUser);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

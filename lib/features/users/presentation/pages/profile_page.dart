@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -32,9 +33,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Perfil'),
+        title: Text(l10n.editProfile),
         actions: [
           BlocBuilder<ProfileBloc, ProfileState>(
             builder: (context, state) {
@@ -66,27 +68,25 @@ class _ProfilePageState extends State<ProfilePage> {
               SnackBar(content: Text(state.error), backgroundColor: Colors.red),
             );
           } else if (state is ProfileUpdateSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Perfil guardado con éxito'),
-                  backgroundColor: Colors.green),
-            );
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(l10n.profileSavedSuccess),
+                backgroundColor: Colors.green));
           }
         },
         builder: (context, state) {
           if (state is ProfileLoading || state is ProfileInitial) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is ProfileLoaded) {
-            return _buildProfileForm(state.user);
+            return _buildProfileForm(state.user, l10n);
           } else {
-            return const Center(child: Text('Error al cargar el perfil.'));
+            return Center(child: Text(l10n.profileLoadError));
           }
         },
       ),
     );
   }
 
-  Widget _buildProfileForm(ProfileEntity user) {
+  Widget _buildProfileForm(ProfileEntity user, AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -106,7 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 FormBuilderTextField(
                   name: 'name',
-                  decoration: const InputDecoration(labelText: 'Nombre'),
+                  decoration: InputDecoration(labelText: l10n.name),
                   validator: FormBuilderValidators.required(),
                   onChanged: (value) => context
                       .read<ProfileBloc>()
@@ -115,7 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 16),
                 FormBuilderTextField(
                   name: 'lastname',
-                  decoration: const InputDecoration(labelText: 'Apellidos'),
+                  decoration: InputDecoration(labelText: l10n.lastname),
                   validator: FormBuilderValidators.required(),
                   onChanged: (value) => context
                       .read<ProfileBloc>()
@@ -124,13 +124,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 16),
                 FormBuilderTextField(
                   name: 'email',
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: InputDecoration(labelText: l10n.email),
                   enabled: false,
                 ),
                 const SizedBox(height: 16),
                 FormBuilderTextField(
                   name: 'phone',
-                  decoration: const InputDecoration(labelText: 'Teléfono'),
+                  decoration: InputDecoration(labelText: l10n.phone),
                   onChanged: (value) => context
                       .read<ProfileBloc>()
                       .add(ProfilePhoneChanged(value ?? '')),
@@ -138,11 +138,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 16),
                 FormBuilderDropdown<String>(
                   name: 'language',
-                  decoration: const InputDecoration(labelText: 'Idioma'),
-                  items: const [
-                    DropdownMenuItem(value: 'es', child: Text('Español')),
-                    DropdownMenuItem(value: 'en', child: Text('English')),
-                    DropdownMenuItem(value: 'ca', child: Text('Català')),
+                  decoration: InputDecoration(labelText: l10n.language),
+                  items: [
+                    DropdownMenuItem(
+                        value: 'es', child: Text(l10n.langSpanish)),
+                    DropdownMenuItem(
+                        value: 'en', child: Text(l10n.langEnglish)),
+                    DropdownMenuItem(
+                        value: 'ca', child: Text(l10n.langCatalan)),
                   ],
                   onChanged: (value) => context
                       .read<ProfileBloc>()
@@ -194,6 +197,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showImageSourceActionSheet() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -201,7 +205,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Galería'),
+              title: Text(l10n.gallery),
               onTap: () {
                 _pickImage(ImageSource.gallery);
                 Navigator.of(context).pop();
@@ -209,7 +213,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_camera),
-              title: const Text('Cámara'),
+              title: Text(l10n.camera),
               onTap: () {
                 _pickImage(ImageSource.camera);
                 Navigator.of(context).pop();
@@ -229,11 +233,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _cropImage(String filePath) async {
+    final l10n = AppLocalizations.of(context)!;
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: filePath,
       uiSettings: [
         AndroidUiSettings(
-            toolbarTitle: 'Recortar Imagen',
+            toolbarTitle: l10n.cropImage,
             toolbarColor: Theme.of(context).primaryColor,
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.square,
@@ -246,7 +251,7 @@ class _ProfilePageState extends State<ProfilePage> {
               CropAspectRatioPreset.ratio16x9
             ]),
         IOSUiSettings(
-          title: 'Recortar Imagen',
+          title: l10n.cropImage,
           aspectRatioPresets: [
             CropAspectRatioPreset.square,
             CropAspectRatioPreset.ratio3x2,
