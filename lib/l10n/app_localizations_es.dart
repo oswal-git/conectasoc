@@ -139,4 +139,89 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get associationsListTitle => 'Listado de asociaciones';
+
+  @override
+  String get changesSavedSuccessfully => 'Cambios guardados con éxito';
+
+  @override
+  String get shortName => 'Nombre corto';
+
+  @override
+  String get longName => 'Nombre largo';
+
+  @override
+  String get contactName => 'Nombre de contacto';
+
+  @override
+  String get saveChanges => 'Guardar Cambios';
+
+  @override
+  String get associationIdCannotBeEmpty =>
+      'El ID de la asociación no puede estar vacío.';
+
+  @override
+  String get shortAndLongNameRequired =>
+      'El nombre corto y el nombre largo son obligatorios.';
+
+  @override
+  String get invalidEmailFormat => 'El formato del email no es válido.';
+
+  @override
+  String get errorUploadingLogo => 'Error al subir el logo';
+
+  @override
+  String unexpectedErrorOcurred(Object error) {
+    return 'Ocurrió un error inesperado: $error';
+  }
+
+  @override
+  String get incompleteAssociationData =>
+      'Los datos de la nueva asociación están incompletos.';
+
+  @override
+  String get mustSelectAnAssociation =>
+      'Debe seleccionar una asociación para unirse.';
+
+  @override
+  String get welcomeSubtitle => 'Portal de Asociaciones';
+
+  @override
+  String get welcomeReadOnlyTitle => 'Solo Lectura';
+
+  @override
+  String get welcomeReadOnlyDescription => 'Explora contenido sin registro';
+
+  @override
+  String get welcomeLoginTitle => 'Iniciar Sesión';
+
+  @override
+  String get welcomeLoginDescription => 'Ya tengo una cuenta';
+
+  @override
+  String get welcomeRegisterDescription =>
+      'Registro completo con notificaciones';
+
+  @override
+  String get exitReadOnlyMode => 'Salir del modo lectura';
+
+  @override
+  String get createAssociation => 'Crear Asociación';
+
+  @override
+  String get deleteAssociation => 'Borrar Asociación';
+
+  @override
+  String deleteAssociationConfirmation(Object associationName) {
+    return '¿Estás seguro de que quieres borrar la asociación \'$associationName\'? Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get associationHasUsersError =>
+      'No se puede borrar la asociación porque tiene usuarios asignados.';
+
+  @override
+  String get associationDeletedSuccessfully => 'Asociación borrada con éxito.';
+
+  @override
+  String get delete => 'Borrar';
 }

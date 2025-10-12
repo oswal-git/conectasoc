@@ -1,4 +1,3 @@
-import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/users/domain/entities/profile_entity.dart';
 import 'package:equatable/equatable.dart';
 
@@ -115,8 +114,8 @@ class UserEntity extends Equatable {
   // Configuraciones
   final NotificationSettings notificationSettings;
   final UserStats stats;
-
-  final List<MembershipEntity> memberships;
+  // Mapa de [associationId, role]
+  final Map<String, String> memberships;
 
   const UserEntity({
     required this.uid,
@@ -142,10 +141,11 @@ class UserEntity extends Equatable {
 
   String get initials => '${firstName[0]}${lastName[0]}'.toUpperCase();
 
-  bool get isSuperAdmin => memberships.any((m) => m.role == 'superadmin');
-  bool get isAdmin => memberships.any((m) => m.role == 'admin');
-  bool get isEditor => memberships.any((m) => m.role == 'editor');
-  bool get isAssociated => memberships.any((m) => m.role == 'asociado');
+  bool get isSuperAdmin =>
+      memberships.values.any((role) => role == 'superadmin');
+  bool get isAdmin => memberships.values.any((role) => role == 'admin');
+  bool get isEditor => memberships.values.any((role) => role == 'editor');
+  bool get isAssociated => memberships.values.any((role) => role == 'asociado');
   bool get isActive => status == UserStatus.active;
 
   ProfileEntity toProfileEntity() {
@@ -177,7 +177,7 @@ class UserEntity extends Equatable {
     String? authProvider,
     NotificationSettings? notificationSettings,
     UserStats? stats,
-    List<MembershipEntity>? memberships,
+    Map<String, String>? memberships,
   }) {
     return UserEntity(
       uid: uid ?? this.uid,

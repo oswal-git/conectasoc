@@ -27,42 +27,21 @@ abstract class AuthRepository {
     required String password,
   });
 
-  Future<Either<Failure, UserEntity>> registerWithEmail({
-    required String email,
-    required String password,
-    required String firstName,
-    required String lastName,
-    String? phone,
-    String? associationId,
-    bool createAssociation,
-    String? newAssociationName,
-    String? newAssociationLongName,
-    String? newAssociationEmail,
-    String? newAssociationContactName,
-    String? newAssociationPhone,
-  });
+  Future<Either<Failure, firebase.UserCredential>> createFirebaseAuthUser(
+    String email,
+    String password,
+  );
 
-  Future<Either<Failure, UserEntity>> upgradeLocalToRegistered({
+  Future<Either<Failure, UserEntity>> createUserDocument({
+    required String uid,
     required String email,
-    required String password,
     required String firstName,
     required String lastName,
     String? phone,
+    required Map<String, String> memberships,
   });
 
   Future<Either<Failure, void>> signOut();
   Future<Either<Failure, void>> resetPasswordWithEmail(String email);
-
-  // Asociaciones
-  Future<Either<Failure, List<AssociationEntity>>> getAllAssociations();
-  Future<Either<Failure, AssociationEntity>> createNewAssociation({
-    required String shortName,
-    required String longName,
-    required String email,
-    required String contactName,
-    required String phone,
-    String? description,
-  });
-
   Future<Either<Failure, void>> leaveAssociation(MembershipEntity membership);
 }

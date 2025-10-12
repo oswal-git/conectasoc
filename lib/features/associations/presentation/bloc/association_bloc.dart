@@ -1,21 +1,23 @@
+import 'package:conectasoc/features/associations/domain/usecases/delete_association_usecase.dart';
 import 'package:conectasoc/features/associations/domain/usecases/get_all_associations_usecase.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
-import 'package:equatable/equatable.dart';
+import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-part 'association_event.dart';
-part 'association_state.dart';
+import 'package:rxdart/rxdart.dart';
 
 class AssociationBloc extends Bloc<AssociationEvent, AssociationState> {
-  final GetAllAssociationsUseCase _getAllAssociationsUseCase;
+  final GetAllAssociationsUseCase getAllAssociationsUseCase;
+  final DeleteAssociationUseCase deleteAssociationUseCase;
 
   AssociationBloc(
-      {required GetAllAssociationsUseCase getAllAssociationsUseCase})
-      : _getAllAssociationsUseCase = getAllAssociationsUseCase,
-        super(AssociationsInitial()) {
+      {required this.getAllAssociationsUseCase,
+      required this.deleteAssociationUseCase})
+      : super(AssociationsInitial()) {
     on<LoadAssociations>(_onLoadAssociations);
-    on<SearchAssociations>(_onSearchAssociations);
+    on<SearchAssociations>(_onSearchAssociations,
+        transformer: debounce(const Duration(milliseconds: 300)));
     on<SortAssociations>(_onSortAssociations);
+    on<DeleteAssociation>(_onDeleteAssociation);
   }
 
   Future<void> _onLoadAssociations(
@@ -23,7 +25,7 @@ class AssociationBloc extends Bloc<AssociationEvent, AssociationState> {
     Emitter<AssociationState> emit,
   ) async {
     emit(AssociationsLoading());
-    final result = await _getAllAssociationsUseCase();
+    final result = await getAllAssociationsUseCase();
     result.fold(
       (failure) => emit(AssociationsError(failure.message)),
       (associations) => emit(AssociationsLoaded(
@@ -42,7 +44,7 @@ class AssociationBloc extends Bloc<AssociationEvent, AssociationState> {
       final query = event.query.toLowerCase();
       final filtered = currentState.allAssociations.where((assoc) {
         return assoc.shortName.toLowerCase().contains(query) ||
-            assoc.contactName.toLowerCase().contains(query);
+            assoc.contactName!.toLowerCase().contains(query);
       }).toList();
       emit(currentState.copyWith(filteredAssociations: filtered));
     }
@@ -80,7 +82,37 @@ class AssociationBloc extends Bloc<AssociationEvent, AssociationState> {
       case SortBy.name:
         return a.shortName.compareTo(b.shortName) * order;
       case SortBy.contact:
-        return a.contactName.compareTo(b.contactName) * order;
+        return a.contactName!.compareTo(b.contactName!) * order;
     }
   }
+
+  Future<void> _onDeleteAssociation(
+    DeleteAssociation event,
+    Emitter<AssociationState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is AssociationsLoaded) {
+      final result = await deleteAssociationUseCase(event.associationId);
+
+      result.fold(
+        (failure) {
+          // 1. Emitir el estado de fallo para que el listener (SnackBar) reaccione.
+          emit(AssociationDeletionFailure(failure.message));
+          // 2. Inmediatamente después, emitir el estado 'Loaded' para que el builder
+          //    redibuje la lista. Mantenemos la lista que ya teníamos.
+          emit(currentState);
+        },
+        (_) {
+          // 3. Si el borrado es exitoso, emitir el estado de éxito.
+          emit(AssociationDeletionSuccess());
+          // 4. Volver a cargar la lista desde Firestore para reflejar el cambio.
+          add(LoadAssociations());
+        },
+      );
+    }
+  }
+}
+
+EventTransformer<T> debounce<T>(Duration duration) {
+  return (events, mapper) => events.debounceTime(duration).flatMap(mapper);
 }

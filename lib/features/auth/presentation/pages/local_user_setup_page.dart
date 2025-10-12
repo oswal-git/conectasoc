@@ -1,7 +1,7 @@
 // lib/features/auth/presentation/pages/local_user_setup_page.dart
 
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
-import 'package:conectasoc/features/auth/domain/repositories/auth_repository.dart';
+import 'package:conectasoc/features/associations/domain/repositories/association_repository.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
@@ -33,7 +33,7 @@ class _LocalUserSetupPageState extends State<LocalUserSetupPage> {
 
   Future<void> _loadAssociations() async {
     try {
-      final repository = sl<AuthRepository>();
+      final repository = sl<AssociationRepository>();
       final result = await repository.getAllAssociations();
 
       result.fold(

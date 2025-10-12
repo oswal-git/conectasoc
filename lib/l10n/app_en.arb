@@ -6,8 +6,18 @@
     "changeAssociation": "Change Association",
     "unknownAssociation": "Unknown Association",
     "role": "Role: {roleName}",
+    "@role": {
+        "placeholders": {
+            "roleName": {}
+        }
+    },
     "cancel": "Cancel",
     "errorLoadingAssociations": "Error loading associations: {error}",
+    "@errorLoadingAssociations": {
+        "placeholders": {
+            "error": {}
+        }
+    },
     "retry": "Retry",
     "createAccount": "Create Account",
     "registrationError": "Registration Error",
@@ -17,23 +27,28 @@
     "leave": "Leave",
     "leaveAssociationConfirmationTitle": "Confirm Leave",
     "leaveAssociationConfirmationMessage": "Are you sure you want to leave the association '{associationName}'? This action cannot be undone.",
+    "@leaveAssociationConfirmationMessage": {
+        "placeholders": {
+            "associationName": {}
+        }
+    },
     "users": "Users",
     "associations": "Associations",
     "myProfile": "My Profile",
     "joinAssociation": "Join Association",
-    "logout": "Logout",
+    "logout": "Log Out",
     "login": "Login",
     "editProfile": "Edit Profile",
     "profileSavedSuccess": "Profile saved successfully",
     "profileLoadError": "Error loading profile.",
     "name": "Name",
-    "lastname": "Lastname",
+    "lastname": "Last Name",
     "email": "Email",
     "phone": "Phone",
     "language": "Language",
-    "langSpanish": "Spanish",
+    "langSpanish": "Español",
     "langEnglish": "English",
-    "langCatalan": "Catalan",
+    "langCatalan": "Català",
     "gallery": "Gallery",
     "camera": "Camera",
     "cropImage": "Crop Image",
@@ -41,5 +56,39 @@
     "search": "Search...",
     "contact": "Contact",
     "noResultsFound": "No results found",
-    "associationsListTitle": "Associations List"
+    "associationsListTitle": "Associations List",
+    "changesSavedSuccessfully": "Changes saved successfully",
+    "shortName": "Short name",
+    "longName": "Long name",
+    "contactName": "Contact name",
+    "saveChanges": "Save Changes",
+    "associationIdCannotBeEmpty": "Association ID cannot be empty.",
+    "shortAndLongNameRequired": "Short name and long name are required.",
+    "invalidEmailFormat": "Invalid email format.",
+    "errorUploadingLogo": "Error uploading logo",
+    "unexpectedErrorOcurred": "An unexpected error occurred: {error}",
+    "@unexpectedErrorOcurred": {
+        "description": "Generic error message with a placeholder for the specific error.",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "incompleteAssociationData": "New association data is incomplete.",
+    "mustSelectAnAssociation": "You must select an association to join.",
+    "welcomeSubtitle": "Associations Portal",
+    "welcomeReadOnlyTitle": "Read Only",
+    "welcomeReadOnlyDescription": "Explore content without registration",
+    "welcomeLoginTitle": "Log In",
+    "welcomeLoginDescription": "I already have an account",
+    "welcomeRegisterDescription": "Full registration with notifications",
+    "exitReadOnlyMode": "Exit Read-Only Mode",
+    "createAssociation": "Create Association",
+    "deleteAssociation": "Delete Association",
+    "deleteAssociationConfirmation": "Are you sure you want to delete the association '{associationName}'? This action cannot be undone.",
+    "associationHasUsersError": "Cannot delete association because it has assigned users.",
+    "associationDeletedSuccessfully": "Association deleted successfully.",
+    "delete": "Delete",
+    "@delete": {
+        "description": "Text for the delete confirmation button."
+    }
 }

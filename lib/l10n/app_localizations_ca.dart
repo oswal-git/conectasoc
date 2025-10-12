@@ -58,7 +58,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get leave => 'Abandonar';
 
   @override
-  String get leaveAssociationConfirmationTitle => 'Confirmar abandó';
+  String get leaveAssociationConfirmationTitle => 'Confirmar abandonament';
 
   @override
   String leaveAssociationConfirmationMessage(Object associationName) {
@@ -99,7 +99,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get lastname => 'Cognoms';
 
   @override
-  String get email => 'Correu electrònic';
+  String get email => 'Email';
 
   @override
   String get phone => 'Telèfon';
@@ -139,4 +139,88 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get associationsListTitle => 'Llistat d\'associacions';
+
+  @override
+  String get changesSavedSuccessfully => 'Canvis desats amb èxit';
+
+  @override
+  String get shortName => 'Nom curt';
+
+  @override
+  String get longName => 'Nom llarg';
+
+  @override
+  String get contactName => 'Nom de contacte';
+
+  @override
+  String get saveChanges => 'Desar Canvis';
+
+  @override
+  String get associationIdCannotBeEmpty =>
+      'L\'ID de l\'associació no pot estar buit.';
+
+  @override
+  String get shortAndLongNameRequired =>
+      'El nom curt i el nom llarg són obligatoris.';
+
+  @override
+  String get invalidEmailFormat => 'El format de l\'email no és vàlid.';
+
+  @override
+  String get errorUploadingLogo => 'Error en pujar el logo';
+
+  @override
+  String unexpectedErrorOcurred(Object error) {
+    return 'Ha ocorregut un error inesperat: $error';
+  }
+
+  @override
+  String get incompleteAssociationData =>
+      'Les dades de la nova associació estan incompletes.';
+
+  @override
+  String get mustSelectAnAssociation =>
+      'Ha de seleccionar una associació per a unir-s\'hi.';
+
+  @override
+  String get welcomeSubtitle => 'Portal d\'Associacions';
+
+  @override
+  String get welcomeReadOnlyTitle => 'Només Lectura';
+
+  @override
+  String get welcomeReadOnlyDescription => 'Explora contingut sense registre';
+
+  @override
+  String get welcomeLoginTitle => 'Iniciar Sessió';
+
+  @override
+  String get welcomeLoginDescription => 'Ja tinc un compte';
+
+  @override
+  String get welcomeRegisterDescription => 'Registre complet amb notificacions';
+
+  @override
+  String get exitReadOnlyMode => 'Sortir del mode lectura';
+
+  @override
+  String get createAssociation => 'Crear Associació';
+
+  @override
+  String get deleteAssociation => 'Esborrar Associació';
+
+  @override
+  String deleteAssociationConfirmation(Object associationName) {
+    return 'Estàs segur que vols esborrar l\'associació \'$associationName\'? Aquesta acció no es pot desfer.';
+  }
+
+  @override
+  String get associationHasUsersError =>
+      'No es pot esborrar l\'associació perquè té usuaris assignats.';
+
+  @override
+  String get associationDeletedSuccessfully => 'Associació esborrada amb èxit.';
+
+  @override
+  String get delete => 'Esborrar';
 }

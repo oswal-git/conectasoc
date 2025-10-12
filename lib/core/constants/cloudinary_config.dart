@@ -56,6 +56,7 @@ class CloudinaryConfig {
 enum CloudinaryImageType {
   avatar,
   articleCover,
+  logoAssociation,
   general;
 
   String get folder {
@@ -64,6 +65,8 @@ enum CloudinaryImageType {
         return 'conectasoc/avatars';
       case CloudinaryImageType.articleCover:
         return 'conectasoc/articles';
+      case CloudinaryImageType.logoAssociation:
+        return 'conectasoc/associations';
       case CloudinaryImageType.general:
         return 'conectasoc/general';
     }

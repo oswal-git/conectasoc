@@ -1,13 +1,12 @@
 import 'dart:io';
 
+import 'package:conectasoc/core/services/image_picker_service.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';
@@ -187,7 +186,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: IconButton(
                 icon:
                     const Icon(Icons.camera_alt, color: Colors.white, size: 22),
-                onPressed: _showImageSourceActionSheet,
+                onPressed: () => _pickAndCropImage(),
               ),
             ),
           ),
@@ -196,81 +195,14 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showImageSourceActionSheet() {
-    final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: Text(l10n.gallery),
-              onTap: () {
-                _pickImage(ImageSource.gallery);
-                Navigator.of(context).pop();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera),
-              title: Text(l10n.camera),
-              onTap: () {
-                _pickImage(ImageSource.camera);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    if (pickedFile != null) {
-      _cropImage(pickedFile.path);
-    }
-  }
-
-  Future<void> _cropImage(String filePath) async {
-    final l10n = AppLocalizations.of(context)!;
-    final croppedFile = await ImageCropper().cropImage(
-      sourcePath: filePath,
-      uiSettings: [
-        AndroidUiSettings(
-            toolbarTitle: l10n.cropImage,
-            toolbarColor: Theme.of(context).primaryColor,
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.square,
-            lockAspectRatio: false,
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-              CropAspectRatioPreset.ratio3x2,
-              CropAspectRatioPreset.original,
-              CropAspectRatioPreset.ratio4x3,
-              CropAspectRatioPreset.ratio16x9
-            ]),
-        IOSUiSettings(
-          title: l10n.cropImage,
-          aspectRatioPresets: [
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio3x2,
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPreset.ratio16x9
-          ],
-        ),
-      ],
-    );
-
-    if (croppedFile != null) {
-      // Verificar si el widget sigue montado antes de usar el context.
+  Future<void> _pickAndCropImage() async {
+    final imagePath = await ImagePickerService().pickImage(context);
+    if (imagePath != null) {
       if (!mounted) return;
-
       setState(() {
-        _localImagePath = croppedFile.path;
+        _localImagePath = imagePath;
       });
-      context.read<ProfileBloc>().add(ProfileImageChanged(croppedFile.path));
+      context.read<ProfileBloc>().add(ProfileImageChanged(imagePath));
     }
   }
 }

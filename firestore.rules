@@ -1,3 +1,5 @@
+// firebase rules_version
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -15,18 +17,25 @@ match /databases/{database}/documents {
     
     // Helper function: verificar si es superadmin
     function isSuperAdmin() {
-      return isSignedIn() && getUserData().memberships.exists(m, m.role == 'superadmin');
+      return isSignedIn() && 
+             'memberships' in getUserData() && // Asegurarse de que el campo exista
+             'superadmin' in getUserData().memberships.values(); // Comprobar si algún rol es 'superadmin'
     }
     
     // Helper function: verificar si es admin de la asociación
     function isAdmin(associationId) {
-      return isSignedIn() && getUserData().memberships.exists(m, m.associationId == associationId && m.role == 'admin');
+      return isSignedIn() && 
+             'memberships' in getUserData() && // Asegurarse de que el campo exista
+             getUserData().memberships[associationId] == 'admin'; // Acceso directo por clave
+    }  
+
+    // Helper function: verificar si es editor
+    function isEditor(associationId) {
+      return isSignedIn() && 
+             'memberships' in getUserData() && // Asegurarse de que el campo exista
+             getUserData().memberships[associationId] == 'editor'; // Acceso directo por clave
     }
 
-    function isEditor(associationId) {
-      return isSignedIn() && getUserData().memberships.exists(m, m.associationId == associationId && m.role == 'editor');
-    }
-    
     // =========================================
     // COLECCIÓN: users
     // =========================================
@@ -39,24 +48,21 @@ match /databases/{database}/documents {
 
       // Leer: el propio usuario, superadmin, o admin de su asociación
       // Esta regla se mantiene para proteger los datos de cada usuario.
-      allow read: if isSignedIn() && (
-        request.auth.uid == userId ||
-        isSuperAdmin() ||
-        getUserData().memberships.exists(m, m.role == 'admin' && get(/databases/$(database)/documents/users/$(userId)).data.memberships.exists(m2, m2.associationId == m.associationId))
-      );
+      // Se permite la lectura a superadmins para poder realizar la comprobación de borrado.
+      allow read: if isSuperAdmin() || (isSignedIn() && request.auth.uid == userId);
       
       // Crear: cualquier usuario autenticado puede crear su propio documento
       allow create: if isSignedIn() && request.auth.uid == userId;
       
       // Actualizar: el propio usuario, superadmin, o admin de su asociación
-      allow update: if isSignedIn() && (
+      allow update: if isSignedIn() && ( // 'resource' se refiere al documento ANTES del cambio
         request.auth.uid == userId ||
         isSuperAdmin() ||
-        getUserData().memberships.exists(m, m.role == 'admin' && resource.data.memberships.exists(m2, m2.associationId == m.associationId))
+        (getUserData().memberships.keys().exists(assocId, getUserData().memberships[assocId] == 'admin' && assocId in resource.data.memberships))
       );
       
       // Eliminar: solo superadmin o admin de la asociación
-      allow delete: if isSuperAdmin() || getUserData().memberships.exists(m, m.role == 'admin' && resource.data.memberships.exists(m2, m2.associationId == m.associationId));
+      allow delete: if isSuperAdmin() || (getUserData().memberships.keys().exists(assocId, getUserData().memberships[assocId] == 'admin' && assocId in resource.data.memberships));
     }
     
     // =========================================
@@ -68,8 +74,9 @@ match /databases/{database}/documents {
       // Leer y Listar: Cualquiera puede ver la lista de asociaciones para registrarse.
       allow read, list: if true;
       
-      // Crear: cualquier usuario autenticado (para registro)
-      allow create: if isSignedIn();
+      // Crear: solo un usuario autenticado que se establece a sí mismo como creador.
+      // Esto asegura que solo se puedan crear asociaciones durante el proceso de registro.
+      allow create: if isSignedIn() && (request.resource.data.creatorId == request.auth.uid || isSuperAdmin());
       
       // Actualizar: superadmin o admin de esa asociación
       allow update: if isSuperAdmin() || isAdmin(associationId);
@@ -89,8 +96,8 @@ match /databases/{database}/documents {
       // Crear: superadmin, admin, o editor
       allow create: if isSignedIn() && (
         isSuperAdmin() ||
-        getUserData().memberships.exists(m, m.role == 'admin') ||
-        getUserData().memberships.exists(m, m.role == 'editor')
+        'admin' in getUserData().memberships.values() ||
+        'editor' in getUserData().memberships.values()
       );
       
       // Actualizar: superadmin, admin de la asociación, o el autor
@@ -111,8 +118,8 @@ match /databases/{database}/documents {
       allow read: if isSignedIn();
       allow write: if isSignedIn() && (
         isSuperAdmin() ||
-        getUserData().memberships.exists(m, m.role == 'admin') ||
-        getUserData().memberships.exists(m, m.role == 'editor')
+        'admin' in getUserData().memberships.values() ||
+        'editor' in getUserData().memberships.values()
       );
     }
     
@@ -123,8 +130,8 @@ match /databases/{database}/documents {
       allow read: if isSignedIn();
       allow write: if isSignedIn() && (
         isSuperAdmin() ||
-        getUserData().memberships.exists(m, m.role == 'admin') ||
-        getUserData().memberships.exists(m, m.role == 'editor')
+        'admin' in getUserData().memberships.values() ||
+        'editor' in getUserData().memberships.values()
       );
     }
     
@@ -135,8 +142,8 @@ match /databases/{database}/documents {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && (
         isSuperAdmin() ||
-        getUserData().memberships.exists(m, m.role == 'admin') ||
-        getUserData().memberships.exists(m, m.role == 'editor')
+        'admin' in getUserData().memberships.values() ||
+        'editor' in getUserData().memberships.values()
       );
       allow update: if isSuperAdmin();
       allow delete: if isSuperAdmin();

@@ -78,7 +78,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get joinAssociation => 'Join Association';
 
   @override
-  String get logout => 'Logout';
+  String get logout => 'Log Out';
 
   @override
   String get login => 'Login';
@@ -96,7 +96,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get name => 'Name';
 
   @override
-  String get lastname => 'Lastname';
+  String get lastname => 'Last Name';
 
   @override
   String get email => 'Email';
@@ -108,13 +108,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
-  String get langSpanish => 'Spanish';
+  String get langSpanish => 'Español';
 
   @override
   String get langEnglish => 'English';
 
   @override
-  String get langCatalan => 'Catalan';
+  String get langCatalan => 'Català';
 
   @override
   String get gallery => 'Gallery';
@@ -139,4 +139,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get associationsListTitle => 'Associations List';
+
+  @override
+  String get changesSavedSuccessfully => 'Changes saved successfully';
+
+  @override
+  String get shortName => 'Short name';
+
+  @override
+  String get longName => 'Long name';
+
+  @override
+  String get contactName => 'Contact name';
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get associationIdCannotBeEmpty => 'Association ID cannot be empty.';
+
+  @override
+  String get shortAndLongNameRequired =>
+      'Short name and long name are required.';
+
+  @override
+  String get invalidEmailFormat => 'Invalid email format.';
+
+  @override
+  String get errorUploadingLogo => 'Error uploading logo';
+
+  @override
+  String unexpectedErrorOcurred(Object error) {
+    return 'An unexpected error occurred: $error';
+  }
+
+  @override
+  String get incompleteAssociationData => 'New association data is incomplete.';
+
+  @override
+  String get mustSelectAnAssociation =>
+      'You must select an association to join.';
+
+  @override
+  String get welcomeSubtitle => 'Associations Portal';
+
+  @override
+  String get welcomeReadOnlyTitle => 'Read Only';
+
+  @override
+  String get welcomeReadOnlyDescription =>
+      'Explore content without registration';
+
+  @override
+  String get welcomeLoginTitle => 'Log In';
+
+  @override
+  String get welcomeLoginDescription => 'I already have an account';
+
+  @override
+  String get welcomeRegisterDescription =>
+      'Full registration with notifications';
+
+  @override
+  String get exitReadOnlyMode => 'Exit Read-Only Mode';
+
+  @override
+  String get createAssociation => 'Create Association';
+
+  @override
+  String get deleteAssociation => 'Delete Association';
+
+  @override
+  String deleteAssociationConfirmation(Object associationName) {
+    return 'Are you sure you want to delete the association \'$associationName\'? This action cannot be undone.';
+  }
+
+  @override
+  String get associationHasUsersError =>
+      'Cannot delete association because it has assigned users.';
+
+  @override
+  String get associationDeletedSuccessfully =>
+      'Association deleted successfully.';
+
+  @override
+  String get delete => 'Delete';
 }

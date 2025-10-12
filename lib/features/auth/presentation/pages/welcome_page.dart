@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:conectasoc/app/router/route_names.dart';
+import 'package:conectasoc/l10n/app_localizations.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -51,8 +53,8 @@ class WelcomePage extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   // Título
-                  const Text(
-                    'ConectaSoc',
+                  Text(
+                    l10n.appTitle,
                     style: TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
@@ -62,8 +64,8 @@ class WelcomePage extends StatelessWidget {
 
                   const SizedBox(height: 8),
 
-                  const Text(
-                    'Portal de Asociaciones',
+                  Text(
+                    l10n.welcomeSubtitle,
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.white70,
@@ -75,8 +77,8 @@ class WelcomePage extends StatelessWidget {
                   // Opciones de acceso
                   _ModeCard(
                     icon: Icons.visibility,
-                    title: 'Solo Lectura',
-                    description: 'Explora contenido sin registro',
+                    title: l10n.welcomeReadOnlyTitle,
+                    description: l10n.welcomeReadOnlyDescription,
                     color: Colors.white,
                     onTap: () => _navigateToLocalSetup(context),
                   ),
@@ -85,8 +87,8 @@ class WelcomePage extends StatelessWidget {
 
                   _ModeCard(
                     icon: Icons.login,
-                    title: 'Iniciar Sesión',
-                    description: 'Ya tengo una cuenta',
+                    title: l10n.welcomeLoginTitle,
+                    description: l10n.welcomeLoginDescription,
                     color: Colors.white,
                     onTap: () => _navigateToLogin(context),
                   ),
@@ -95,8 +97,8 @@ class WelcomePage extends StatelessWidget {
 
                   _ModeCard(
                     icon: Icons.person_add,
-                    title: 'Crear Cuenta',
-                    description: 'Registro completo con notificaciones',
+                    title: l10n.createAccount,
+                    description: l10n.welcomeRegisterDescription,
                     color: Colors.white,
                     onTap: () => _navigateToRegister(context),
                   ),

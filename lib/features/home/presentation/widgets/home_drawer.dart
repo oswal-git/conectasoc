@@ -1,4 +1,4 @@
-// lib/features/home/presentation/widgets/app_drawer.dart
+// lib/features/home/presentation/widgets/home_drawer.dart
 
 import 'package:conectasoc/app/router/router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -7,8 +7,8 @@ import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AppDrawerWidget extends StatelessWidget {
-  const AppDrawerWidget({super.key});
+class HomeDrawer extends StatelessWidget {
+  const HomeDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +119,26 @@ class AppDrawerWidget extends StatelessWidget {
         ),
       );
     }
-    // Header para usuarios no logueados o locales
+
+    // Header para usuarios locales
+    if (state is AuthLocalUser) {
+      final user = state.localUser;
+
+      return UserAccountsDrawerHeader(
+        accountName: Text(user.displayName),
+        accountEmail: Text(''),
+        currentAccountPicture: CircleAvatar(
+          backgroundImage: null,
+          child: Text((user.displayName.substring(0,
+                  user.displayName.length >= 3 ? 3 : user.displayName.length))
+              .toUpperCase()),
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.blue,
+        ),
+      );
+    }
+    // Header para usuarios no logueados
     return const DrawerHeader(
       decoration: BoxDecoration(
         color: Colors.blue,
@@ -151,18 +170,28 @@ class AppDrawerWidget extends StatelessWidget {
   }
 
   Widget _buildLoginLogoutButton(BuildContext context, AuthState state) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (state is AuthAuthenticated) {
       return _buildDrawerItem(
         context: context,
         icon: Icons.logout,
-        text: AppLocalizations.of(context)!.logout,
+        text: l10n.logout,
         onTap: () => context.read<AuthBloc>().add(AuthSignOutRequested()),
+      );
+    }
+    if (state is AuthLocalUser) {
+      return _buildDrawerItem(
+        context: context,
+        icon: Icons.exit_to_app,
+        text: l10n.exitReadOnlyMode,
+        onTap: () => context.read<AuthBloc>().add(AuthDeleteLocalUser()),
       );
     }
     return _buildDrawerItem(
       context: context,
       icon: Icons.login,
-      text: AppLocalizations.of(context)!.login,
+      text: l10n.login,
       onTap: () => Navigator.of(context)
           .pushNamedAndRemoveUntil(RouteNames.welcome, (route) => false),
     );

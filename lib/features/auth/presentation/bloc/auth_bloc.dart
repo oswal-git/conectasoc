@@ -1,6 +1,8 @@
 // lib/features/auth/presentation/bloc/auth_bloc.dart
 
 import 'dart:async';
+import 'package:conectasoc/features/associations/domain/usecases/get_all_associations_usecase.dart';
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,21 +14,17 @@ import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository repository;
-  final LoginUseCase loginUseCase;
   final RegisterUseCase registerUseCase;
-  final LogoutUseCase logoutUseCase;
   final SaveLocalUserUseCase saveLocalUserUseCase;
-  final GetAssociationsUseCase getAssociationsUseCase;
+  final GetAllAssociationsUseCase getAllAssociationsUseCase;
 
   StreamSubscription<firebase.User?>? _userSubscription;
 
   AuthBloc({
     required this.repository,
-    required this.loginUseCase,
     required this.registerUseCase,
-    required this.logoutUseCase,
     required this.saveLocalUserUseCase,
-    required this.getAssociationsUseCase,
+    required this.getAllAssociationsUseCase,
   }) : super(AuthInitial()) {
     _userSubscription = repository.authStateChanges.listen(_onUserChanged);
     on<AuthLoadRegisterData>(_onLoadRegisterData);
@@ -53,14 +51,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final currentState = state;
     if (currentState is AuthAuthenticated) {
       // Al actualizar el usuario, es posible que sus membresías hayan cambiado.
-      // Buscamos la membresía actual en la nueva lista de membresías.
-      final updatedMembership = event.user.memberships.firstWhereOrNull(
-            (m) =>
-                m.associationId ==
-                currentState.currentMembership?.associationId,
-          ) ??
-          event.user.memberships
-              .firstOrNull; // Si no se encuentra, usamos la primera o null.
+      // Verificamos si la membresía actual sigue existiendo.
+      final currentAssociationId =
+          currentState.currentMembership?.associationId;
+      final updatedMembership = (currentAssociationId != null &&
+              event.user.memberships.containsKey(currentAssociationId))
+          ? MembershipEntity(
+              userId: event.user.uid,
+              associationId: currentAssociationId,
+              role: event.user.memberships[currentAssociationId]!)
+          : event.user.memberships.entries.firstOrNull?.toMembershipEntity(
+              userId:
+                  event.user.uid); // La extensión también requiere el userId
 
       emit(AuthAuthenticated(event.user, updatedMembership));
     } else if (currentState is AuthLocalUser) {
@@ -84,6 +86,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) {
     final currentState = state;
     if (currentState is AuthAuthenticated) {
+      // El evento ahora pasa una MembershipEntity, que es lo que necesita el estado.
       // Emitir un nuevo estado autenticado con la nueva membresía
       emit(AuthAuthenticated(currentState.user, event.newMembership));
     }
@@ -95,69 +98,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    // 1. Verificar usuario Firebase
+    // 1. Check for a Firebase authenticated user
     final currentUserResult = await repository.getCurrentUser();
 
-    await currentUserResult.fold(
-      (failure) async {
-        // Si falla obtener usuario remoto, verificar local
-        final hasLocalResult = await repository.hasLocalUser();
+    final user = currentUserResult.getOrElse(() => null);
 
-        hasLocalResult.fold(
-          (failure) => emit(AuthUnauthenticated()),
-          (hasLocal) async {
-            if (hasLocal) {
-              final localUserResult = await repository.getLocalUser();
-              localUserResult.fold(
-                (failure) => emit(AuthUnauthenticated()),
-                (localUser) {
-                  if (localUser != null) {
-                    emit(AuthLocalUser(localUser));
-                  } else {
-                    emit(AuthUnauthenticated());
-                  }
-                },
-              );
-            } else {
-              emit(AuthUnauthenticated());
-            }
-          },
-        );
-      },
-      (user) async {
-        if (user != null) {
-          // Si el usuario está autenticado, seleccionamos la primera membresía como la actual por defecto.
-          // En el futuro, se podría guardar la última seleccionada o preguntar al usuario.
-          final currentMembership =
-              user.memberships.isNotEmpty ? user.memberships.first : null;
-          emit(AuthAuthenticated(user, currentMembership));
-        } else {
-          // No hay usuario Firebase, verificar local
-          final hasLocalResult = await repository.hasLocalUser();
+    if (user != null) {
+      // Case 1: User is authenticated in Firebase.
+      // Convertimos la primera entrada del mapa a una MembershipEntity
+      final currentMembership = user.memberships.entries.firstOrNull == null
+          ? null
+          : MembershipEntity(
+              userId: user.uid,
+              associationId: user.memberships.entries.first.key,
+              role: user.memberships.entries.first.value);
+      emit(AuthAuthenticated(user, currentMembership));
+      return;
+    }
 
-          hasLocalResult.fold(
-            (failure) => emit(AuthUnauthenticated()),
-            (hasLocal) async {
-              if (hasLocal) {
-                final localUserResult = await repository.getLocalUser();
-                localUserResult.fold(
-                  (failure) => emit(AuthUnauthenticated()),
-                  (localUser) {
-                    if (localUser != null) {
-                      emit(AuthLocalUser(localUser));
-                    } else {
-                      emit(AuthUnauthenticated());
-                    }
-                  },
-                );
-              } else {
-                emit(AuthUnauthenticated());
-              }
-            },
-          );
-        }
-      },
-    );
+    // Case 2: No Firebase user, check for a local user.
+    final hasLocalResult = await repository.hasLocalUser();
+    final hasLocal = hasLocalResult.getOrElse(() => false);
+
+    if (hasLocal) {
+      final localUserResult = await repository.getLocalUser();
+      final localUser = localUserResult.getOrElse(() => null);
+      if (localUser != null) {
+        emit(AuthLocalUser(localUser));
+      } else {
+        emit(AuthUnauthenticated());
+      }
+    } else {
+      // Case 3: No Firebase user and no local user.
+      emit(AuthUnauthenticated());
+    }
   }
 
   Future<void> _onSaveLocalUser(
@@ -198,7 +172,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Cargar las asociaciones disponibles para el formulario de registro.
       // La lógica de 'primer usuario' se ha eliminado por seguridad.
       // El rol de 'superadmin' debe ser asignado manualmente desde Firebase.
-      final associationsResult = await getAssociationsUseCase();
+      final associationsResult = await getAllAssociationsUseCase();
       associationsResult.fold(
         (failure) => emit(AuthError(failure.message)),
         (associations) {
@@ -219,16 +193,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    final result = await loginUseCase(
-      email: event.email,
-      password: event.password,
-    );
+    // La lógica de login ahora está directamente en el repositorio
+    final result = await repository.signInWithEmail(
+        email: event.email, password: event.password);
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (user) {
-        final currentMembership =
-            user.memberships.isNotEmpty ? user.memberships.first : null;
+        final currentMembership = user.memberships.entries.firstOrNull == null
+            ? null
+            : MembershipEntity(
+                userId: user.uid,
+                associationId: user.memberships.entries.first.key,
+                role: user.memberships.entries.first.value);
+
         emit(AuthAuthenticated(user, currentMembership));
       },
     );
@@ -259,8 +237,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (failure) => emit(AuthError(failure.message)),
       (user) {
         // Tras un registro exitoso, autenticamos al usuario directamente.
-        final currentMembership =
-            user.memberships.isNotEmpty ? user.memberships.first : null;
+        final currentMembership = user.memberships.entries.firstOrNull == null
+            ? null
+            : MembershipEntity(
+                userId: user.uid,
+                associationId: user.memberships.entries.first.key,
+                role: user.memberships.entries.first.value);
         emit(AuthAuthenticated(user, currentMembership));
       },
     );
@@ -295,7 +277,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    final result = await logoutUseCase();
+    // La lógica de logout ahora está directamente en el repositorio
+    final result = await repository.signOut();
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),

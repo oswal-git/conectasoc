@@ -1,5 +1,6 @@
 // lib/features/home/presentation/widgets/association_provider.dart
 
+import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:conectasoc/features/auth/domain/domain.dart';
@@ -34,7 +35,7 @@ class _AssociationProviderWidgetState extends State<AssociationProviderWidget> {
   }
 
   Future<void> _loadAssociations() async {
-    final result = await sl<GetAssociationsUseCase>()();
+    final result = await sl<GetAllAssociationsUseCase>()();
     result.fold(
       (failure) {
         if (mounted) {

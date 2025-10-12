@@ -57,89 +57,109 @@ class ConectaSocApp extends StatelessWidget {
         },
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            Locale? currentLocale;
-            if (state is AuthAuthenticated) {
-              currentLocale = Locale(state.user.language);
-            }
+            // Determinar el locale actual basado en el estado de autenticación.
+            final Locale? userLocale = (state is AuthAuthenticated)
+                ? Locale(state.user.language)
+                : null;
 
             return MaterialApp(
-              scaffoldMessengerKey: SnackBarService.scaffoldMessengerKey,
-              onGenerateTitle: (context) =>
-                  AppLocalizations.of(context)!.appTitle,
-              navigatorKey: _navigatorKey,
-              debugShowCheckedModeBanner: false,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              locale:
-                  currentLocale, // Aquí se establece el idioma dinámicamente
+                scaffoldMessengerKey: SnackBarService.scaffoldMessengerKey,
+                onGenerateTitle: (context) =>
+                    AppLocalizations.of(context)!.appTitle,
+                navigatorKey: _navigatorKey,
+                debugShowCheckedModeBanner: false,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: userLocale, // Aquí se establece el idioma dinámicamente
+                localeListResolutionCallback:
+                    (deviceLocales, supportedLocales) {
+                  // 1. Prioridad: idioma guardado del usuario
+                  if (userLocale != null) {
+                    return userLocale;
+                  }
+                  // 2. Segunda opción: idioma del dispositivo
+                  if (deviceLocales != null) {
+                    for (var deviceLocale in deviceLocales) {
+                      for (var supportedLocale in supportedLocales) {
+                        if (supportedLocale.languageCode ==
+                            deviceLocale.languageCode) {
+                          // Encontramos una coincidencia, la devolvemos.
+                          return supportedLocale;
+                        }
+                      }
+                    }
+                  }
+                  // 3. Fallback: primer idioma soportado (ej. español)
+                  return supportedLocales.first;
+                },
 
-              // THEME
-              theme: ThemeData(
-                primarySwatch: Colors.blue,
-                visualDensity: VisualDensity.adaptivePlatformDensity,
-                useMaterial3: true,
+                // THEME
+                theme: ThemeData(
+                  primarySwatch: Colors.blue,
+                  visualDensity: VisualDensity.adaptivePlatformDensity,
+                  useMaterial3: true,
 
-                // AppBar Theme
-                appBarTheme: const AppBarTheme(
-                  elevation: 0,
-                  centerTitle: true,
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
+                  // AppBar Theme
+                  appBarTheme: const AppBarTheme(
+                    elevation: 0,
+                    centerTitle: true,
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
 
-                // Input Decoration Theme
-                inputDecorationTheme: InputDecorationTheme(
-                  filled: true,
-                  fillColor: Colors.grey[50],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.blue, width: 2),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.red),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                ),
-
-                // Elevated Button Theme
-                elevatedButtonTheme: ElevatedButtonThemeData(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 2,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
+                  // Input Decoration Theme
+                  inputDecorationTheme: InputDecorationTheme(
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          const BorderSide(color: Colors.blue, width: 2),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.red),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
                       vertical: 16,
                     ),
+                  ),
+
+                  // Elevated Button Theme
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 2,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  // Card Theme
+                  cardTheme: CardThemeData(
+                    elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
 
-                // Card Theme
-                cardTheme: CardThemeData(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              // Sistema de navegación con rutas nombradas
-              initialRoute: RouteNames.splash,
-              onGenerateRoute: AppRouter.onGenerateRoute,
-            );
+                // Sistema de navegación con rutas nombradas
+                initialRoute: RouteNames.splash,
+                onGenerateRoute: AppRouter.onGenerateRoute);
           },
         ),
       ),

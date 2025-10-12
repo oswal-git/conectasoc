@@ -1,4 +1,5 @@
-part of 'association_bloc.dart';
+import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 
 abstract class AssociationEvent extends Equatable {
   const AssociationEvent();
@@ -21,4 +22,12 @@ class SortAssociations extends AssociationEvent {
   const SortAssociations(this.sortBy);
   @override
   List<Object> get props => [sortBy];
+}
+
+class DeleteAssociation extends AssociationEvent {
+  final String associationId;
+  const DeleteAssociation(this.associationId);
+
+  @override
+  List<Object> get props => [associationId];
 }

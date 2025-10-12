@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:conectasoc/features/auth/data/models/models.dart';
 import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
@@ -53,10 +52,7 @@ class UserModel extends UserEntity {
       stats: data['stats'] != null
           ? UserStats.fromMap(Map<String, dynamic>.from(data['stats']))
           : const UserStats(),
-      memberships: (data['memberships'] as List<dynamic>?)
-              ?.map((m) => MembershipModel.fromMap(m as Map<String, dynamic>))
-              .toList() ??
-          [],
+      memberships: Map<String, String>.from(data['memberships'] ?? {}),
     );
   }
 
@@ -72,12 +68,11 @@ class UserModel extends UserEntity {
       'firstName': firstName,
       'lastName': lastName,
       'phone': phone,
-      'avatar': avatarUrl,
+      'avatarUrl': avatarUrl,
       'authProvider': authProvider,
       'notificationSettings': notificationSettings.toMap(),
       'stats': stats.toMap(),
-      'memberships':
-          memberships.map((m) => (m as MembershipModel).toMap()).toList(),
+      'memberships': memberships,
     };
 
     // Agregar campos opcionales solo si existen

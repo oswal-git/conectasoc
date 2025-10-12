@@ -1,4 +1,5 @@
-part of 'association_bloc.dart';
+import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
+import 'package:equatable/equatable.dart';
 
 enum SortBy { name, contact }
 
@@ -52,6 +53,17 @@ class AssociationsError extends AssociationState {
 
   const AssociationsError(this.message);
 
+  @override
+  List<Object> get props => [message];
+}
+
+class AssociationDeletionSuccess extends AssociationState {
+  const AssociationDeletionSuccess();
+}
+
+class AssociationDeletionFailure extends AssociationState {
+  final String message;
+  const AssociationDeletionFailure(this.message);
   @override
   List<Object> get props => [message];
 }

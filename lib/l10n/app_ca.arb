@@ -6,8 +6,18 @@
     "changeAssociation": "Canviar d'Associació",
     "unknownAssociation": "Associació desconeguda",
     "role": "Rol: {roleName}",
+    "@role": {
+        "placeholders": {
+            "roleName": {}
+        }
+    },
     "cancel": "Cancel·lar",
     "errorLoadingAssociations": "Error en carregar les associacions: {error}",
+    "@errorLoadingAssociations": {
+        "placeholders": {
+            "error": {}
+        }
+    },
     "retry": "Reintentar",
     "createAccount": "Crear Compte",
     "registrationError": "Error en el Registre",
@@ -15,8 +25,13 @@
     "unexpectedError": "Ha ocorregut un error inesperat.",
     "leaveAssociation": "Abandonar Associació",
     "leave": "Abandonar",
-    "leaveAssociationConfirmationTitle": "Confirmar abandó",
+    "leaveAssociationConfirmationTitle": "Confirmar abandonament",
     "leaveAssociationConfirmationMessage": "Estàs segur que vols abandonar l'associació '{associationName}'? Aquesta acció no es pot desfer.",
+    "@leaveAssociationConfirmationMessage": {
+        "placeholders": {
+            "associationName": {}
+        }
+    },
     "users": "Usuaris",
     "associations": "Associacions",
     "myProfile": "El Meu Perfil",
@@ -28,7 +43,7 @@
     "profileLoadError": "Error en carregar el perfil.",
     "name": "Nom",
     "lastname": "Cognoms",
-    "email": "Correu electrònic",
+    "email": "Email",
     "phone": "Telèfon",
     "language": "Idioma",
     "langSpanish": "Español",
@@ -41,5 +56,39 @@
     "search": "Cercar...",
     "contact": "Contacte",
     "noResultsFound": "No s'han trobat resultats",
-    "associationsListTitle": "Llistat d'associacions"
+    "associationsListTitle": "Llistat d'associacions",
+    "changesSavedSuccessfully": "Canvis desats amb èxit",
+    "shortName": "Nom curt",
+    "longName": "Nom llarg",
+    "contactName": "Nom de contacte",
+    "saveChanges": "Desar Canvis",
+    "associationIdCannotBeEmpty": "L'ID de l'associació no pot estar buit.",
+    "shortAndLongNameRequired": "El nom curt i el nom llarg són obligatoris.",
+    "invalidEmailFormat": "El format de l'email no és vàlid.",
+    "errorUploadingLogo": "Error en pujar el logo",
+    "unexpectedErrorOcurred": "Ha ocorregut un error inesperat: {error}",
+    "@unexpectedErrorOcurred": {
+        "description": "Generic error message with a placeholder for the specific error.",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "incompleteAssociationData": "Les dades de la nova associació estan incompletes.",
+    "mustSelectAnAssociation": "Ha de seleccionar una associació per a unir-s'hi.",
+    "welcomeSubtitle": "Portal d'Associacions",
+    "welcomeReadOnlyTitle": "Només Lectura",
+    "welcomeReadOnlyDescription": "Explora contingut sense registre",
+    "welcomeLoginTitle": "Iniciar Sessió",
+    "welcomeLoginDescription": "Ja tinc un compte",
+    "welcomeRegisterDescription": "Registre complet amb notificacions",
+    "exitReadOnlyMode": "Sortir del mode lectura",
+    "createAssociation": "Crear Associació",
+    "deleteAssociation": "Esborrar Associació",
+    "deleteAssociationConfirmation": "Estàs segur que vols esborrar l'associació '{associationName}'? Aquesta acció no es pot desfer.",
+    "associationHasUsersError": "No es pot esborrar l'associació perquè té usuaris assignats.",
+    "associationDeletedSuccessfully": "Associació esborrada amb èxit.",
+    "delete": "Esborrar",
+    "@delete": {
+        "description": "Text per al botó de confirmació d'esborrat."
+    }
 }

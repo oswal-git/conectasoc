@@ -2,11 +2,11 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/core/errors/exceptions.dart';
-import 'package:conectasoc/features/auth/data/models/models.dart';
-import 'package:conectasoc/features/users/domain/entities/profile_entity.dart';
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
 
 abstract class UserRemoteDataSource {
-  Future<void> addMembership(String userId, MembershipModel membership);
+  Future<void> addMembership(String userId, String associationId, String role);
+  Future<void> removeMembership(String userId, String associationId);
 
   Future<ProfileEntity> updateUser(ProfileEntity user, String? newImageUrl);
 }
@@ -17,16 +17,35 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   UserRemoteDataSourceImpl({required this.firestore});
 
   @override
-  Future<void> addMembership(String userId, MembershipModel membership) async {
+  Future<void> addMembership(
+      String userId, String associationId, String role) async {
     try {
       await firestore.collection('users').doc(userId).update({
-        'memberships': FieldValue.arrayUnion([membership.toMap()])
+        // Usar notación de punto para actualizar un campo dentro de un mapa
+        'memberships.$associationId': role,
+        // Añadir el ID al array de Ids de asociación para optimizar consultas
+        'associationIds': FieldValue.arrayUnion([associationId]),
       });
     } on FirebaseException catch (e) {
       throw ServerException(
           'Error al unirse a la asociación: ${e.message ?? e.code}');
     } catch (e) {
       throw ServerException('Error inesperado al unirse a la asociación.');
+    }
+  }
+
+  @override
+  Future<void> removeMembership(String userId, String associationId) async {
+    try {
+      await firestore.collection('users').doc(userId).update({
+        'memberships.$associationId': FieldValue.delete(),
+        'associationIds': FieldValue.arrayRemove([associationId])
+      });
+    } on FirebaseException catch (e) {
+      throw ServerException(
+          'Error al abandonar la asociación: ${e.message ?? e.code}');
+    } catch (e) {
+      throw ServerException('Error inesperado al abandonar la asociación.');
     }
   }
 

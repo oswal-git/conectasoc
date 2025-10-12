@@ -7,7 +7,6 @@ import 'package:dartz/dartz.dart';
 
 import 'package:conectasoc/core/errors/exceptions.dart';
 import 'package:conectasoc/core/errors/failures.dart';
-import 'package:conectasoc/features/auth/data/models/models.dart';
 import 'package:conectasoc/features/users/data/datasources/user_remote_datasource.dart';
 import 'package:conectasoc/features/users/domain/entities/profile_entity.dart';
 import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
@@ -21,11 +20,8 @@ class UserRepositoryImpl implements UserRepository {
   Future<Either<Failure, void>> joinAssociation(
       {required String userId, required String associationId}) async {
     try {
-      final newMembership = MembershipModel(
-        associationId: associationId,
-        role: 'asociado', // Por defecto, el rol es 'asociado'
-      );
-      await remoteDataSource.addMembership(userId, newMembership);
+      // El rol por defecto al unirse es 'asociado'
+      await remoteDataSource.addMembership(userId, associationId, 'asociado');
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -71,6 +67,20 @@ class UserRepositoryImpl implements UserRepository {
       return Right(updatedUser);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> removeMembership(
+      {required String userId, required String associationId}) async {
+    try {
+      await remoteDataSource.removeMembership(userId, associationId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(
+          'Ocurrió un error inesperado al abandonar la asociación.'));
     }
   }
 }

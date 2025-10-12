@@ -351,6 +351,156 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Listado de asociaciones'**
   String get associationsListTitle;
+
+  /// No description provided for @changesSavedSuccessfully.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambios guardados con éxito'**
+  String get changesSavedSuccessfully;
+
+  /// No description provided for @shortName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre corto'**
+  String get shortName;
+
+  /// No description provided for @longName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre largo'**
+  String get longName;
+
+  /// No description provided for @contactName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de contacto'**
+  String get contactName;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar Cambios'**
+  String get saveChanges;
+
+  /// No description provided for @associationIdCannotBeEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'El ID de la asociación no puede estar vacío.'**
+  String get associationIdCannotBeEmpty;
+
+  /// No description provided for @shortAndLongNameRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre corto y el nombre largo son obligatorios.'**
+  String get shortAndLongNameRequired;
+
+  /// No description provided for @invalidEmailFormat.
+  ///
+  /// In es, this message translates to:
+  /// **'El formato del email no es válido.'**
+  String get invalidEmailFormat;
+
+  /// No description provided for @errorUploadingLogo.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al subir el logo'**
+  String get errorUploadingLogo;
+
+  /// Generic error message with a placeholder for the specific error.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocurrió un error inesperado: {error}'**
+  String unexpectedErrorOcurred(Object error);
+
+  /// No description provided for @incompleteAssociationData.
+  ///
+  /// In es, this message translates to:
+  /// **'Los datos de la nueva asociación están incompletos.'**
+  String get incompleteAssociationData;
+
+  /// No description provided for @mustSelectAnAssociation.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe seleccionar una asociación para unirse.'**
+  String get mustSelectAnAssociation;
+
+  /// No description provided for @welcomeSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Portal de Asociaciones'**
+  String get welcomeSubtitle;
+
+  /// No description provided for @welcomeReadOnlyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo Lectura'**
+  String get welcomeReadOnlyTitle;
+
+  /// No description provided for @welcomeReadOnlyDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Explora contenido sin registro'**
+  String get welcomeReadOnlyDescription;
+
+  /// No description provided for @welcomeLoginTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar Sesión'**
+  String get welcomeLoginTitle;
+
+  /// No description provided for @welcomeLoginDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya tengo una cuenta'**
+  String get welcomeLoginDescription;
+
+  /// No description provided for @welcomeRegisterDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro completo con notificaciones'**
+  String get welcomeRegisterDescription;
+
+  /// No description provided for @exitReadOnlyMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Salir del modo lectura'**
+  String get exitReadOnlyMode;
+
+  /// No description provided for @createAssociation.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear Asociación'**
+  String get createAssociation;
+
+  /// No description provided for @deleteAssociation.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar Asociación'**
+  String get deleteAssociation;
+
+  /// No description provided for @deleteAssociationConfirmation.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro de que quieres borrar la asociación \'{associationName}\'? Esta acción no se puede deshacer.'**
+  String deleteAssociationConfirmation(Object associationName);
+
+  /// No description provided for @associationHasUsersError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede borrar la asociación porque tiene usuarios asignados.'**
+  String get associationHasUsersError;
+
+  /// No description provided for @associationDeletedSuccessfully.
+  ///
+  /// In es, this message translates to:
+  /// **'Asociación borrada con éxito.'**
+  String get associationDeletedSuccessfully;
+
+  /// Texto para el botón de confirmación de borrado.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar'**
+  String get delete;
 }
 
 class _AppLocalizationsDelegate

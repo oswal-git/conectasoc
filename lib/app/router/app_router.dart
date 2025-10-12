@@ -1,9 +1,10 @@
 // lib/app/router/app_router.dart
 
-import 'package:conectasoc/features/associations/presentation/pages/association_list_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
+import 'package:conectasoc/features/associations/presentation/pages/association_edit_page.dart';
+import 'package:conectasoc/features/associations/presentation/pages/association_list_page.dart';
 import 'package:conectasoc/features/auth/presentation/presentation.dart';
 import 'package:conectasoc/features/home/presentation/pages/pages.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
@@ -60,12 +61,17 @@ class AppRouter {
       case RouteNames.associationsList:
         return MaterialPageRoute(builder: (_) => const AssociationListPage());
       case RouteNames.associationEdit:
-        // TODO: Crear la página de edición de asociación
+        if (settings.arguments is String) {
+          final associationId = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (_) => AssociationEditPage(associationId: associationId),
+          );
+        }
         return MaterialPageRoute(
-            builder: (_) => Scaffold(
-                appBar: AppBar(title: const Text('Editar Asociación')),
-                body: Center(
-                    child: Text('ID de Asociación: ${settings.arguments}'))));
+          builder: (_) => const Scaffold(
+            body: Center(child: Text('Error: ID de asociación no válido')),
+          ),
+        );
 
       default:
         return MaterialPageRoute(

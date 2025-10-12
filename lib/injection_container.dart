@@ -1,25 +1,36 @@
 // lib/injection_container.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:conectasoc/features/associations/domain/usecases/get_all_associations_usecase.dart';
-import 'package:conectasoc/features/associations/presentation/bloc/association_bloc.dart';
-import 'package:conectasoc/features/users/data/repositories/users_repository_impl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Core
+import 'package:conectasoc/core/services/local_storage_service.dart';
+import 'package:conectasoc/services/cloudinary_service.dart';
+
+// Associations - Data
+import 'package:conectasoc/features/associations/data/datasources/association_remote_datasource.dart';
+import 'package:conectasoc/features/associations/data/repositories/association_repository_impl.dart';
+
+// Associations - Domain
+import 'package:conectasoc/features/associations/domain/repositories/association_repository.dart';
+import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
+
+// Associations - Presentation
+import 'package:conectasoc/features/associations/presentation/bloc/association_bloc.dart';
+import 'package:conectasoc/features/associations/presentation/bloc/edit/association_edit_bloc.dart';
+
 // Users - Data
 import 'package:conectasoc/features/users/data/datasources/user_remote_datasource.dart';
-
-// Users - Presentation
-import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/users/data/repositories/users_repository_impl.dart';
 
 // Users - Domain
 import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
 import 'package:conectasoc/features/users/domain/usecases/usecases.dart';
 
-// Core
-import 'package:conectasoc/core/services/local_storage_service.dart';
+// Users - Presentation
+import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 
 // Auth - Data
 import 'package:conectasoc/features/auth/data/datasources/datasources.dart';
@@ -43,26 +54,28 @@ Future<void> init() async {
   sl.registerFactory(
     () => AuthBloc(
       repository: sl(),
-      loginUseCase: sl(),
+      getAllAssociationsUseCase: sl(),
       registerUseCase: sl(),
-      logoutUseCase: sl(),
       saveLocalUserUseCase: sl(),
-      getAssociationsUseCase: sl(),
     ),
   );
 
   // Use Cases
-  sl.registerLazySingleton(() => LoginUseCase(sl()));
-  sl.registerLazySingleton(() => RegisterUseCase(sl()));
-  sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  // Login y Logout son ahora llamados directamente desde el repositorio en el BLoC.
+  // sl.registerLazySingleton(() => LoginUseCase(repository: sl()));
+  // sl.registerLazySingleton(() => LogoutUseCase(repository: sl()));
+  sl.registerLazySingleton(() => RegisterUseCase(
+        repository: sl(),
+        createAssociationUseCase: sl(),
+      ));
   sl.registerLazySingleton(() => SaveLocalUserUseCase(sl()));
-  sl.registerLazySingleton(() => GetAssociationsUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: sl(),
       localDataSource: sl(),
+      userRepository: sl(),
     ),
   );
 
@@ -100,11 +113,35 @@ Future<void> init() async {
   sl.registerFactory(
     () => AssociationBloc(
       getAllAssociationsUseCase: sl(),
+      deleteAssociationUseCase: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => AssociationEditBloc(
+      createAssociation: sl(),
+      getAssociationById: sl(),
+      updateAssociation: sl(),
+      deleteAssociation: sl(),
     ),
   );
 
   // Use Cases
   sl.registerLazySingleton(() => GetAllAssociationsUseCase(sl()));
+  sl.registerLazySingleton(() => GetAssociationByIdUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateAssociationUseCase(sl()));
+  sl.registerLazySingleton(() => CreateAssociationUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAssociationUseCase(sl()));
+
+  // Repository
+  sl.registerLazySingleton<AssociationRepository>(
+    () => AssociationRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Data Sources
+  sl.registerLazySingleton<AssociationRemoteDataSource>(
+    () => AssociationRemoteDataSourceImpl(firestore: sl()),
+  );
 
   // ============================================
   // CORE
@@ -114,6 +151,7 @@ Future<void> init() async {
   sl.registerLazySingleton<LocalStorageService>(
     () => LocalStorageService(sl()),
   );
+  sl.registerLazySingleton(() => CloudinaryService());
 
   // ============================================
   // EXTERNAL

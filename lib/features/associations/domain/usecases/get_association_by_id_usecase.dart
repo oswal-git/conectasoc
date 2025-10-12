@@ -1,17 +1,18 @@
 import 'package:dartz/dartz.dart';
 
 import 'package:conectasoc/core/errors/failures.dart';
+import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/associations/domain/repositories/association_repository.dart';
 
-class DeleteAssociationUseCase {
+class GetAssociationByIdUseCase {
   final AssociationRepository repository;
 
-  DeleteAssociationUseCase(this.repository);
+  GetAssociationByIdUseCase(this.repository);
 
-  Future<Either<Failure, void>> call(String associationId) async {
-    if (associationId.isEmpty) {
+  Future<Either<Failure, AssociationEntity>> call(String id) async {
+    if (id.isEmpty) {
       return const Left(ValidationFailure('associationIdCannotBeEmpty'));
     }
-    return await repository.deleteAssociation(associationId);
+    return await repository.getAssociationById(id);
   }
 }

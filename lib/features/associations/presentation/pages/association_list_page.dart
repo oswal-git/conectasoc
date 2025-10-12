@@ -1,8 +1,9 @@
 import 'package:conectasoc/app/router/router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:conectasoc/features/associations/presentation/bloc/association_bloc.dart';
+import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
+import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
+import 'package:conectasoc/services/snackbar_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,146 +14,150 @@ class AssociationListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<AssociationBloc>()..add(LoadAssociations()),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.associations),
-        ),
-        body: const AssociationsListView(),
+      child: const _AssociationListPageView(),
+    );
+  }
+}
+
+class _AssociationListPageView extends StatelessWidget {
+  const _AssociationListPageView();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.associationsListTitle),
+      ),
+      body: const AssociationListView(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          // Guardar referencias antes del 'await' para evitar usar el context de forma insegura.
+          final navigator = Navigator.of(context);
+          final bloc = context.read<AssociationBloc>();
+          await navigator.pushNamed(RouteNames.associationEdit, arguments: '');
+          bloc.add(LoadAssociations());
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
-class AssociationsListView extends StatelessWidget {
-  const AssociationsListView({super.key});
+class AssociationListView extends StatelessWidget {
+  const AssociationListView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              labelText: l10n.search,
-              prefixIcon: const Icon(Icons.search),
-              border: const OutlineInputBorder(),
-            ),
-            onChanged: (query) {
-              context.read<AssociationBloc>().add(SearchAssociations(query));
+    return BlocConsumer<AssociationBloc, AssociationState>(
+      listener: (context, state) {
+        if (state is AssociationDeletionSuccess) {
+          SnackBarService.showSnackBar(l10n.associationDeletedSuccessfully);
+        } else if (state is AssociationDeletionFailure) {
+          SnackBarService.showSnackBar(
+            _getTranslatedErrorMessage(state.message, l10n),
+            isError: true,
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state is AssociationsLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is AssociationsLoaded) {
+          if (state.filteredAssociations.isEmpty) {
+            return Center(child: Text(l10n.noResultsFound));
+          }
+          return ListView.builder(
+            itemCount: state.filteredAssociations.length,
+            itemBuilder: (context, index) {
+              final association = state.filteredAssociations[index];
+              return _AssociationListItem(association: association);
             },
-          ),
-        ),
-        BlocBuilder<AssociationBloc, AssociationState>(
-          builder: (context, state) {
-            if (state is AssociationsLoaded) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _SortButton(
-                      label: l10n.name,
-                      sortBy: SortBy.name,
-                      currentState: state,
-                    ),
-                    _SortButton(
-                      label: l10n.contact,
-                      sortBy: SortBy.contact,
-                      currentState: state,
-                    ),
-                  ],
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
-        Expanded(
-          child: BlocBuilder<AssociationBloc, AssociationState>(
-            builder: (context, state) {
-              if (state is AssociationsLoading ||
-                  state is AssociationsInitial) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (state is AssociationsError) {
-                return Center(child: Text(state.message));
-              }
-              if (state is AssociationsLoaded) {
-                if (state.filteredAssociations.isEmpty) {
-                  return Center(child: Text(l10n.noResultsFound));
-                }
-                return ListView.builder(
-                  itemCount: state.filteredAssociations.length,
-                  itemBuilder: (context, index) {
-                    final assoc = state.filteredAssociations[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          backgroundImage:
-                              assoc.logoUrl != null && assoc.logoUrl!.isNotEmpty
-                                  ? CachedNetworkImageProvider(assoc.logoUrl!)
-                                  : null,
-                          child: assoc.logoUrl == null || assoc.logoUrl!.isEmpty
-                              ? const Icon(Icons.business, color: Colors.grey)
-                              : null,
-                        ),
-                        title: Text(assoc.shortName),
-                        subtitle: Text(
-                            '${l10n.contact}: ${assoc.contactName} - ${assoc.phone}'),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                              RouteNames.associationEdit,
-                              arguments: assoc.id);
-                        },
-                      ),
-                    );
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ),
-      ],
+          );
+        }
+        if (state is AssociationsError) {
+          return Center(child: Text(state.message));
+        }
+        return const Center(child: Text('Initial State'));
+      },
     );
+  }
+
+  String _getTranslatedErrorMessage(String key, AppLocalizations l10n) {
+    if (key == 'associationHasUsersError') {
+      return l10n.associationHasUsersError;
+    }
+    return key;
   }
 }
 
-class _SortButton extends StatelessWidget {
-  final String label;
-  final SortBy sortBy;
-  final AssociationsLoaded currentState;
+class _AssociationListItem extends StatelessWidget {
+  final AssociationEntity association;
 
-  const _SortButton({
-    required this.label,
-    required this.sortBy,
-    required this.currentState,
-  });
+  const _AssociationListItem({required this.association});
 
   @override
   Widget build(BuildContext context) {
-    final bool isActive = currentState.sortBy == sortBy;
-    final IconData? icon = isActive
-        ? (currentState.sortOrder == SortOrder.asc
-            ? Icons.arrow_upward
-            : Icons.arrow_downward)
-        : null;
-
-    return TextButton.icon(
-      onPressed: () {
-        context.read<AssociationBloc>().add(SortAssociations(sortBy));
+    final l10n = AppLocalizations.of(context)!;
+    return Dismissible(
+      key: Key(association.id),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) {
+        // Este onDismissed se llama después de la animación.
+        // La lógica de borrado real se maneja en confirmDismiss.
       },
-      icon: icon != null ? Icon(icon, size: 16) : const SizedBox(width: 16),
-      label: Text(
-        label,
-        style: TextStyle(
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-        ),
+      confirmDismiss: (direction) async {
+        // Obtenemos la referencia al BLoC ANTES del 'await' para evitar usar el context de forma insegura.
+        final bloc = context.read<AssociationBloc>();
+
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(l10n.deleteAssociation),
+              content: Text(
+                  l10n.deleteAssociationConfirmation(association.longName)),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(l10n.cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(l10n.deleteAssociation,
+                      style: const TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (confirmed == true) {
+          bloc.add(DeleteAssociation(association.id));
+        }
+        // Devuelve false para que el Dismissible no se elimine de la UI por sí mismo.
+        // El BLoC se encargará de reconstruir la lista.
+        return false;
+      },
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      child: ListTile(
+        title: Text(association.longName),
+        subtitle: Text(association.shortName),
+        onTap: () async {
+          // Guardar referencias antes del 'await' para evitar usar el context de forma insegura.
+          final navigator = Navigator.of(context);
+          final bloc = context.read<AssociationBloc>();
+          await navigator.pushNamed(RouteNames.associationEdit,
+              arguments: association.id);
+          bloc.add(LoadAssociations());
+        },
       ),
     );
   }

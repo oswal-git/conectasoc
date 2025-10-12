@@ -15,4 +15,9 @@ abstract class UserRepository {
     required ProfileEntity user,
     File? newImageFile,
   });
+
+  Future<Either<Failure, void>> removeMembership({
+    required String userId,
+    required String associationId,
+  });
 }

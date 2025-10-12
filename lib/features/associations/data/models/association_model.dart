@@ -4,22 +4,28 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 
 class AssociationModel extends AssociationEntity {
+  final String? description;
+  final String? website;
+  final AssociationAddress? address;
+  final AssociationSettings settings;
+  final AssociationStats stats;
+
   const AssociationModel({
     required super.id,
     required super.longName,
     required super.shortName,
-    super.description,
     super.logoUrl,
-    super.website,
     required super.email,
     required super.contactName,
     required super.phone,
-    super.address,
-    super.settings = const AssociationSettings(),
     required super.dateCreated,
     required super.dateUpdated,
     super.dateDeleted,
-    super.stats = const AssociationStats(),
+    this.description,
+    this.website,
+    this.address,
+    this.settings = const AssociationSettings(),
+    this.stats = const AssociationStats(),
   });
 
   // Crear desde Firestore DocumentSnapshot
@@ -42,8 +48,12 @@ class AssociationModel extends AssociationEntity {
       settings: data['settings'] != null
           ? AssociationSettings.fromJson(data['settings'])
           : const AssociationSettings(),
-      dateCreated: (data['dateCreated'] as Timestamp).toDate(),
-      dateUpdated: (data['dateUpdated'] as Timestamp).toDate(),
+      dateCreated: data['dateCreated'] is Timestamp
+          ? (data['dateCreated'] as Timestamp).toDate()
+          : DateTime.now(),
+      dateUpdated: data['dateUpdated'] is Timestamp
+          ? (data['dateUpdated'] as Timestamp).toDate()
+          : DateTime.now(),
       dateDeleted: data['dateDeleted'] != null
           ? (data['dateDeleted'] as Timestamp).toDate()
           : null,
@@ -130,18 +140,13 @@ class AssociationModel extends AssociationEntity {
       id: id,
       shortName: shortName,
       longName: longName,
-      description: description,
       logoUrl: logoUrl,
-      website: website,
       email: email,
       contactName: contactName,
       phone: phone,
-      address: address,
-      settings: settings,
       dateCreated: dateCreated,
       dateUpdated: dateUpdated,
       dateDeleted: dateDeleted,
-      stats: stats,
     );
   }
 
@@ -151,18 +156,13 @@ class AssociationModel extends AssociationEntity {
       id: entity.id,
       shortName: entity.shortName,
       longName: entity.longName,
-      description: entity.description,
       logoUrl: entity.logoUrl,
-      website: entity.website,
       email: entity.email,
       contactName: entity.contactName,
       phone: entity.phone,
-      address: entity.address,
-      settings: entity.settings,
       dateCreated: entity.dateCreated,
       dateUpdated: entity.dateUpdated,
       dateDeleted: entity.dateDeleted,
-      stats: entity.stats,
     );
   }
 
@@ -203,4 +203,54 @@ class AssociationModel extends AssociationEntity {
       stats: stats ?? this.stats,
     );
   }
+}
+
+// Clases de soporte que no necesitan ser entidades porque son parte de Association
+
+class AssociationAddress {
+  final String street;
+  final String city;
+  final String state;
+  final String zip;
+
+  const AssociationAddress(
+      {required this.street,
+      required this.city,
+      required this.state,
+      required this.zip});
+
+  factory AssociationAddress.fromJson(Map<String, dynamic> json) =>
+      AssociationAddress(
+        street: json['street'] ?? '',
+        city: json['city'] ?? '',
+        state: json['state'] ?? '',
+        zip: json['zip'] ?? '',
+      );
+
+  Map<String, dynamic> toJson() =>
+      {'street': street, 'city': city, 'state': state, 'zip': zip};
+}
+
+class AssociationSettings {
+  final bool allowPublicRegistration;
+
+  const AssociationSettings({this.allowPublicRegistration = true});
+
+  factory AssociationSettings.fromJson(Map<String, dynamic> json) =>
+      AssociationSettings(
+          allowPublicRegistration: json['allowPublicRegistration'] ?? true);
+
+  Map<String, dynamic> toJson() =>
+      {'allowPublicRegistration': allowPublicRegistration};
+}
+
+class AssociationStats {
+  final int memberCount;
+
+  const AssociationStats({this.memberCount = 0});
+
+  factory AssociationStats.fromJson(Map<String, dynamic> json) =>
+      AssociationStats(memberCount: json['memberCount'] ?? 0);
+
+  Map<String, dynamic> toJson() => {'memberCount': memberCount};
 }

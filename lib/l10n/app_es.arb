@@ -6,8 +6,18 @@
     "changeAssociation": "Cambiar de Asociación",
     "unknownAssociation": "Asociación desconocida",
     "role": "Rol: {roleName}",
+    "@role": {
+        "placeholders": {
+            "roleName": {}
+        }
+    },
     "cancel": "Cancelar",
     "errorLoadingAssociations": "Error al cargar las asociaciones: {error}",
+    "@errorLoadingAssociations": {
+        "placeholders": {
+            "error": {}
+        }
+    },
     "retry": "Reintentar",
     "createAccount": "Crear Cuenta",
     "registrationError": "Error en el Registro",
@@ -17,6 +27,11 @@
     "leave": "Abandonar",
     "leaveAssociationConfirmationTitle": "Confirmar abandono",
     "leaveAssociationConfirmationMessage": "¿Estás seguro de que quieres abandonar la asociación '{associationName}'? Esta acción no se puede deshacer.",
+    "@leaveAssociationConfirmationMessage": {
+        "placeholders": {
+            "associationName": {}
+        }
+    },
     "users": "Usuarios",
     "associations": "Asociaciones",
     "myProfile": "Mi Perfil",
@@ -41,5 +56,39 @@
     "search": "Buscar...",
     "contact": "Contacto",
     "noResultsFound": "No se encontraron resultados",
-    "associationsListTitle": "Listado de asociaciones"
+    "associationsListTitle": "Listado de asociaciones",
+    "changesSavedSuccessfully": "Cambios guardados con éxito",
+    "shortName": "Nombre corto",
+    "longName": "Nombre largo",
+    "contactName": "Nombre de contacto",
+    "saveChanges": "Guardar Cambios",
+    "associationIdCannotBeEmpty": "El ID de la asociación no puede estar vacío.",
+    "shortAndLongNameRequired": "El nombre corto y el nombre largo son obligatorios.",
+    "invalidEmailFormat": "El formato del email no es válido.",
+    "errorUploadingLogo": "Error al subir el logo",
+    "unexpectedErrorOcurred": "Ocurrió un error inesperado: {error}",
+    "@unexpectedErrorOcurred": {
+        "description": "Generic error message with a placeholder for the specific error.",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "incompleteAssociationData": "Los datos de la nueva asociación están incompletos.",
+    "mustSelectAnAssociation": "Debe seleccionar una asociación para unirse.",
+    "welcomeSubtitle": "Portal de Asociaciones",
+    "welcomeReadOnlyTitle": "Solo Lectura",
+    "welcomeReadOnlyDescription": "Explora contenido sin registro",
+    "welcomeLoginTitle": "Iniciar Sesión",
+    "welcomeLoginDescription": "Ya tengo una cuenta",
+    "welcomeRegisterDescription": "Registro completo con notificaciones",
+    "exitReadOnlyMode": "Salir del modo lectura",
+    "createAssociation": "Crear Asociación",
+    "deleteAssociation": "Borrar Asociación",
+    "deleteAssociationConfirmation": "¿Estás seguro de que quieres borrar la asociación '{associationName}'? Esta acción no se puede deshacer.",
+    "associationHasUsersError": "No se puede borrar la asociación porque tiene usuarios asignados.",
+    "associationDeletedSuccessfully": "Asociación borrada con éxito.",
+    "delete": "Borrar",
+    "@delete": {
+        "description": "Texto para el botón de confirmación de borrado."
+    }
 }

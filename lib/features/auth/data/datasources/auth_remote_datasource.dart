@@ -19,13 +19,10 @@ abstract class AuthRemoteDataSource {
     required String firstName,
     required String lastName,
     String? phone,
-    required List<Map<String, dynamic>> memberships,
+    required Map<String, String> memberships,
   });
   Future<void> signOut();
   Future<void> resetPasswordWithEmail(String email);
-  Future<List<AssociationModel>> getAllAssociations();
-  Future<void> removeMembership(String associationId, String role);
-  Future<AssociationModel> createAssociation(AssociationModel association);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -107,30 +104,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String firstName,
     required String lastName,
     String? phone,
-    required List<Map<String, dynamic>> memberships,
+    required Map<String, String> memberships,
   }) async {
     try {
-      // Crear documento en Firestore
       final now = DateTime.now();
-      final userData = {
-        'uid': uid,
-        'memberships': memberships,
-        'status': 'active', // from UserStatus enum
-        'language': 'es',
-        'timezone': null,
-        'dateCreated': Timestamp.fromDate(now),
-        'dateUpdated': Timestamp.fromDate(now),
-        'email': email,
-        'firstName': firstName,
-        'lastName': lastName,
-        'phone': phone,
-        'avatarUrl': null,
-        'authProvider': 'password',
-        'notificationSettings': const NotificationSettings().toMap(),
-        'stats': const {}, // Default empty map
-      };
+      // Usar el UserModel para construir el objeto, asegurando consistencia.
+      final userModel = UserModel(
+        uid: uid,
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+        memberships: memberships,
+        status: UserStatus.active,
+        dateCreated: now,
+        dateUpdated: now,
+        // Los demás campos usarán los valores por defecto de UserEntity
+      );
 
-      await firestore.collection('users').doc(uid).set(userData);
+      // Convertir el modelo a un mapa de Firestore y guardarlo.
+      await firestore.collection('users').doc(uid).set(userModel.toFirestore());
 
       final doc = await firestore.collection('users').doc(uid).get();
       return UserModel.fromFirestore(doc);
@@ -161,61 +154,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  @override
-  Future<List<AssociationModel>> getAllAssociations() async {
-    try {
-      final snapshot = await firestore
-          .collection('associations')
-          .where('dateDeleted', isNull: true)
-          .orderBy('shortName')
-          .get();
-
-      return snapshot.docs
-          .map((doc) => AssociationModel.fromFirestore(doc))
-          .toList();
-    } catch (e) {
-      throw ServerException('Error obteniendo asociaciones: $e');
-    }
-  }
-
-  @override
-  Future<AssociationModel> createAssociation(
-      AssociationModel association) async {
-    try {
-      // Verificar que no exista
-      final existing = await firestore
-          .collection('associations')
-          .where('shortName', isEqualTo: association.shortName)
-          .get();
-
-      if (existing.docs.isNotEmpty) {
-        throw ServerException('Ya existe una asociación con ese nombre');
-      }
-
-      final docRef = firestore.collection('associations').doc();
-      // Crear nuevo modelo con el ID generado
-      final newAssociation = AssociationModel(
-        id: docRef.id,
-        shortName: association.shortName,
-        longName: association.longName,
-        email: association.email,
-        contactName: association.contactName,
-        phone: association.phone,
-        description: association.description,
-        logoUrl: association.logoUrl ?? '',
-        dateCreated: association.dateCreated,
-        dateUpdated: association.dateUpdated,
-        dateDeleted: association.dateDeleted,
-      );
-
-      await docRef.set(newAssociation.toFirestore());
-
-      return newAssociation;
-    } catch (e) {
-      throw ServerException('Error creando asociación: $e');
-    }
-  }
-
   String _getAuthErrorMessage(String code) {
     switch (code) {
       case 'user-not-found':
@@ -234,27 +172,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return 'Demasiados intentos. Intente más tarde';
       default:
         return 'Error de autenticación: $code';
-    }
-  }
-
-  @override
-  Future<void> removeMembership(String associationId, String role) async {
-    final user = firebaseAuth.currentUser;
-    if (user == null) {
-      throw ServerException('Usuario no autenticado');
-    }
-
-    try {
-      await firestore.collection('users').doc(user.uid).update({
-        'memberships': FieldValue.arrayRemove([
-          {
-            'associationId': associationId,
-            'role': role,
-          }
-        ])
-      });
-    } catch (e) {
-      throw ServerException('Error al eliminar la membresía: $e');
     }
   }
 }

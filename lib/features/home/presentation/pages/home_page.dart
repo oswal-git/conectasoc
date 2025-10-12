@@ -2,8 +2,7 @@
 
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
-import 'package:conectasoc/features/home/presentation/widgets/app_drawer_widget.dart';
-import 'package:conectasoc/features/home/presentation/widgets/association_provider_widget.dart';
+import 'package:conectasoc/features/home/presentation/widgets/widgets.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,7 +20,7 @@ class HomePage extends StatelessWidget {
               appBar: AppBar(
                 title: _buildAppBarTitle(innerContext, state),
               ),
-              drawer: const AppDrawerWidget(),
+              drawer: const HomeDrawer(),
               body: const Center(
                 child: Text(''), // El texto se mostrará dentro del provider
               ),
@@ -36,34 +35,41 @@ class HomePage extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final allAssociations = AssociationProviderWidget.of(context);
 
+    String? associationId;
+    if (state is AuthAuthenticated) {
+      associationId = state.currentMembership?.associationId;
+    } else if (state is AuthLocalUser) {
+      associationId = state.localUser.associationId;
+    }
+
+    AssociationEntity? currentAssociation;
+    if (associationId != null) {
+      try {
+        currentAssociation =
+            allAssociations.firstWhere((assoc) => assoc.id == associationId);
+      } catch (e) {
+        // No se encontró la asociación, se manejará con el null check
+      }
+    }
+
     if (state is AuthAuthenticated && state.currentMembership != null) {
       // Si el usuario tiene más de una membresía, muestra un selector
       if (state.user.memberships.length > 1) {
-        AssociationEntity? currentAssociation;
-        try {
-          currentAssociation = allAssociations.firstWhere(
-              (assoc) => assoc.id == state.currentMembership!.associationId);
-        } catch (e) {
-          // No se encontró la asociación, se manejará con el null check
-        }
-        final currentAssociationName = currentAssociation?.shortName;
-
         return InkWell(
           onTap: () => _showMembershipSwitcher(context, state),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(currentAssociationName ?? l10n.homePage),
+              Text(currentAssociation?.shortName ?? l10n.homePage),
               const SizedBox(width: 4),
               const Icon(Icons.arrow_drop_down, size: 24),
             ],
           ),
         );
-      } else {
-        return Text(l10n.homePage);
       }
     }
-    return Text(l10n.homePage);
+    // Para usuarios locales o usuarios con una sola membresía
+    return Text(currentAssociation?.shortName ?? l10n.homePage);
   }
 
   void _showMembershipSwitcher(
@@ -75,15 +81,20 @@ class HomePage extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         final l10n = AppLocalizations.of(dialogContext)!;
+        final memberships = authState.user.memberships.entries.toList();
         return AlertDialog(
           title: Text(l10n.changeAssociation),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: authState.user.memberships.length,
+              itemCount: memberships.length,
               itemBuilder: (context, index) {
-                final membership = authState.user.memberships[index];
+                final membershipEntry = memberships[index];
+                final membership = MembershipEntity(
+                    userId: authState.user.uid,
+                    associationId: membershipEntry.key,
+                    role: membershipEntry.value);
                 final isCurrent = membership.associationId ==
                     authState.currentMembership!.associationId;
                 AssociationEntity? association;
@@ -124,7 +135,7 @@ class HomePage extends StatelessWidget {
                     ),
                     // Solo mostrar opción de abandonar si tiene más de una membresía,
                     // no es la actual y el rol no es admin
-                    if (authState.user.memberships.length > 1 &&
+                    if (memberships.length > 1 &&
                         !isCurrent &&
                         membership.role != 'admin')
                       Padding(
@@ -147,7 +158,7 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                       ),
-                    if (index < authState.user.memberships.length - 1)
+                    if (index < memberships.length - 1)
                       const Divider(height: 1),
                   ],
                 );
