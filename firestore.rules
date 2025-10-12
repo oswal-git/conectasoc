@@ -19,7 +19,8 @@ match /databases/{database}/documents {
     function isSuperAdmin() {
       return isSignedIn() && 
              'memberships' in getUserData() && // Asegurarse de que el campo exista
-             'superadmin' in getUserData().memberships.values(); // Comprobar si algún rol es 'superadmin'
+             // Comprobación directa y eficiente del rol de superadmin en una asociación específica.
+             getUserData().memberships.get('superadmin_access', '') == 'superadmin';
     }
     
     // Helper function: verificar si es admin de la asociación

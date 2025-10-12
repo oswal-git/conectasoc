@@ -1,4 +1,5 @@
 import 'package:conectasoc/features/associations/domain/usecases/delete_association_usecase.dart';
+import 'package:conectasoc/features/associations/domain/usecases/undo_delete_association_usecase.dart';
 import 'package:conectasoc/features/associations/domain/usecases/get_all_associations_usecase.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
@@ -8,16 +9,19 @@ import 'package:rxdart/rxdart.dart';
 class AssociationBloc extends Bloc<AssociationEvent, AssociationState> {
   final GetAllAssociationsUseCase getAllAssociationsUseCase;
   final DeleteAssociationUseCase deleteAssociationUseCase;
+  final UndoDeleteAssociationUseCase undoDeleteAssociationUseCase;
 
   AssociationBloc(
       {required this.getAllAssociationsUseCase,
-      required this.deleteAssociationUseCase})
+      required this.deleteAssociationUseCase,
+      required this.undoDeleteAssociationUseCase})
       : super(AssociationsInitial()) {
     on<LoadAssociations>(_onLoadAssociations);
     on<SearchAssociations>(_onSearchAssociations,
         transformer: debounce(const Duration(milliseconds: 300)));
     on<SortAssociations>(_onSortAssociations);
     on<DeleteAssociation>(_onDeleteAssociation);
+    on<UndoDeleteAssociation>(_onUndoDeleteAssociation);
   }
 
   Future<void> _onLoadAssociations(
@@ -110,6 +114,20 @@ class AssociationBloc extends Bloc<AssociationEvent, AssociationState> {
         },
       );
     }
+  }
+
+  Future<void> _onUndoDeleteAssociation(
+    UndoDeleteAssociation event,
+    Emitter<AssociationState> emit,
+  ) async {
+    final result = await undoDeleteAssociationUseCase(event.associationId);
+    result.fold(
+      (failure) {
+        emit(AssociationDeletionFailure(failure.message));
+        emit(state); // Vuelve al estado anterior para no romper la UI
+      },
+      (_) => add(LoadAssociations()), // Si tiene éxito, recarga la lista
+    );
   }
 }
 

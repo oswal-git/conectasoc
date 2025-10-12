@@ -223,4 +223,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get delete => 'Esborrar';
+
+  @override
+  String get undo => 'Desfer';
 }

@@ -90,5 +90,9 @@
     "delete": "Esborrar",
     "@delete": {
         "description": "Text per al botó de confirmació d'esborrat."
+    },
+    "undo": "Desfer",
+    "@undo": {
+        "description": "The label for an undo action."
     }
 }

@@ -31,3 +31,12 @@ class DeleteAssociation extends AssociationEvent {
   @override
   List<Object> get props => [associationId];
 }
+
+class UndoDeleteAssociation extends AssociationEvent {
+  final String associationId;
+
+  const UndoDeleteAssociation(this.associationId);
+
+  @override
+  List<Object> get props => [associationId];
+}

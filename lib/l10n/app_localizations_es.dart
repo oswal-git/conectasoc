@@ -224,4 +224,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get delete => 'Borrar';
+
+  @override
+  String get undo => 'Deshacer';
 }

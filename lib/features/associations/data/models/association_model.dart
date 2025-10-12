@@ -1,4 +1,4 @@
-// lib/features/auth/data/models/association_model.dart
+// lib/features/associations/data/models/association_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';

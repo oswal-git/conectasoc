@@ -24,4 +24,6 @@ abstract class AssociationRepository {
   });
 
   Future<Either<Failure, void>> deleteAssociation(String associationId);
+
+  Future<Either<Failure, void>> undoDeleteAssociation(String id);
 }

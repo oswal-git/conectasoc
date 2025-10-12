@@ -1,6 +1,6 @@
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -10,7 +10,7 @@ abstract class AuthEvent extends Equatable {
 }
 
 class AuthStateChanged extends AuthEvent {
-  final auth.User? user;
+  final firebase.User? user;
 
   const AuthStateChanged(this.user);
 
@@ -116,4 +116,11 @@ class AuthUserUpdated extends AuthEvent {
 
   @override
   List<Object> get props => [user];
+}
+
+/// Evento interno para manejar los cambios del stream de autenticación de Firebase.
+class AuthUserChanged extends AuthEvent {
+  final firebase.User? firebaseUser;
+
+  const AuthUserChanged(this.firebaseUser);
 }

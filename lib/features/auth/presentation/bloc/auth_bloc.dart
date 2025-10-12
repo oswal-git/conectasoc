@@ -1,7 +1,6 @@
 // lib/features/auth/presentation/bloc/auth_bloc.dart
 
 import 'dart:async';
-import 'package:conectasoc/features/associations/domain/usecases/get_all_associations_usecase.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:collection/collection.dart';
@@ -16,7 +15,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository repository;
   final RegisterUseCase registerUseCase;
   final SaveLocalUserUseCase saveLocalUserUseCase;
-  final GetAllAssociationsUseCase getAllAssociationsUseCase;
 
   StreamSubscription<firebase.User?>? _userSubscription;
 
@@ -24,9 +22,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.repository,
     required this.registerUseCase,
     required this.saveLocalUserUseCase,
-    required this.getAllAssociationsUseCase,
   }) : super(AuthInitial()) {
-    _userSubscription = repository.authStateChanges.listen(_onUserChanged);
+    // El listener ahora solo añade un evento interno.
+    _userSubscription = repository.authStateChanges
+        .listen((user) => add(AuthUserChanged(user)));
     on<AuthLoadRegisterData>(_onLoadRegisterData);
     on<AuthSwitchMembership>(_onSwitchMembership);
     on<AuthCheckRequested>(_onAuthCheckRequested);
@@ -39,6 +38,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthDeleteLocalUser>(_onDeleteLocalUser);
     on<AuthPasswordResetRequested>(_onPasswordResetRequested);
+    // Nuevo manejador para el evento interno.
+    on<AuthUserChanged>(_onAuthUserChanged);
   }
 
   @override
@@ -56,10 +57,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           currentState.currentMembership?.associationId;
       final updatedMembership = (currentAssociationId != null &&
               event.user.memberships.containsKey(currentAssociationId))
-          ? MembershipEntity(
-              userId: event.user.uid,
-              associationId: currentAssociationId,
-              role: event.user.memberships[currentAssociationId]!)
+          ? currentState.currentMembership
           : event.user.memberships.entries.firstOrNull?.toMembershipEntity(
               userId:
                   event.user.uid); // La extensión también requiere el userId
@@ -70,13 +68,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  void _onUserChanged(firebase.User? firebaseUser) {
+  Future<void> _onAuthUserChanged(
+    AuthUserChanged event,
+    Emitter<AuthState> emit,
+  ) async {
+    final firebaseUser = event.firebaseUser;
     if (firebaseUser == null) {
-      // Si no hay usuario de Firebase, comprobamos si hay uno local
-      add(AuthCheckRequested());
+      // El usuario ha cerrado sesión o nunca ha iniciado sesión.
+      // Comprobamos si existe un usuario local (modo solo lectura).
+      // En lugar de cargar el usuario local aquí, simplemente indicamos que no está autenticado.
+      // El AuthCheckRequested inicial se encargará de la lógica del usuario local.
+      emit(AuthUnauthenticated());
     } else {
-      // Si hay usuario de Firebase, obtenemos sus datos completos
-      add(AuthCheckRequested());
+      // Hay un usuario de Firebase, obtenemos sus datos completos de Firestore.
+      final userResult = await repository.getCurrentUser();
+      userResult.fold(
+        (failure) => emit(AuthError(failure.message)),
+        (user) {
+          if (user != null) {
+            final currentMembership = user.memberships.entries.firstOrNull
+                ?.toMembershipEntity(userId: user.uid);
+            emit(AuthAuthenticated(user, currentMembership));
+          } else {
+            // Caso raro: usuario en Auth pero sin documento en Firestore.
+            // Forzamos el cierre de sesión para evitar un estado inconsistente.
+            add(AuthSignOutRequested());
+          }
+        },
+      );
     }
   }
 
@@ -106,12 +125,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (user != null) {
       // Case 1: User is authenticated in Firebase.
       // Convertimos la primera entrada del mapa a una MembershipEntity
-      final currentMembership = user.memberships.entries.firstOrNull == null
-          ? null
-          : MembershipEntity(
-              userId: user.uid,
-              associationId: user.memberships.entries.first.key,
-              role: user.memberships.entries.first.value);
+      final currentMembership = user.memberships.entries.firstOrNull
+          ?.toMembershipEntity(userId: user.uid);
       emit(AuthAuthenticated(user, currentMembership));
       return;
     }
@@ -167,24 +182,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLoadRegisterData event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
-    try {
-      // Cargar las asociaciones disponibles para el formulario de registro.
-      // La lógica de 'primer usuario' se ha eliminado por seguridad.
-      // El rol de 'superadmin' debe ser asignado manualmente desde Firebase.
-      final associationsResult = await getAllAssociationsUseCase();
-      associationsResult.fold(
-        (failure) => emit(AuthError(failure.message)),
-        (associations) {
-          emit(AuthRegisterDataLoaded(
-            isFirstUser: false, // Se mantiene en false siempre.
-            associations: associations,
-          ));
-        },
-      );
-    } catch (e) {
-      emit(AuthError('Error cargando datos de registro: $e'));
-    }
+    // Este evento ha sido eliminado ya que la página de registro ahora
+    // carga sus propios datos, desacoplando la lógica de UI del AuthBloc.
+    // No se emite ningún estado.
   }
 
   Future<void> _onSignInRequested(
@@ -200,13 +200,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (user) {
-        final currentMembership = user.memberships.entries.firstOrNull == null
-            ? null
-            : MembershipEntity(
-                userId: user.uid,
-                associationId: user.memberships.entries.first.key,
-                role: user.memberships.entries.first.value);
-
+        final currentMembership = user.memberships.entries.firstOrNull
+            ?.toMembershipEntity(userId: user.uid);
         emit(AuthAuthenticated(user, currentMembership));
       },
     );
@@ -236,13 +231,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (user) {
-        // Tras un registro exitoso, autenticamos al usuario directamente.
-        final currentMembership = user.memberships.entries.firstOrNull == null
-            ? null
-            : MembershipEntity(
-                userId: user.uid,
-                associationId: user.memberships.entries.first.key,
-                role: user.memberships.entries.first.value);
+        // Tras un registro exitoso, autenticamos al usuario directamente
+        final currentMembership = user.memberships.entries.firstOrNull
+            ?.toMembershipEntity(userId: user.uid);
         emit(AuthAuthenticated(user, currentMembership));
       },
     );
@@ -327,9 +318,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     // Regla de negocio: No se puede abandonar la última asociación.
     if (currentState.user.memberships.length <= 1) {
-      emit(const AuthError(
-          'No puedes abandonar tu última asociación. Debes eliminar tu cuenta.'));
-      // Volver al estado autenticado anterior para que la UI no se quede en error.
+      // Emitimos un estado de error para que el SnackBar lo muestre.
+      emit(const AuthError('No puedes abandonar tu última asociación.'));
+      // Inmediatamente después, volvemos al estado anterior para que la UI no se rompa.
       emit(currentState);
       return;
     }
@@ -339,7 +330,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await repository.leaveAssociation(event.membership);
 
     result.fold(
-      (failure) => emit(AuthError(failure.message)),
+      (failure) {
+        emit(AuthError(failure.message));
+        emit(currentState); // Restaurar el estado si falla
+      },
       (_) {
         add(AuthCheckRequested()); // Recargar el estado del usuario
       },

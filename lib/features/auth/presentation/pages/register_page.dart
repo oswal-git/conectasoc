@@ -1,7 +1,6 @@
 // lib/features/auth/presentation/pages/register_page.dart
 
 import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:conectasoc/features/auth/presentation/widgets/register_form_widget.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -13,8 +12,10 @@ class RegisterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Usamos BlocProvider.value para acceder a la instancia global del AuthBloc
+    // en lugar de crear una nueva. Esto asegura un estado de autenticación consistente.
     return BlocProvider.value(
-      value: BlocProvider.of<AuthBloc>(context)..add(AuthLoadRegisterData()),
+      value: BlocProvider.of<AuthBloc>(context),
       child: Scaffold(
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.createAccount),

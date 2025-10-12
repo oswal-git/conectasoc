@@ -16,6 +16,7 @@ abstract class AssociationRemoteDataSource {
     required String creatorId,
   });
   Future<void> deleteAssociation(String associationId);
+  Future<void> undoDeleteAssociation(String associationId);
 }
 
 class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
@@ -104,20 +105,26 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
       }
 
       final docRef = firestore.collection('associations').doc();
-      final newAssociationData = {
-        'shortName': shortName,
-        'longName': longName,
-        'email': email,
-        'contactName': contactName,
-        'phone': phone,
-        'creatorId': creatorId,
-        'logoUrl': '', // Inicializar el logo como una cadena vacía
-        'dateCreated': FieldValue.serverTimestamp(),
-        'dateUpdated': FieldValue.serverTimestamp(),
-        'dateDeleted': null, // Asegurar que el campo existe para las consultas
-      };
+      final now = DateTime.now();
 
-      await docRef.set(newAssociationData);
+      // Usar el modelo para construir el objeto, asegurando consistencia.
+      final newAssociationModel = AssociationModel(
+        id: docRef.id,
+        shortName: shortName,
+        longName: longName,
+        email: email,
+        contactName: contactName,
+        phone: phone,
+        logoUrl: '', // Logo vacío por defecto
+        dateCreated: now, // Se sobrescribirá por el timestamp del servidor
+        dateUpdated: now, // Se sobrescribirá por el timestamp del servidor
+        dateDeleted: null, // Asegurar que el campo existe para las consultas
+      );
+
+      final dataToSet = newAssociationModel.toFirestore();
+      dataToSet['creatorId'] = creatorId; // Añadir el creatorId
+
+      await docRef.set(dataToSet);
       final newDoc = await docRef.get();
       return AssociationModel.fromFirestore(newDoc);
     } on ServerException {
@@ -150,6 +157,19 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
       rethrow;
     } catch (e) {
       throw ServerException('Error al borrar la asociación: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> undoDeleteAssociation(String associationId) async {
+    try {
+      await firestore.collection('associations').doc(associationId).update({
+        'dateDeleted': null,
+      });
+    } on FirebaseException catch (e) {
+      throw ServerException('Error al deshacer el borrado: ${e.message}');
+    } catch (e) {
+      throw ServerException('Error inesperado al deshacer el borrado: $e');
     }
   }
 }

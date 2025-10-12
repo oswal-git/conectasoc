@@ -54,7 +54,6 @@ Future<void> init() async {
   sl.registerFactory(
     () => AuthBloc(
       repository: sl(),
-      getAllAssociationsUseCase: sl(),
       registerUseCase: sl(),
       saveLocalUserUseCase: sl(),
     ),
@@ -114,6 +113,7 @@ Future<void> init() async {
     () => AssociationBloc(
       getAllAssociationsUseCase: sl(),
       deleteAssociationUseCase: sl(),
+      undoDeleteAssociationUseCase: sl(),
     ),
   );
 
@@ -132,6 +132,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateAssociationUseCase(sl()));
   sl.registerLazySingleton(() => CreateAssociationUseCase(sl()));
   sl.registerLazySingleton(() => DeleteAssociationUseCase(sl()));
+  sl.registerLazySingleton(() => UndoDeleteAssociationUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AssociationRepository>(

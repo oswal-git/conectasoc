@@ -140,4 +140,14 @@ class AssociationRepositoryImpl implements AssociationRepository {
       return Left(ServerFailure(e.message));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> undoDeleteAssociation(String id) async {
+    try {
+      await remoteDataSource.undoDeleteAssociation(id);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
 }

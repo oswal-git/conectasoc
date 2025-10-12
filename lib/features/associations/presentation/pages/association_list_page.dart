@@ -105,41 +105,43 @@ class _AssociationListItem extends StatelessWidget {
       key: Key(association.id),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
-        // Este onDismissed se llama después de la animación.
-        // La lógica de borrado real se maneja en confirmDismiss.
-      },
-      confirmDismiss: (direction) async {
-        // Obtenemos la referencia al BLoC ANTES del 'await' para evitar usar el context de forma insegura.
+        // Este método se llama DESPUÉS de que el elemento ha sido deslizado y eliminado de la vista.
+        // La lógica de borrado real se inicia aquí, mostrando un SnackBar con opción de deshacer.
         final bloc = context.read<AssociationBloc>();
 
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(l10n.deleteAssociation),
-              content: Text(
-                  l10n.deleteAssociationConfirmation(association.longName)),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(l10n.cancel),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text(l10n.deleteAssociation,
-                      style: const TextStyle(color: Colors.red)),
-                ),
-              ],
-            );
-          },
+        SnackBarService.showSnackBar(
+          l10n.associationDeletedSuccessfully,
+          action: SnackBarAction(
+            label: l10n.undo,
+            onPressed: () {
+              // Si el usuario pulsa deshacer, se envía el evento correspondiente.
+              bloc.add(UndoDeleteAssociation(association.id));
+            },
+          ),
         );
-
-        if (confirmed == true) {
-          bloc.add(DeleteAssociation(association.id));
-        }
-        // Devuelve false para que el Dismissible no se elimine de la UI por sí mismo.
-        // El BLoC se encargará de reconstruir la lista.
-        return false;
+        // El borrado real se confirma si el SnackBar se cierra sin pulsar "Deshacer".
+        // Esto se maneja en el BLoC o en el datasource con un delay.
+      },
+      confirmDismiss: (direction) async {
+        // Mostrar un diálogo de confirmación antes de permitir el deslizamiento completo.
+        return await showDialog<bool>(
+              context: context,
+              builder: (BuildContext dialogContext) => AlertDialog(
+                title: Text(l10n.deleteAssociation),
+                content: Text(
+                    l10n.deleteAssociationConfirmation(association.longName)),
+                actions: <Widget>[
+                  TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      child: Text(l10n.cancel)),
+                  TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                      child: Text(l10n.delete,
+                          style: const TextStyle(color: Colors.red))),
+                ],
+              ),
+            ) ??
+            false; // Si el diálogo se cierra sin seleccionar, no confirmar.
       },
       background: Container(
         color: Colors.red,

@@ -90,5 +90,9 @@
     "delete": "Delete",
     "@delete": {
         "description": "Text for the delete confirmation button."
+    },
+    "undo": "Undo",
+    "@undo": {
+        "description": "The label for an undo action."
     }
 }

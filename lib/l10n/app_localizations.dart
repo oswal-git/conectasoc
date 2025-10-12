@@ -501,6 +501,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Borrar'**
   String get delete;
+
+  /// The label for an undo action.
+  ///
+  /// In es, this message translates to:
+  /// **'Deshacer'**
+  String get undo;
 }
 
 class _AppLocalizationsDelegate

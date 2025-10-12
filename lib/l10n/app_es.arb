@@ -90,5 +90,9 @@
     "delete": "Borrar",
     "@delete": {
         "description": "Texto para el botón de confirmación de borrado."
+    },
+    "undo": "Deshacer",
+    "@undo": {
+        "description": "The label for an undo action."
     }
 }
