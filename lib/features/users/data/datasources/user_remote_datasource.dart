@@ -2,11 +2,13 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/core/errors/exceptions.dart';
+import 'package:conectasoc/features/auth/data/models/user_model.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';
 
 abstract class UserRemoteDataSource {
   Future<void> addMembership(String userId, String associationId, String role);
   Future<void> removeMembership(String userId, String associationId);
+  Future<List<UserModel>> getUsersByAssociation(String associationId);
 
   Future<ProfileEntity> updateUser(ProfileEntity user, String? newImageUrl);
 }
@@ -46,6 +48,21 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
           'Error al abandonar la asociación: ${e.message ?? e.code}');
     } catch (e) {
       throw ServerException('Error inesperado al abandonar la asociación.');
+    }
+  }
+
+  @override
+  Future<List<UserModel>> getUsersByAssociation(String associationId) async {
+    try {
+      final snapshot = await firestore
+          .collection('users')
+          .where('associationIds', arrayContains: associationId)
+          .get();
+
+      return snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
+    } catch (e) {
+      throw ServerException(
+          'Error obteniendo usuarios por asociación: ${e.toString()}');
     }
   }
 

@@ -78,10 +78,15 @@ match /databases/{database}/documents {
       // Crear: solo un usuario autenticado que se establece a sí mismo como creador.
       // Esto asegura que solo se puedan crear asociaciones durante el proceso de registro.
       allow create: if isSignedIn() && (request.resource.data.creatorId == request.auth.uid || isSuperAdmin());
-      
+
       // Actualizar: superadmin o admin de esa asociación
-      allow update: if isSuperAdmin() || isAdmin(associationId);
-      
+      allow update: if (isSuperAdmin() || isAdmin(associationId)) &&
+                      // Validación: Si se cambia el contactUserId, no puede ser nulo si ya existía.
+                      (request.resource.data.contactUserId == null || resource.data.contactUserId != null) &&
+                      // Validación: El nuevo contactUserId debe ser un miembro de la asociación.
+                      (request.resource.data.contactUserId == null ||
+                        get(/databases/$(database)/documents/users/$(request.resource.data.contactUserId)).data.associationIds.hasAny([associationId]));
+
       // Eliminar: solo superadmin
       allow delete: if isSuperAdmin();
     }

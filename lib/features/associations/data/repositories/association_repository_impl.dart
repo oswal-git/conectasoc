@@ -114,7 +114,8 @@ class AssociationRepositoryImpl implements AssociationRepository {
     required String email,
     required String contactName,
     required String phone,
-    required String creatorId,
+    String? creatorId,
+    String? contactUserId,
   }) async {
     try {
       final createdModel = await remoteDataSource.createAssociation(
@@ -124,6 +125,7 @@ class AssociationRepositoryImpl implements AssociationRepository {
         contactName: contactName,
         phone: phone,
         creatorId: creatorId,
+        contactUserId: contactUserId,
       );
       return Right(createdModel.toEntity());
     } on ServerException catch (e) {

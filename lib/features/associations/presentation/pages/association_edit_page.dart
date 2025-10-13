@@ -1,14 +1,16 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:conectasoc/core/services/image_picker_service.dart';
+import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AssociationEditPage extends StatelessWidget {
   final String associationId;
@@ -30,39 +32,60 @@ class AssociationEditPage extends StatelessWidget {
   }
 }
 
-class AssociationEditView extends StatelessWidget {
+class AssociationEditView extends StatefulWidget {
   const AssociationEditView({super.key});
+
+  @override
+  State<AssociationEditView> createState() => _AssociationEditViewState();
+}
+
+class _AssociationEditViewState extends State<AssociationEditView> {
+  // Usamos controladores para gestionar el estado de los campos de texto.
+  // Esto evita que pierdan el foco durante las reconstrucciones del BLoC.
+  final _shortNameController = TextEditingController();
+  final _longNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _contactNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Es importante liberar los controladores cuando el widget se destruye.
+    _shortNameController.dispose();
+    _longNameController.dispose();
+    _emailController.dispose();
+    _contactNameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _updateControllers(AssociationEntity association) {
+    // Sincronizamos los controladores con los datos del estado del BLoC.
+    _shortNameController.text = association.shortName;
+    _longNameController.text = association.longName;
+    _emailController.text = association.email ?? '';
+    _contactNameController.text = association.contactName ?? '';
+    _phoneController.text = association.phone ?? '';
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return BlocListener<AssociationEditBloc, AssociationEditState>(
-      listenWhen: (previous, current) {
-        // Escuchar solo cuando una operación de guardado termina (con éxito o no)
-        // o cuando aparece un nuevo mensaje de error.
-        final wasSaving =
-            previous is AssociationEditLoaded && previous.isSaving;
-        final justFinishedSaving =
-            current is AssociationEditLoaded && !current.isSaving;
-        final hasNewError = current is AssociationEditLoaded &&
-            current.errorMessage != null &&
-            (previous is! AssociationEditLoaded ||
-                previous.errorMessage != current.errorMessage);
-        return (wasSaving && justFinishedSaving) || hasNewError;
-      },
       listener: (context, state) {
-        if (state is AssociationEditLoaded) {
-          // Caso 1: Hay un error que mostrar
+        if (state is AssociationEditSuccess) {
+          _handleSuccess(context, l10n);
+        } else if (state is AssociationDeleteSuccess) {
+          _handleDeleteSuccess(context, l10n);
+        } else if (state is AssociationEditLoaded) {
+          // Mostrar error solo si el estado es Loaded y tiene un mensaje de error
           if (state.errorMessage != null) {
             _handleError(context, state.errorMessage!, l10n);
+          } else {
+            // Si no hay error, actualizamos los controladores.
+            // Esto es clave para que los campos se actualicen al cambiar la persona de contacto.
+            _updateControllers(state.association);
           }
-          // Caso 2: Se acaba de terminar de guardar (crear o actualizar)
-          else if (!state.isSaving) {
-            _handleSuccess(context, l10n);
-          }
-        } else if (state is AssociationDeleteSuccess) {
-          // Caso 3: Se ha borrado con éxito
-          _handleDeleteSuccess(context, l10n);
         }
       },
       child: BlocBuilder<AssociationEditBloc, AssociationEditState>(
@@ -103,7 +126,7 @@ class AssociationEditView extends StatelessWidget {
   void _handleSuccess(BuildContext context, AppLocalizations l10n) {
     SnackBarService.showSnackBar(l10n.changesSavedSuccessfully);
     // Refresca el estado de autenticación por si los roles o membresías cambiaron
-    context.read<AuthBloc>().add(AuthCheckRequested());
+    context.read<AuthBloc>().add(AuthUserRefreshRequested());
     // Vuelve a la pantalla anterior (lista de asociaciones o home)
     Navigator.of(context).pop();
   }
@@ -132,22 +155,58 @@ class AssociationEditView extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           TextFormField(
-            initialValue: state.association.shortName,
+            controller: _shortNameController,
             decoration: InputDecoration(labelText: l10n.shortName),
             onChanged: (value) => context
                 .read<AssociationEditBloc>()
                 .add(ShortNameChanged(value)),
           ),
           const SizedBox(height: 16),
+          // --- Selector de Persona de Contacto ---
+          if (state.associationUsers.isNotEmpty) ...[
+            DropdownButtonFormField<String>(
+              // Asegurarnos de que el valor exista en la lista de items para evitar errores.
+              initialValue: state.associationUsers
+                      .any((u) => u.uid == state.association.contactUserId)
+                  ? state.association.contactUserId
+                  : null,
+              decoration: InputDecoration(
+                labelText: l10n.contactPerson,
+                prefixIcon: const Icon(Icons.person_pin_outlined),
+              ),
+              items: state.associationUsers.map((user) {
+                return DropdownMenuItem<String>(
+                  value: user.uid,
+                  child: Text(user.fullName),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  context
+                      .read<AssociationEditBloc>()
+                      .add(ContactPersonChanged(newValue));
+                }
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return l10n
+                      .mustSelectAnAssociation; // Reutilizamos un texto, idealmente sería uno específico.
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+          const SizedBox(height: 16),
           TextFormField(
-            initialValue: state.association.longName,
+            controller: _longNameController,
             decoration: InputDecoration(labelText: l10n.longName),
             onChanged: (value) =>
                 context.read<AssociationEditBloc>().add(LongNameChanged(value)),
           ),
           const SizedBox(height: 16),
           TextFormField(
-            initialValue: state.association.email,
+            controller: _emailController,
             decoration: InputDecoration(labelText: l10n.email),
             keyboardType: TextInputType.emailAddress,
             onChanged: (value) =>
@@ -155,7 +214,7 @@ class AssociationEditView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           TextFormField(
-            initialValue: state.association.contactName,
+            controller: _contactNameController,
             decoration: InputDecoration(labelText: l10n.contactName),
             onChanged: (value) => context
                 .read<AssociationEditBloc>()
@@ -163,7 +222,7 @@ class AssociationEditView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           TextFormField(
-            initialValue: state.association.phone,
+            controller: _phoneController,
             decoration: InputDecoration(labelText: l10n.phone),
             keyboardType: TextInputType.phone,
             onChanged: (value) =>

@@ -227,4 +227,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get undo => 'Deshacer';
+
+  @override
+  String get contactPerson => 'Persona de contacto';
 }

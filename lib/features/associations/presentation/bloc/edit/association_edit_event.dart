@@ -40,9 +40,19 @@ class PhoneChanged extends AssociationEditEvent {
   const PhoneChanged(this.phone);
 }
 
+class ContactPersonChanged extends AssociationEditEvent {
+  final String userId;
+  const ContactPersonChanged(this.userId);
+}
+
 class LogoChanged extends AssociationEditEvent {
   final String imagePath;
   const LogoChanged(this.imagePath);
+}
+
+class LoadAssociationUsers extends AssociationEditEvent {
+  final String associationId;
+  const LoadAssociationUsers(this.associationId);
 }
 
 class SaveChanges extends AssociationEditEvent {}

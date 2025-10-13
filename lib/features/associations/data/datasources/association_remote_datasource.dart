@@ -13,7 +13,8 @@ abstract class AssociationRemoteDataSource {
     required String email,
     required String contactName,
     required String phone,
-    required String creatorId,
+    String? creatorId,
+    String? contactUserId,
   });
   Future<void> deleteAssociation(String associationId);
   Future<void> undoDeleteAssociation(String associationId);
@@ -90,7 +91,8 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
     required String email,
     required String contactName,
     required String phone,
-    required String creatorId,
+    String? creatorId,
+    String? contactUserId,
   }) async {
     try {
       // Verificar que no exista una con el mismo nombre corto
@@ -114,6 +116,7 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
         longName: longName,
         email: email,
         contactName: contactName,
+        contactUserId: contactUserId,
         phone: phone,
         logoUrl: '', // Logo vacío por defecto
         dateCreated: now, // Se sobrescribirá por el timestamp del servidor
@@ -122,7 +125,10 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
       );
 
       final dataToSet = newAssociationModel.toFirestore();
-      dataToSet['creatorId'] = creatorId; // Añadir el creatorId
+      if (creatorId != null) {
+        dataToSet['creatorId'] =
+            creatorId; // Añadir el creatorId si se proporciona
+      }
 
       await docRef.set(dataToSet);
       final newDoc = await docRef.get();

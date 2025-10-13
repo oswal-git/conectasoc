@@ -94,5 +94,9 @@
     "undo": "Undo",
     "@undo": {
         "description": "The label for an undo action."
+    },
+    "contactPerson": "Contact person",
+    "@contactPerson": {
+        "description": "Label for the contact person field or selector."
     }
 }

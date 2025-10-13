@@ -38,6 +38,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthDeleteLocalUser>(_onDeleteLocalUser);
     on<AuthPasswordResetRequested>(_onPasswordResetRequested);
+    on<AuthUserRefreshRequested>(_onUserRefreshRequested);
     // Nuevo manejador para el evento interno.
     on<AuthUserChanged>(_onAuthUserChanged);
   }
@@ -146,6 +147,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } else {
       // Case 3: No Firebase user and no local user.
       emit(AuthUnauthenticated());
+    }
+  }
+
+  Future<void> _onUserRefreshRequested(
+    AuthUserRefreshRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is AuthAuthenticated) {
+      final userResult = await repository.getCurrentUser();
+      userResult.fold(
+        (failure) {
+          // On failure, we could emit an error or just keep the old state.
+          // For now, we keep the old state to avoid disruption.
+        },
+        (user) {
+          if (user != null) {
+            add(AuthUserUpdated(user));
+          }
+        },
+      );
     }
   }
 

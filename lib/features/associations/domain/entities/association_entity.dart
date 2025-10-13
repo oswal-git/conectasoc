@@ -4,6 +4,7 @@ class AssociationEntity extends Equatable {
   final String id;
   final String shortName;
   final String longName;
+  final String? contactUserId;
   final String? email;
   final String? contactName;
   final String? phone;
@@ -16,6 +17,7 @@ class AssociationEntity extends Equatable {
     required this.id,
     required this.shortName,
     required this.longName,
+    this.contactUserId,
     this.email,
     this.contactName,
     this.phone,
@@ -32,6 +34,7 @@ class AssociationEntity extends Equatable {
       id: '',
       shortName: '',
       longName: '',
+      contactUserId: null,
       email: '',
       contactName: '',
       phone: '',
@@ -46,6 +49,7 @@ class AssociationEntity extends Equatable {
         id,
         shortName,
         longName,
+        contactUserId,
         email,
         contactName,
         phone,
@@ -59,6 +63,7 @@ class AssociationEntity extends Equatable {
     String? id,
     String? shortName,
     String? longName,
+    String? contactUserId,
     String? email,
     String? contactName,
     String? phone,
@@ -68,6 +73,7 @@ class AssociationEntity extends Equatable {
       id: id ?? this.id,
       shortName: shortName ?? this.shortName,
       longName: longName ?? this.longName,
+      contactUserId: contactUserId ?? this.contactUserId,
       email: email ?? this.email,
       contactName: contactName ?? this.contactName,
       phone: phone ?? this.phone,

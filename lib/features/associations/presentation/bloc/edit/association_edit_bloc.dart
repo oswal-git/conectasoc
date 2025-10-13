@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:conectasoc/core/errors/errors.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/edit/association_edit_event.dart';
+import 'package:conectasoc/features/users/domain/usecases/get_users_by_association_usecase.dart';
+import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/edit/association_edit_state.dart';
 
@@ -10,12 +13,14 @@ class AssociationEditBloc
     extends Bloc<AssociationEditEvent, AssociationEditState> {
   final CreateAssociationUseCase createAssociation;
   final GetAssociationByIdUseCase getAssociationById;
+  final GetUsersByAssociationUseCase getUsersByAssociation;
   final UpdateAssociationUseCase updateAssociation;
   final DeleteAssociationUseCase deleteAssociation;
 
   AssociationEditBloc({
     required this.createAssociation,
     required this.getAssociationById,
+    required this.getUsersByAssociation,
     required this.updateAssociation,
     required this.deleteAssociation,
   }) : super(AssociationEditInitial()) {
@@ -24,6 +29,7 @@ class AssociationEditBloc
     on<LongNameChanged>(_onLongNameChanged);
     on<EmailChanged>(_onEmailChanged);
     on<ContactNameChanged>(_onContactNameChanged);
+    on<ContactPersonChanged>(_onContactPersonChanged);
     on<PhoneChanged>(_onPhoneChanged);
     on<LogoChanged>(_onLogoChanged);
     on<SaveChanges>(_onSaveChanges);
@@ -42,11 +48,28 @@ class AssociationEditBloc
           association: AssociationEntity.empty(), isCreating: true));
     } else {
       // Modo Edición
-      final result = await getAssociationById(event.associationId);
-      result.fold(
-        (failure) => emit(AssociationEditFailure(failure.message)),
-        (association) => emit(AssociationEditLoaded(association: association)),
-      );
+      // 1. Cargar los detalles de la asociación
+      final associationResult = await getAssociationById(event.associationId);
+
+      // Manejar el caso de fallo al cargar la asociación
+      if (associationResult.isLeft()) {
+        final failure = (associationResult as Left).value as Failure;
+        emit(AssociationEditFailure(failure.message));
+        return;
+      }
+
+      final association = (associationResult as Right).value;
+
+      // 2. Cargar los usuarios de esa asociación
+      final usersResult = await getUsersByAssociation(association.id);
+
+      // 3. Emitir el estado final con toda la información
+      emit(usersResult.fold(
+        (failure) => AssociationEditLoaded(
+            association: association, errorMessage: failure.message),
+        (users) => AssociationEditLoaded(
+            association: association, associationUsers: users),
+      ));
     }
   }
 
@@ -92,6 +115,24 @@ class AssociationEditBloc
     }
   }
 
+  void _onContactPersonChanged(
+      ContactPersonChanged event, Emitter<AssociationEditState> emit) {
+    if (state is AssociationEditLoaded) {
+      final currentState = state as AssociationEditLoaded;
+      final selectedUser = currentState.associationUsers
+          .firstWhere((user) => user.uid == event.userId);
+
+      // Al cambiar el usuario de contacto, actualizamos también los campos de texto
+      // para una mejor experiencia de usuario, pero siguen siendo editables.
+      emit(currentState.copyWith(
+          association: currentState.association.copyWith(
+              contactUserId: selectedUser.uid,
+              contactName: selectedUser.fullName,
+              email: selectedUser.email,
+              phone: selectedUser.phone)));
+    }
+  }
+
   void _onPhoneChanged(PhoneChanged event, Emitter<AssociationEditState> emit) {
     if (state is AssociationEditLoaded) {
       final currentState = state as AssociationEditLoaded;
@@ -127,10 +168,12 @@ class AssociationEditBloc
               isSaving: false, errorMessage: failure.message));
         },
         (updatedAssociation) {
+          emit(AssociationEditSuccess());
+          // Volvemos al estado cargado para que la UI no se quede "atascada" en éxito
           emit(currentState.copyWith(
               isSaving: false,
               association: updatedAssociation,
-              newImagePath: ''));
+              newImagePath: null));
         },
       );
     }
@@ -142,16 +185,15 @@ class AssociationEditBloc
       final currentState = state as AssociationEditLoaded;
       emit(currentState.copyWith(isSaving: true, clearErrorMessage: true));
 
-      // El creatorId no es relevante aquí, ya que la regla de seguridad
-      // permitirá la creación si el usuario es superadmin.
-      // Pasamos un valor temporal que no se usará.
       final result = await createAssociation(
         shortName: currentState.association.shortName,
         longName: currentState.association.longName,
         email: currentState.association.email ?? '',
         contactName: currentState.association.contactName ?? '',
         phone: currentState.association.phone ?? '',
-        creatorId: 'superadmin_creation',
+        // El creatorId es nulo cuando crea un superadmin.
+        // El contactUserId se toma del estado actual.
+        contactUserId: currentState.association.contactUserId,
       );
 
       result.fold(
@@ -160,9 +202,9 @@ class AssociationEditBloc
               isSaving: false, errorMessage: failure.message));
         },
         (newAssociation) {
-          // Después de crear, pasamos a modo edición con la nueva asociación
-          emit(AssociationEditLoaded(
-              association: newAssociation, isSaving: false));
+          emit(AssociationEditSuccess());
+          // Después de crear, pasamos a modo edición con la nueva asociación y sus usuarios
+          add(LoadAssociationDetails(newAssociation.id));
         },
       );
     }

@@ -62,6 +62,8 @@ class RegisterUseCase {
               contactName: newAssociationContactName ?? '$firstName $lastName',
               phone: newAssociationPhone ?? phone ?? '',
               creatorId: firebaseUser!.uid, // Añadir el ID del creador
+              contactUserId:
+                  firebaseUser!.uid, // El creador es el contacto inicial
             );
 
             finalAssociationId = await createAssocResult.fold(

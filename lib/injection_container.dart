@@ -96,6 +96,7 @@ Future<void> init() async {
   sl.registerLazySingleton<UserBloc>(
       () => UserBloc(joinAssociationUseCase: sl(), authBloc: sl()));
   sl.registerLazySingleton(() => JoinAssociationUseCase(sl()));
+  sl.registerLazySingleton(() => GetUsersByAssociationUseCase(sl()));
   sl.registerLazySingleton<UserRepository>(
       () => UserRepositoryImpl(remoteDataSource: sl()));
   // Se elimina la dependencia de FirebaseStorage, ya que se usa CloudinaryService.
@@ -121,6 +122,7 @@ Future<void> init() async {
     () => AssociationEditBloc(
       createAssociation: sl(),
       getAssociationById: sl(),
+      getUsersByAssociation: sl(),
       updateAssociation: sl(),
       deleteAssociation: sl(),
     ),

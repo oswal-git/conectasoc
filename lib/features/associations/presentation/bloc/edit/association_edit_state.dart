@@ -1,4 +1,5 @@
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class AssociationEditState extends Equatable {
@@ -14,6 +15,7 @@ class AssociationEditLoading extends AssociationEditState {}
 
 class AssociationEditLoaded extends AssociationEditState {
   final AssociationEntity association;
+  final List<UserEntity> associationUsers;
   final bool isSaving;
   final bool isCreating;
   final String? newImagePath;
@@ -21,6 +23,7 @@ class AssociationEditLoaded extends AssociationEditState {
 
   const AssociationEditLoaded({
     required this.association,
+    this.associationUsers = const [],
     this.isSaving = false,
     this.isCreating = false,
     this.newImagePath,
@@ -29,6 +32,7 @@ class AssociationEditLoaded extends AssociationEditState {
 
   AssociationEditLoaded copyWith({
     AssociationEntity? association,
+    List<UserEntity>? associationUsers,
     bool? isSaving,
     bool? isCreating,
     String? newImagePath,
@@ -37,6 +41,7 @@ class AssociationEditLoaded extends AssociationEditState {
   }) {
     return AssociationEditLoaded(
       association: association ?? this.association,
+      associationUsers: associationUsers ?? this.associationUsers,
       isSaving: isSaving ?? this.isSaving,
       isCreating: isCreating ?? this.isCreating,
       newImagePath: newImagePath ?? this.newImagePath,
@@ -54,6 +59,8 @@ class AssociationEditLoaded extends AssociationEditState {
         errorMessage,
       ];
 }
+
+class AssociationEditSuccess extends AssociationEditState {}
 
 class AssociationDeleteSuccess extends AssociationEditState {}
 

@@ -124,3 +124,6 @@ class AuthUserChanged extends AuthEvent {
 
   const AuthUserChanged(this.firebaseUser);
 }
+
+/// Requests to refresh the current user's data from the repository without triggering global navigation.
+class AuthUserRefreshRequested extends AuthEvent {}

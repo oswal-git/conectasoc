@@ -507,6 +507,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Deshacer'**
   String get undo;
+
+  /// Label for the contact person field or selector.
+  ///
+  /// In es, this message translates to:
+  /// **'Persona de contacto'**
+  String get contactPerson;
 }
 
 class _AppLocalizationsDelegate

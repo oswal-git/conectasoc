@@ -7,6 +7,7 @@ import 'package:dartz/dartz.dart';
 
 import 'package:conectasoc/core/errors/exceptions.dart';
 import 'package:conectasoc/core/errors/failures.dart';
+import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 import 'package:conectasoc/features/users/data/datasources/user_remote_datasource.dart';
 import 'package:conectasoc/features/users/domain/entities/profile_entity.dart';
 import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
@@ -27,6 +28,19 @@ class UserRepositoryImpl implements UserRepository {
       return Left(ServerFailure(e.message));
     } catch (e) {
       return Left(ServerFailure('Ocurrió un error inesperado.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<UserEntity>>> getUsersByAssociation(
+      String associationId) async {
+    try {
+      final userModels =
+          await remoteDataSource.getUsersByAssociation(associationId);
+      final userEntities = userModels.map((model) => model.toEntity()).toList();
+      return Right(userEntities);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     }
   }
 

@@ -94,5 +94,9 @@
     "undo": "Deshacer",
     "@undo": {
         "description": "The label for an undo action."
+    },
+    "contactPerson": "Persona de contacto",
+    "@contactPerson": {
+        "description": "Label for the contact person field or selector."
     }
 }

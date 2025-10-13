@@ -20,7 +20,8 @@ abstract class AssociationRepository {
     required String email,
     required String contactName,
     required String phone,
-    required String creatorId,
+    String? creatorId,
+    String? contactUserId,
   });
 
   Future<Either<Failure, void>> deleteAssociation(String associationId);

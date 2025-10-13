@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:conectasoc/core/errors/failures.dart';
+import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:dartz/dartz.dart';
 
@@ -10,6 +11,9 @@ abstract class UserRepository {
     required String userId,
     required String associationId,
   });
+
+  Future<Either<Failure, List<UserEntity>>> getUsersByAssociation(
+      String associationId);
 
   Future<Either<Failure, ProfileEntity>> updateUser({
     required ProfileEntity user,

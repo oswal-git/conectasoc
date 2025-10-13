@@ -1,8 +1,7 @@
-import 'package:dartz/dartz.dart';
-
 import 'package:conectasoc/core/errors/failures.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/associations/domain/repositories/association_repository.dart';
+import 'package:dartz/dartz.dart';
 
 class CreateAssociationUseCase {
   final AssociationRepository repository;
@@ -15,12 +14,9 @@ class CreateAssociationUseCase {
     required String email,
     required String contactName,
     required String phone,
-    required String creatorId,
+    String? creatorId,
+    String? contactUserId,
   }) async {
-    if (shortName.isEmpty || longName.isEmpty) {
-      return const Left(ValidationFailure('shortAndLongNameRequired'));
-    }
-
     return await repository.createAssociation(
       shortName: shortName,
       longName: longName,
@@ -28,6 +24,7 @@ class CreateAssociationUseCase {
       contactName: contactName,
       phone: phone,
       creatorId: creatorId,
+      contactUserId: contactUserId,
     );
   }
 }

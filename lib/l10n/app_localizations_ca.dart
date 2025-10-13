@@ -226,4 +226,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get undo => 'Desfer';
+
+  @override
+  String get contactPerson => 'Persona de contacte';
 }
