@@ -1,5 +1,6 @@
 // lib/features/auth/data/repositories/auth_repository_impl.dart
 
+import 'package:conectasoc/features/auth/data/models/models.dart';
 import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
@@ -31,7 +32,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final userModel = await remoteDataSource.getCurrentUser();
       if (userModel == null) return const Right(null);
 
-      return Right(userModel.toEntity());
+      return Right(userModel);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
@@ -100,7 +101,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }) async {
     try {
       final userModel = await remoteDataSource.signInWithEmail(email, password);
-      return Right(userModel.toEntity());
+      return Right(userModel);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
@@ -123,30 +124,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> createUserDocument({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    String? phone,
-    required Map<String, String> memberships,
-  }) async {
+  Future<Either<Failure, void>> createUserDocumentFromEntity(
+      UserEntity user) async {
     try {
-      final userModel = await remoteDataSource.createUserDocument(
-        uid: uid,
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        phone: phone,
-        memberships: memberships,
-      );
-      return Right(userModel.toEntity());
+      final userModel = UserModel.fromEntity(user);
+      await remoteDataSource.createUserDocument(userModel);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Error creando documento de usuario: $e'));
     }
   }
 

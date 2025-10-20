@@ -53,6 +53,7 @@
     "camera": "Càmera",
     "cropImage": "Retallar Imatge",
     "association": "Associació",
+    "noAssociationAvailable": "No hi ha associació disponible",
     "search": "Cercar...",
     "contact": "Contacte",
     "noResultsFound": "No s'han trobat resultats",
@@ -98,5 +99,91 @@
     "contactPerson": "Persona de contacte",
     "@contactPerson": {
         "description": "Label for the contact person field or selector."
+    },
+    "usersListTitle": "Llistat d'usuaris",
+    "@usersListTitle": {
+        "description": "Title for the user list screen."
+    },
+    "editUser": "Editar Usuari",
+    "@editUser": {
+        "description": "Title for the user edit screen."
+    },
+    "verifyEmailTitle": "Verificar Correu",
+    "@verifyEmailTitle": {
+        "description": "Title for the email verification screen."
+    },
+    "verifyEmailHeadline": "Verifica el teu correu electrònic",
+    "@verifyEmailHeadline": {
+        "description": "Headline for the email verification screen."
+    },
+    "verifyEmailInstruction": "Hem enviat un correu de verificació a {email}. Si us plau, revisa la teva bústia d'entrada i segueix les instruccions per activar el teu compte.",
+    "@verifyEmailInstruction": {
+        "description": "Instructional text on the email verification screen.",
+        "placeholders": {
+            "email": {}
+        }
+    },
+    "resendEmail": "Reenviar correu",
+    "@resendEmail": {
+        "description": "Button text to resend the verification email."
+    },
+    "verificationEmailSent": "Correu de verificació reenviat.",
+    "@verificationEmailSent": {
+        "description": "Snackbar message confirming the verification email was resent."
+    },
+    "errorResendingEmail": "Error en reenviar el correu: {error}",
+    "@errorResendingEmail": {
+        "description": "Snackbar message for an error when resending the verification email.",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "status": "Estat",
+    "@status": {},
+    "memberships": "Membresies",
+    "@memberships": {},
+    "userHasNoMemberships": "Aquest usuari no pertany a cap associació.",
+    "@userHasNoMembersiacs": {},
+    "roleTitle": "Rol",
+    "@roleTitle": {},
+    "addMembership": "Afegir Membresia",
+    "@addMembership": {},
+    "addMembershipDialogTitle": "Afegir Membresia",
+    "@addMembershipDialogTitle": {},
+    "selectAssociation": "Seleccionar associació",
+    "@selectAssociation": {},
+    "add": "Afegir",
+    "@add": {},
+    "notifications": "Notificacions",
+    "never": "Mai",
+    "morning": "Matí",
+    "afternoon": "Tarda",
+    "morningAndAfternoon": "Matí i Tarda",
+    "deleteUser": "Esborrar Usuari",
+    "deleteUserConfirmation": "Estàs segur que vols esborrar {userName}? Aquesta acció és irreversible.",
+    "@deleteUserConfirmation": {
+        "description": "Confirmation message for deleting a user.",
+        "placeholders": {
+            "userName": {
+                "type": "String",
+                "example": "John Doe"
+            }
+        }
+    },
+    "createUser": "Crear Usuari",
+    "@createUser": {
+        "description": "Title for the user creation screen."
+    },
+    "password": "Contrasenya",
+    "@password": {
+        "description": "Label for the password input field."
+    },
+    "editMode": "Mode Edició",
+    "@editMode": {
+        "description": "Label for the switch to toggle editing mode."
+    },
+    "all": "Totes",
+    "@all": {
+        "description": "Text for the 'All' filter chip."
     }
 }

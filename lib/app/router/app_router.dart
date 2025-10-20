@@ -1,86 +1,157 @@
 // lib/app/router/app_router.dart
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-import 'package:conectasoc/features/associations/presentation/pages/association_edit_page.dart';
-import 'package:conectasoc/features/associations/presentation/pages/association_list_page.dart';
-import 'package:conectasoc/features/auth/presentation/presentation.dart';
+import 'package:conectasoc/features/associations/presentation/pages/pages.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/auth/presentation/pages/pages.dart';
+import 'package:conectasoc/features/auth/presentation/pages/verification_page.dart';
 import 'package:conectasoc/features/home/presentation/pages/pages.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/presentation/pages/pages.dart';
-import 'package:conectasoc/injection_container.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:conectasoc/injection_container.dart';
 import 'route_names.dart';
 
 class AppRouter {
-  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case RouteNames.splash:
-        return MaterialPageRoute(
-          builder: (_) => const SplashPage(),
-        );
+  final AuthBloc authBloc;
 
-      case RouteNames.welcome:
-        return MaterialPageRoute(
-          builder: (_) => const WelcomePage(),
-        );
+  AppRouter({required this.authBloc});
 
-      case RouteNames.login:
-        return MaterialPageRoute(
-          builder: (_) => const LoginPage(),
-        );
-
-      case RouteNames.register:
-        return MaterialPageRoute(
-          builder: (_) => const RegisterPage(),
-        );
-
-      case RouteNames.localUserSetup:
-        return MaterialPageRoute(
-          builder: (_) => const LocalUserSetupPage(),
-        );
-
-      case RouteNames.home:
-        return MaterialPageRoute(
-          builder: (_) => const HomePage(),
-        );
-
-      case RouteNames.joinAssociation:
-        return MaterialPageRoute(
-          builder: (_) => const JoinAssociationPage(),
-        );
-
-      case RouteNames.profile:
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (_) => sl<ProfileBloc>(),
-            child: const ProfilePage(),
+  late final GoRouter router = GoRouter(
+    initialLocation: RouteNames.splash,
+    refreshListenable: GoRouterRefreshStream(authBloc.stream),
+    debugLogDiagnostics: true,
+    routes: [
+      GoRoute(
+        path: RouteNames.splash,
+        builder: (context, state) => const SplashPage(),
+      ),
+      GoRoute(
+        path: RouteNames.welcome,
+        builder: (context, state) => const WelcomePage(),
+      ),
+      GoRoute(
+        path: RouteNames.login,
+        builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: RouteNames.register,
+        builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: RouteNames.localUserSetup,
+        builder: (context, state) => const LocalUserSetupPage(),
+      ),
+      GoRoute(
+        path: RouteNames.verification,
+        builder: (context, state) =>
+            VerificationPage(email: state.extra as String),
+      ),
+      GoRoute(
+        path: RouteNames.home,
+        builder: (context, state) => const HomePage(),
+        routes: [
+          GoRoute(
+            path: 'joinAssociation', // Ruta relativa a /home
+            builder: (context, state) => const JoinAssociationPage(),
           ),
-        );
-      case RouteNames.associationsList:
-        return MaterialPageRoute(builder: (_) => const AssociationListPage());
-      case RouteNames.associationEdit:
-        if (settings.arguments is String) {
-          final associationId = settings.arguments as String;
-          return MaterialPageRoute(
-            builder: (_) => AssociationEditPage(associationId: associationId),
-          );
-        }
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('Error: ID de asociación no válido')),
-          ),
-        );
-
-      default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(
-              child: Text('Ruta no encontrada: ${settings.name}'),
+          GoRoute(
+            path: 'profile', // Ruta relativa a /home
+            builder: (context, state) => BlocProvider.value(
+              value: sl<ProfileBloc>(),
+              child: const ProfilePage(),
             ),
           ),
-        );
-    }
+          GoRoute(
+            path: 'associations', // Ruta relativa a /home
+            builder: (context, state) => const AssociationListPage(),
+          ),
+          GoRoute(
+            path: 'associations/edit', // Ruta relativa a /home
+            builder: (context, state) => AssociationEditPage(associationId: ''),
+          ),
+          GoRoute(
+            path: 'associations/edit/:id', // Ruta relativa a /home
+            builder: (context, state) =>
+                AssociationEditPage(associationId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'users-list', // Ruta relativa a /home
+            builder: (context, state) => const UserListPage(),
+          ),
+          GoRoute(
+            path: 'user-edit', // Ruta relativa a /home
+            builder: (context, state) => UserEditPage(userId: ''),
+          ),
+          GoRoute(
+            path: 'user-edit/:id', // Ruta relativa a /home
+            builder: (context, state) =>
+                UserEditPage(userId: state.pathParameters['id']!),
+          ),
+        ],
+      ),
+    ],
+    redirect: (BuildContext context, GoRouterState state) async {
+      final authState = authBloc.state;
+      final location = state.uri.toString();
+
+      if (authState is AuthInitial || authState is AuthLoading) {
+        return null; // Wait for authState to be resolved
+      }
+
+      if (location == RouteNames.splash) {
+        if (authState is AuthAuthenticated || authState is AuthLocalUser) {
+          return RouteNames.home;
+        } else if (authState is AuthUnauthenticated) {
+          return RouteNames.welcome;
+        } else if (authState is AuthNeedsVerification) {
+          return RouteNames.verification;
+        }
+      }
+
+      if (authState is AuthAuthenticated || authState is AuthLocalUser) {
+        if (location == RouteNames.welcome ||
+            location == RouteNames.login ||
+            location == RouteNames.register) {
+          return RouteNames.home;
+        }
+      }
+
+      if (authState is AuthUnauthenticated) {
+        if (location != RouteNames.welcome &&
+            location != RouteNames.login &&
+            location != RouteNames.register &&
+            location != RouteNames.localUserSetup &&
+            location != RouteNames.splash) {
+          return RouteNames.welcome;
+        }
+      }
+
+      if (authState is AuthNeedsVerification) {
+        return RouteNames.verification;
+      }
+
+      return null; // No redirection needed
+    },
+  );
+}
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }

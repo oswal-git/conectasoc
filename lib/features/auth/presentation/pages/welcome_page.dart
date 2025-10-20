@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectasoc/app/router/route_names.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -114,15 +115,15 @@ class WelcomePage extends StatelessWidget {
   }
 
   void _navigateToLocalSetup(BuildContext context) {
-    Navigator.of(context).pushNamed(RouteNames.localUserSetup);
+    GoRouter.of(context).push(RouteNames.localUserSetup);
   }
 
   void _navigateToLogin(BuildContext context) {
-    Navigator.of(context).pushNamed(RouteNames.login);
+    GoRouter.of(context).push(RouteNames.login);
   }
 
   void _navigateToRegister(BuildContext context) {
-    Navigator.of(context).pushNamed(RouteNames.register);
+    GoRouter.of(context).push(RouteNames.register);
   }
 }
 

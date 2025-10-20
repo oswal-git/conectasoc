@@ -32,16 +32,8 @@ abstract class AuthRepository {
     String password,
   );
 
-  Future<Either<Failure, UserEntity>> createUserDocument({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    String? phone,
-    required Map<String, String> memberships,
-  });
-
   Future<Either<Failure, void>> signOut();
   Future<Either<Failure, void>> resetPasswordWithEmail(String email);
   Future<Either<Failure, void>> leaveAssociation(MembershipEntity membership);
+  Future<Either<Failure, void>> createUserDocumentFromEntity(UserEntity user);
 }

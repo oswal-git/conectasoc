@@ -3,7 +3,7 @@
 import 'package:conectasoc/core/errors/exceptions.dart';
 import 'package:conectasoc/core/services/local_storage_service.dart';
 import 'package:conectasoc/features/auth/data/models/user_model.dart';
-import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 
 abstract class AuthLocalDataSource {
   Future<void> cacheUser(UserModel user);

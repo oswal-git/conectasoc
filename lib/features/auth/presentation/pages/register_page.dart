@@ -1,8 +1,8 @@
 // lib/features/auth/presentation/pages/register_page.dart
 
-import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/widgets/register_form_widget.dart';
+import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,10 +12,9 @@ class RegisterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos BlocProvider.value para acceder a la instancia global del AuthBloc
-    // en lugar de crear una nueva. Esto asegura un estado de autenticación consistente.
-    return BlocProvider.value(
-      value: BlocProvider.of<AuthBloc>(context),
+    // We provide a new RegisterBloc to this page, responsible for loading its own data.
+    return BlocProvider(
+      create: (context) => sl<RegisterBloc>()..add(LoadRegisterData()),
       child: Scaffold(
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.createAccount),
@@ -27,63 +26,35 @@ class RegisterPage extends StatelessWidget {
   }
 }
 
-class RegisterView extends StatefulWidget {
+class RegisterView extends StatelessWidget {
   const RegisterView({super.key});
-
-  @override
-  State<RegisterView> createState() => _RegisterViewState();
-}
-
-class _RegisterViewState extends State<RegisterView> {
-  // Guardamos los datos cargados para no perderlos en caso de error
-  AuthRegisterDataLoaded? _loadedData;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return BlocListener<AuthBloc, AuthState>(listener: (context, state) {
-      // La navegación al home en caso de éxito se gestiona en main.dart
-      // Aquí solo mostramos los errores.
-      if (state is AuthError) {
-        showDialog(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: Text(l10n.registrationError),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
+    return BlocBuilder<RegisterBloc, RegisterState>(
+      builder: (context, state) {
+        if (state is RegisterLoading || state is RegisterInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is RegisterError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                Text(state.message),
                 const SizedBox(height: 16),
-                Text(state.message,
-                    textAlign: TextAlign
-                        .center), // El mensaje de error viene de la API/BBDD
+                ElevatedButton(
+                  onPressed: () =>
+                      context.read<RegisterBloc>().add(LoadRegisterData()),
+                  child: Text(l10n.retry),
+                )
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(l10n.accept),
-              ),
-            ],
-          ),
-        );
-      }
-    }, child: BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        // Si el estado es de datos cargados, los guardamos
-        if (state is AuthRegisterDataLoaded) {
-          _loadedData = state;
+          );
         }
 
-        // Si estamos cargando y AÚN NO tenemos datos, mostramos el loader
-        if (state is AuthLoading || state is AuthInitial) {
-          if (_loadedData == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-        }
-
-        // Si tenemos datos cargados (incluso si el estado actual es otro como AuthLoading o AuthError), mostramos el formulario
-        if (_loadedData != null) {
+        if (state is RegisterDataLoaded) {
           return SafeArea(
               child: Padding(
             padding: const EdgeInsets.all(24),
@@ -91,21 +62,18 @@ class _RegisterViewState extends State<RegisterView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
+                  // The AuthBloc is still available in the context for form submission.
                   child: RegisterFormWidget(
-                    associations: _loadedData!.associations,
-                    isFirstUser: _loadedData!.isFirstUser,
+                    associations: state.associations,
+                    isFirstUser: state.isFirstUser,
                   ),
                 ),
               ],
             ),
           ));
         }
-
-        // Si llegamos aquí, es porque hubo un error inicial antes de poder cargar datos
-        return const Center(
-          child: Text(''), // El error se maneja en el provider
-        );
+        return const SizedBox.shrink();
       },
-    ));
+    );
   }
 }

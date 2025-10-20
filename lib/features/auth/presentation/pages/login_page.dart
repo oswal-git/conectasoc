@@ -5,6 +5,7 @@ import 'package:conectasoc/app/router/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -100,10 +101,8 @@ class LoginPage extends StatelessWidget {
                         OutlinedButton(
                           onPressed: isLoading
                               ? null
-                              : () {
-                                  Navigator.of(context)
-                                      .pushNamed(RouteNames.register);
-                                },
+                              : () => GoRouter.of(context)
+                                  .push(RouteNames.register),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -125,10 +124,8 @@ class LoginPage extends StatelessWidget {
                         TextButton(
                           onPressed: isLoading
                               ? null
-                              : () {
-                                  Navigator.of(context)
-                                      .pushNamed(RouteNames.localUserSetup);
-                                },
+                              : () => GoRouter.of(context)
+                                  .push(RouteNames.localUserSetup),
                           child: const Text(
                             'Continuar sin registrarme (solo lectura)',
                             style: TextStyle(fontSize: 14),

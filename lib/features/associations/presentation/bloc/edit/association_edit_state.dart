@@ -1,4 +1,4 @@
-import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
+import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 

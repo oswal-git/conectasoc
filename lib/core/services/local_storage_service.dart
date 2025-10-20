@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 
 class LocalStorageService {
   static const String _localUserKey = 'local_user';

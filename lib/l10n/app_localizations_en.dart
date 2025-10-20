@@ -129,6 +129,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get association => 'Association';
 
   @override
+  String get noAssociationAvailable => 'No association available';
+
+  @override
   String get search => 'Search...';
 
   @override
@@ -230,4 +233,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contactPerson => 'Contact person';
+
+  @override
+  String get usersListTitle => 'Users List';
+
+  @override
+  String get editUser => 'Edit User';
+
+  @override
+  String get verifyEmailTitle => 'Verify Email';
+
+  @override
+  String get verifyEmailHeadline => 'Verify your email address';
+
+  @override
+  String verifyEmailInstruction(Object email) {
+    return 'We have sent a verification email to $email. Please check your inbox and follow the instructions to activate your account.';
+  }
+
+  @override
+  String get resendEmail => 'Resend email';
+
+  @override
+  String get verificationEmailSent => 'Verification email resent.';
+
+  @override
+  String errorResendingEmail(Object error) {
+    return 'Error resending email: $error';
+  }
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get memberships => 'Memberships';
+
+  @override
+  String get userHasNoMemberships =>
+      'This user does not belong to any association.';
+
+  @override
+  String get roleTitle => 'Role';
+
+  @override
+  String get addMembership => 'Add Membership';
+
+  @override
+  String get addMembershipDialogTitle => 'Add Membership';
+
+  @override
+  String get selectAssociation => 'Select association';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get never => 'Never';
+
+  @override
+  String get morning => 'Morning';
+
+  @override
+  String get afternoon => 'Afternoon';
+
+  @override
+  String get morningAndAfternoon => 'Morning and Afternoon';
+
+  @override
+  String get deleteUser => 'Delete User';
+
+  @override
+  String deleteUserConfirmation(String userName) {
+    return 'Are you sure you want to delete $userName? This action is irreversible.';
+  }
+
+  @override
+  String get createUser => 'Create User';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get editMode => 'Edit Mode';
+
+  @override
+  String get all => 'All';
 }

@@ -129,6 +129,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get association => 'Asociación';
 
   @override
+  String get noAssociationAvailable => 'No hay asociación disponible';
+
+  @override
   String get search => 'Buscar...';
 
   @override
@@ -230,4 +233,92 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get contactPerson => 'Persona de contacto';
+
+  @override
+  String get usersListTitle => 'Listado de usuarios';
+
+  @override
+  String get editUser => 'Editar Usuario';
+
+  @override
+  String get verifyEmailTitle => 'Verificar Correo';
+
+  @override
+  String get verifyEmailHeadline => 'Verifica tu correo electrónico';
+
+  @override
+  String verifyEmailInstruction(Object email) {
+    return 'Hemos enviado un correo de verificación a $email. Por favor, revisa tu bandeja de entrada y sigue las instrucciones para activar tu cuenta.';
+  }
+
+  @override
+  String get resendEmail => 'Reenviar correo';
+
+  @override
+  String get verificationEmailSent => 'Correo de verificación reenviado.';
+
+  @override
+  String errorResendingEmail(Object error) {
+    return 'Error al reenviar el correo: $error';
+  }
+
+  @override
+  String get status => 'Estado';
+
+  @override
+  String get memberships => 'Membresías';
+
+  @override
+  String get userHasNoMemberships =>
+      'Este usuario no pertenece a ninguna asociación.';
+
+  @override
+  String get roleTitle => 'Rol';
+
+  @override
+  String get addMembership => 'Añadir Membresía';
+
+  @override
+  String get addMembershipDialogTitle => 'Añadir Membresía';
+
+  @override
+  String get selectAssociation => 'Seleccionar asociación';
+
+  @override
+  String get add => 'Añadir';
+
+  @override
+  String get notifications => 'Notificaciones';
+
+  @override
+  String get never => 'Nunca';
+
+  @override
+  String get morning => 'Mañana';
+
+  @override
+  String get afternoon => 'Tarde';
+
+  @override
+  String get morningAndAfternoon => 'Mañana y Tarde';
+
+  @override
+  String get deleteUser => 'Borrar Usuario';
+
+  @override
+  String deleteUserConfirmation(String userName) {
+    return '¿Estás seguro de que quieres borrar a $userName? Esta acción es irreversible.';
+  }
+
+  @override
+  String get createUser => 'Crear Usuario';
+
+  @override
+  String get password => 'Contraseña';
+
+  @override
+  String get editMode => 'Modo Edición';
+
+  @override
+  String get all => 'Todas';
 }

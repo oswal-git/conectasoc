@@ -1,8 +1,8 @@
 // lib/features/auth/domain/usecases/save_local_user_usecase.dart
 
+import 'package:conectasoc/core/errors/errors.dart';
+import 'package:conectasoc/features/auth/domain/repositories/repositories.dart';
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/failures.dart';
-import '../repositories/auth_repository.dart';
 
 class SaveLocalUserUseCase {
   final AuthRepository repository;

@@ -37,8 +37,27 @@ class UserRepositoryImpl implements UserRepository {
     try {
       final userModels =
           await remoteDataSource.getUsersByAssociation(associationId);
-      final userEntities = userModels.map((model) => model.toEntity()).toList();
-      return Right(userEntities);
+      return Right(userModels);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<UserEntity>>> getAllUsers() async {
+    try {
+      final userModels = await remoteDataSource.getAllUsers();
+      return Right(userModels);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> getUserById(String userId) async {
+    try {
+      final userModel = await remoteDataSource.getUserById(userId);
+      return Right(userModel);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     }
@@ -79,6 +98,26 @@ class UserRepositoryImpl implements UserRepository {
         await CloudinaryService.deleteImage(oldPublicId);
       }
       return Right(updatedUser);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateUserDetails(UserEntity user) async {
+    try {
+      await remoteDataSource.updateUserDetails(user);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteUser(String userId) async {
+    try {
+      await remoteDataSource.deleteUser(userId);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     }

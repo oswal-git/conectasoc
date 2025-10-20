@@ -129,6 +129,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get association => 'Associació';
 
   @override
+  String get noAssociationAvailable => 'No hi ha associació disponible';
+
+  @override
   String get search => 'Cercar...';
 
   @override
@@ -229,4 +232,92 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get contactPerson => 'Persona de contacte';
+
+  @override
+  String get usersListTitle => 'Llistat d\'usuaris';
+
+  @override
+  String get editUser => 'Editar Usuari';
+
+  @override
+  String get verifyEmailTitle => 'Verificar Correu';
+
+  @override
+  String get verifyEmailHeadline => 'Verifica el teu correu electrònic';
+
+  @override
+  String verifyEmailInstruction(Object email) {
+    return 'Hem enviat un correu de verificació a $email. Si us plau, revisa la teva bústia d\'entrada i segueix les instruccions per activar el teu compte.';
+  }
+
+  @override
+  String get resendEmail => 'Reenviar correu';
+
+  @override
+  String get verificationEmailSent => 'Correu de verificació reenviat.';
+
+  @override
+  String errorResendingEmail(Object error) {
+    return 'Error en reenviar el correu: $error';
+  }
+
+  @override
+  String get status => 'Estat';
+
+  @override
+  String get memberships => 'Membresies';
+
+  @override
+  String get userHasNoMemberships =>
+      'Aquest usuari no pertany a cap associació.';
+
+  @override
+  String get roleTitle => 'Rol';
+
+  @override
+  String get addMembership => 'Afegir Membresia';
+
+  @override
+  String get addMembershipDialogTitle => 'Afegir Membresia';
+
+  @override
+  String get selectAssociation => 'Seleccionar associació';
+
+  @override
+  String get add => 'Afegir';
+
+  @override
+  String get notifications => 'Notificacions';
+
+  @override
+  String get never => 'Mai';
+
+  @override
+  String get morning => 'Matí';
+
+  @override
+  String get afternoon => 'Tarda';
+
+  @override
+  String get morningAndAfternoon => 'Matí i Tarda';
+
+  @override
+  String get deleteUser => 'Esborrar Usuari';
+
+  @override
+  String deleteUserConfirmation(String userName) {
+    return 'Estàs segur que vols esborrar $userName? Aquesta acció és irreversible.';
+  }
+
+  @override
+  String get createUser => 'Crear Usuari';
+
+  @override
+  String get password => 'Contrasenya';
+
+  @override
+  String get editMode => 'Mode Edició';
+
+  @override
+  String get all => 'Totes';
 }

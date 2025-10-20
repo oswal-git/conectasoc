@@ -1,7 +1,7 @@
 // lib/features/users/presentation/pages/join_association_page.dart
 
+import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
-import 'package:conectasoc/features/auth/domain/domain.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';

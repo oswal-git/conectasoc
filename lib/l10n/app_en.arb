@@ -53,6 +53,7 @@
     "camera": "Camera",
     "cropImage": "Crop Image",
     "association": "Association",
+    "noAssociationAvailable": "No association available",
     "search": "Search...",
     "contact": "Contact",
     "noResultsFound": "No results found",
@@ -98,5 +99,91 @@
     "contactPerson": "Contact person",
     "@contactPerson": {
         "description": "Label for the contact person field or selector."
+    },
+    "usersListTitle": "Users List",
+    "@usersListTitle": {
+        "description": "Title for the user list screen."
+    },
+    "editUser": "Edit User",
+    "@editUser": {
+        "description": "Title for the user edit screen."
+    },
+    "verifyEmailTitle": "Verify Email",
+    "@verifyEmailTitle": {
+        "description": "Title for the email verification screen."
+    },
+    "verifyEmailHeadline": "Verify your email address",
+    "@verifyEmailHeadline": {
+        "description": "Headline for the email verification screen."
+    },
+    "verifyEmailInstruction": "We have sent a verification email to {email}. Please check your inbox and follow the instructions to activate your account.",
+    "@verifyEmailInstruction": {
+        "description": "Instructional text on the email verification screen.",
+        "placeholders": {
+            "email": {}
+        }
+    },
+    "resendEmail": "Resend email",
+    "@resendEmail": {
+        "description": "Button text to resend the verification email."
+    },
+    "verificationEmailSent": "Verification email resent.",
+    "@verificationEmailSent": {
+        "description": "Snackbar message confirming the verification email was resent."
+    },
+    "errorResendingEmail": "Error resending email: {error}",
+    "@errorResendingEmail": {
+        "description": "Snackbar message for an error when resending the verification email.",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "status": "Status",
+    "@status": {},
+    "memberships": "Memberships",
+    "@memberships": {},
+    "userHasNoMemberships": "This user does not belong to any association.",
+    "@userHasNoMemberships": {},
+    "roleTitle": "Role",
+    "@roleTitle": {},
+    "addMembership": "Add Membership",
+    "@addMembership": {},
+    "addMembershipDialogTitle": "Add Membership",
+    "@addMembershipDialogTitle": {},
+    "selectAssociation": "Select association",
+    "@selectAssociation": {},
+    "add": "Add",
+    "@add": {},
+    "notifications": "Notifications",
+    "never": "Never",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "morningAndAfternoon": "Morning and Afternoon",
+    "deleteUser": "Delete User",
+    "deleteUserConfirmation": "Are you sure you want to delete {userName}? This action is irreversible.",
+    "@deleteUserConfirmation": {
+        "description": "Confirmation message for deleting a user.",
+        "placeholders": {
+            "userName": {
+                "type": "String",
+                "example": "John Doe"
+            }
+        }
+    },
+    "createUser": "Create User",
+    "@createUser": {
+        "description": "Title for the user creation screen."
+    },
+    "password": "Password",
+    "@password": {
+        "description": "Label for the password input field."
+    },
+    "editMode": "Edit Mode",
+    "@editMode": {
+        "description": "Label for the switch to toggle editing mode."
+    },
+    "all": "All",
+    "@all": {
+        "description": "Text for the 'All' filter chip."
     }
 }

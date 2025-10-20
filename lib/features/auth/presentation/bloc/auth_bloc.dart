@@ -1,29 +1,33 @@
 // lib/features/auth/presentation/bloc/auth_bloc.dart
 
 import 'dart:async';
-import 'package:conectasoc/features/auth/domain/entities/entities.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
+import 'package:conectasoc/features/auth/data/models/models.dart';
+import 'package:dartz/dartz.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:conectasoc/core/errors/errors.dart';
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/repositories/repositories.dart';
 import 'package:conectasoc/features/auth/domain/usecases/usecases.dart';
-import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
-import 'package:conectasoc/features/auth/presentation/bloc/auth_state.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository repository;
   final RegisterUseCase registerUseCase;
   final SaveLocalUserUseCase saveLocalUserUseCase;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   StreamSubscription<firebase.User?>? _userSubscription;
+  StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
   AuthBloc({
     required this.repository,
     required this.registerUseCase,
     required this.saveLocalUserUseCase,
   }) : super(AuthInitial()) {
-    // El listener ahora solo añade un evento interno.
     _userSubscription = repository.authStateChanges
         .listen((user) => add(AuthUserChanged(user)));
     on<AuthLoadRegisterData>(_onLoadRegisterData);
@@ -46,6 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   @override
   Future<void> close() {
     _userSubscription?.cancel();
+    _userDocSubscription?.cancel();
     return super.close();
   }
 
@@ -81,6 +86,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // El AuthCheckRequested inicial se encargará de la lógica del usuario local.
       emit(AuthUnauthenticated());
     } else {
+      _userDocSubscription?.cancel(); // Cancelar suscripción anterior si existe
+      // Si el email no está verificado, el usuario no puede continuar.
+      if (!firebaseUser.emailVerified) {
+        emit(AuthNeedsVerification(firebaseUser.email!));
+        return;
+      }
+
       // Hay un usuario de Firebase, obtenemos sus datos completos de Firestore.
       final userResult = await repository.getCurrentUser();
       userResult.fold(
@@ -90,6 +102,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             final currentMembership = user.memberships.entries.firstOrNull
                 ?.toMembershipEntity(userId: user.uid);
             emit(AuthAuthenticated(user, currentMembership));
+
+            // Iniciar escucha de cambios en el documento del usuario
+            _userDocSubscription = _firestore
+                .collection('users')
+                .doc(user.uid)
+                .snapshots()
+                .listen((snapshot) {
+              if (snapshot.exists && state is AuthAuthenticated) {
+                final serverUser = UserModel.fromFirestore(snapshot,
+                    isEmailVerified: user.isEmailVerified);
+                if (serverUser.configVersion >
+                    (state as AuthAuthenticated).user.configVersion) {
+                  add(AuthSignOutRequested(
+                      message:
+                          'Tus permisos han cambiado. Por favor, inicia sesión de nuevo.'));
+                }
+              }
+            });
           } else {
             // Caso raro: usuario en Auth pero sin documento en Firestore.
             // Forzamos el cierre de sesión para evitar un estado inconsistente.
@@ -123,6 +153,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     final user = currentUserResult.getOrElse(() => null);
 
+    // Comprobación de email verificado también en el chequeo inicial
+    if (user != null && !user.isLocalUser && !user.isEmailVerified) {
+      emit(AuthNeedsVerification(user.email));
+      return;
+    }
+
     if (user != null) {
       // Case 1: User is authenticated in Firebase.
       // Convertimos la primera entrada del mapa a una MembershipEntity
@@ -138,12 +174,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     if (hasLocal) {
       final localUserResult = await repository.getLocalUser();
-      final localUser = localUserResult.getOrElse(() => null);
-      if (localUser != null) {
-        emit(AuthLocalUser(localUser));
-      } else {
-        emit(AuthUnauthenticated());
-      }
+      localUserResult.fold(
+        (failure) => emit(AuthUnauthenticated()),
+        (LocalUserEntity? localUser) {
+          if (localUser != null) {
+            emit(AuthLocalUser(localUser));
+          } else {
+            emit(AuthUnauthenticated());
+          }
+        },
+      );
     } else {
       // Case 3: No Firebase user and no local user.
       emit(AuthUnauthenticated());
@@ -176,28 +216,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-
     final result = await saveLocalUserUseCase(
       displayName: event.displayName,
       associationId: event.associationId,
     );
 
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (_) async {
-        final localUserResult = await repository.getLocalUser();
-        localUserResult.fold(
-          (failure) => emit(AuthError(failure.message)),
-          (localUser) {
-            if (localUser != null) {
-              emit(AuthLocalUser(localUser));
-            } else {
-              emit(const AuthError('Error obteniendo usuario local'));
-            }
-          },
-        );
-      },
-    );
+    if (result.isLeft()) {
+      final failure = (result as Left).value as Failure;
+      emit(AuthError(failure.message));
+      return;
+    }
+
+    // After successfully saving, get the local user to update the state.
+    final localUserResult = await repository.getLocalUser();
+    emit(localUserResult.fold(
+      (failure) => AuthError(failure.message),
+      (localUser) => localUser != null
+          ? AuthLocalUser(localUser)
+          : const AuthError('Error obteniendo usuario local'),
+    ));
   }
 
   Future<void> _onLoadRegisterData(
@@ -288,6 +325,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthSignOutRequested event,
     Emitter<AuthState> emit,
   ) async {
+    // Cancelar la escucha del documento del usuario al cerrar sesión.
+    await _userDocSubscription?.cancel();
+    _userDocSubscription = null;
+
     emit(AuthLoading());
 
     // La lógica de logout ahora está directamente en el repositorio

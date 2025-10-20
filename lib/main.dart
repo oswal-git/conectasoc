@@ -1,16 +1,18 @@
 // lib/main.dart
 
-import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+
+import 'package:conectasoc/l10n/app_localizations.dart';
+
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'firebase_options.dart';
 
 // Inyección de dependencias
 import 'injection_container.dart';
 
 // BLoC
-import 'package:conectasoc/features/auth/presentation/presentation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 
 // Router
 import 'package:conectasoc/app/router/router.dart';
@@ -30,8 +32,6 @@ void main() async {
   runApp(const ConectaSocApp());
 }
 
-final _navigatorKey = GlobalKey<NavigatorState>();
-
 class ConectaSocApp extends StatelessWidget {
   const ConectaSocApp({super.key});
 
@@ -40,128 +40,109 @@ class ConectaSocApp extends StatelessWidget {
     return BlocProvider(
       create: (context) => sl<AuthBloc>()
         ..add(AuthCheckRequested()), // Verificar estado de auth al iniciar
-      child: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          final navigator = _navigatorKey.currentState;
-          if (navigator == null) return;
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          // Determinar el locale actual basado en el estado de autenticación.
+          final Locale? userLocale =
+              (state is AuthAuthenticated) ? Locale(state.user.language) : null;
 
-          if (state is AuthError) {
-            SnackBarService.showSnackBar(state.message, isError: true);
-          } else if (state is AuthAuthenticated || state is AuthLocalUser) {
-            navigator.pushNamedAndRemoveUntil(
-                RouteNames.home, (route) => false);
-          } else if (state is AuthUnauthenticated) {
-            navigator.pushNamedAndRemoveUntil(
-                RouteNames.welcome, (route) => false);
-          }
-        },
-        child: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            // Determinar el locale actual basado en el estado de autenticación.
-            final Locale? userLocale = (state is AuthAuthenticated)
-                ? Locale(state.user.language)
-                : null;
-
-            return MaterialApp(
-                scaffoldMessengerKey: SnackBarService.scaffoldMessengerKey,
-                onGenerateTitle: (context) =>
-                    AppLocalizations.of(context)!.appTitle,
-                navigatorKey: _navigatorKey,
-                debugShowCheckedModeBanner: false,
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
-                supportedLocales: AppLocalizations.supportedLocales,
-                locale: userLocale, // Aquí se establece el idioma dinámicamente
-                localeListResolutionCallback:
-                    (deviceLocales, supportedLocales) {
-                  // 1. Prioridad: idioma guardado del usuario
-                  if (userLocale != null) {
-                    return userLocale;
-                  }
-                  // 2. Segunda opción: idioma del dispositivo
-                  if (deviceLocales != null) {
-                    for (var deviceLocale in deviceLocales) {
-                      for (var supportedLocale in supportedLocales) {
-                        if (supportedLocale.languageCode ==
-                            deviceLocale.languageCode) {
-                          // Encontramos una coincidencia, la devolvemos.
-                          return supportedLocale;
-                        }
+          return MaterialApp.router(
+              // Clave para que el SnackBarService funcione globalmente.
+              scaffoldMessengerKey: SnackBarService.scaffoldMessengerKey,
+              onGenerateTitle: (context) =>
+                  AppLocalizations.of(context)!.appTitle,
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: userLocale, // Aquí se establece el idioma dinámicamente
+              localeListResolutionCallback: (deviceLocales, supportedLocales) {
+                // 1. Prioridad: idioma guardado del usuario
+                if (userLocale != null) {
+                  return userLocale;
+                }
+                // 2. Segunda opción: idioma del dispositivo
+                if (deviceLocales != null) {
+                  for (var deviceLocale in deviceLocales) {
+                    for (var supportedLocale in supportedLocales) {
+                      if (supportedLocale.languageCode ==
+                          deviceLocale.languageCode) {
+                        // Encontramos una coincidencia, la devolvemos.
+                        return supportedLocale;
                       }
                     }
                   }
-                  // 3. Fallback: primer idioma soportado (ej. español)
-                  return supportedLocales.first;
-                },
+                }
+                // 3. Fallback: primer idioma soportado (ej. español)
+                return supportedLocales.first;
+              },
 
-                // THEME
-                theme: ThemeData(
-                  primarySwatch: Colors.blue,
-                  visualDensity: VisualDensity.adaptivePlatformDensity,
-                  useMaterial3: true,
+              // THEME
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+                visualDensity: VisualDensity.adaptivePlatformDensity,
+                useMaterial3: true,
 
-                  // AppBar Theme
-                  appBarTheme: const AppBarTheme(
-                    elevation: 0,
-                    centerTitle: true,
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
+                // AppBar Theme
+                appBarTheme: const AppBarTheme(
+                  elevation: 0,
+                  centerTitle: true,
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+
+                // Input Decoration Theme
+                inputDecorationTheme: InputDecorationTheme(
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.red),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
 
-                  // Input Decoration Theme
-                  inputDecorationTheme: InputDecorationTheme(
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: Colors.blue, width: 2),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.red),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
+                // Elevated Button Theme
+                elevatedButtonTheme: ElevatedButtonThemeData(
+                  style: ElevatedButton.styleFrom(
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
                       vertical: 16,
                     ),
-                  ),
-
-                  // Elevated Button Theme
-                  elevatedButtonTheme: ElevatedButtonThemeData(
-                    style: ElevatedButton.styleFrom(
-                      elevation: 2,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-
-                  // Card Theme
-                  cardTheme: CardThemeData(
-                    elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
 
-                // Sistema de navegación con rutas nombradas
-                initialRoute: RouteNames.splash,
-                onGenerateRoute: AppRouter.onGenerateRoute);
-          },
-        ),
+                // Card Theme
+                cardTheme: CardThemeData(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+
+              // Sistema de navegación con GoRouter
+              routerConfig:
+                  AppRouter(authBloc: context.read<AuthBloc>()).router);
+        },
       ),
     );
   }

@@ -1,152 +1,116 @@
+// lib/features/auth/domain/entities/user_entity.dart
+
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/users/domain/entities/profile_entity.dart';
 import 'package:equatable/equatable.dart';
 
-enum UserRole {
-  superadmin,
-  admin,
-  editor,
-  asociado;
-
-  String get value {
-    switch (this) {
-      case UserRole.superadmin:
-        return 'superadmin';
-      case UserRole.admin:
-        return 'admin';
-      case UserRole.editor:
-        return 'editor';
-      case UserRole.asociado:
-        return 'asociado';
-    }
-  }
-
-  static UserRole fromString(String value) {
-    switch (value.toLowerCase()) {
-      case 'superadmin':
-        return UserRole.superadmin;
-      case 'admin':
-        return UserRole.admin;
-      case 'editor':
-        return UserRole.editor;
-      case 'asociado':
-        return UserRole.asociado;
-      default:
-        return UserRole.asociado;
-    }
-  }
-
-  bool get canManageUsers =>
-      this == UserRole.superadmin || this == UserRole.admin;
-  bool get canManageAssociations => this == UserRole.superadmin;
-  bool get canListAllAssociations =>
-      this == UserRole.superadmin; // For future use
-  bool get canEditArticles =>
-      this == UserRole.superadmin ||
-      this == UserRole.admin ||
-      this == UserRole.editor;
-  bool get canCreateArticles =>
-      this == UserRole.superadmin ||
-      this == UserRole.admin ||
-      this == UserRole.editor;
-  bool get canCreateGlobalArticles =>
-      this == UserRole.superadmin; // Artículos sin asociación
-  bool get canEditAllArticles => this == UserRole.superadmin;
-}
-
 enum UserStatus {
-  active,
-  inactive,
-  suspended,
-  pending;
+  active('active'),
+  inactive('inactive'),
+  pending('pending'),
+  suspended('suspended');
 
-  String get value {
-    switch (this) {
-      case UserStatus.active:
-        return 'active';
-      case UserStatus.inactive:
-        return 'inactive';
-      case UserStatus.suspended:
-        return 'suspended';
-      case UserStatus.pending:
-        return 'pending';
-    }
-  }
-
-  static UserStatus fromString(String value) {
-    switch (value.toLowerCase()) {
-      case 'active':
-        return UserStatus.active;
-      case 'inactive':
-        return UserStatus.inactive;
-      case 'suspended':
-        return UserStatus.suspended;
-      case 'pending':
-        return UserStatus.pending;
-      default:
-        return UserStatus.active;
-    }
-  }
+  const UserStatus(this.value);
+  final String value;
 }
 
-// Usuario Tipo 2 - Registrado en Firebase (SIMPLIFICADO)
 class UserEntity extends Equatable {
   final String uid;
-  final UserStatus status;
-  final String language;
-  final String? timezone;
-
-  // Timestamps
-  final DateTime dateCreated;
-  final DateTime dateUpdated;
-  final DateTime? lastLoginDate;
-  final DateTime? dateDeleted;
-
-  // Datos del usuario (SIEMPRE obligatorios para usuarios Firebase)
   final String email;
   final String firstName;
   final String lastName;
   final String? phone;
   final String? avatarUrl;
-
-  // Metadata
-  final String authProvider;
-
-  // Configuraciones
-  final NotificationSettings notificationSettings;
-  final UserStats stats;
-  // Mapa de [associationId, role]
   final Map<String, String> memberships;
+  final UserStatus status;
+  final String language;
+  final DateTime dateCreated;
+  final DateTime dateUpdated;
+  final DateTime? lastLoginDate;
+  final int notificationTime;
+  final int configVersion;
+  final bool isEmailVerified;
+  final String password;
 
   const UserEntity({
     required this.uid,
-    required this.status,
-    this.language = 'es',
-    this.timezone,
-    required this.dateCreated,
-    required this.dateUpdated,
-    this.lastLoginDate,
-    this.dateDeleted,
     required this.email,
     required this.firstName,
     required this.lastName,
     this.phone,
     this.avatarUrl,
-    this.authProvider = 'password',
-    this.notificationSettings = const NotificationSettings(),
-    this.stats = const UserStats(),
-    required this.memberships,
+    this.memberships = const {},
+    this.status = UserStatus.pending,
+    this.language = 'es',
+    required this.dateCreated,
+    required this.dateUpdated,
+    this.lastLoginDate,
+    this.notificationTime = 0, // 0 = none
+    this.configVersion = 1,
+    this.isEmailVerified = false,
+    this.password = '',
   });
 
-  String get fullName => '$firstName $lastName';
+  // Factory constructor for creating an empty instance
+  factory UserEntity.empty() {
+    final now = DateTime.now();
+    return UserEntity(
+      uid: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+      phone: '',
+      avatarUrl: '',
+      memberships: const {},
+      status: UserStatus.pending,
+      language: 'es',
+      dateCreated: now,
+      dateUpdated: now,
+      lastLoginDate: now,
+      notificationTime: 0,
+      configVersion: 1,
+      isEmailVerified: false,
+      password: '',
+    );
+  }
 
-  String get initials => '${firstName[0]}${lastName[0]}'.toUpperCase();
-
-  bool get isSuperAdmin =>
-      memberships.values.any((role) => role == 'superadmin');
-  bool get isAdmin => memberships.values.any((role) => role == 'admin');
-  bool get isEditor => memberships.values.any((role) => role == 'editor');
-  bool get isAssociated => memberships.values.any((role) => role == 'asociado');
-  bool get isActive => status == UserStatus.active;
+  UserEntity copyWith({
+    String? uid,
+    String? email,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? avatarUrl,
+    Map<String, String>? memberships,
+    UserStatus? status,
+    String? language,
+    DateTime? dateCreated,
+    DateTime? dateUpdated,
+    DateTime? lastLoginDate,
+    int? notificationTime,
+    int? configVersion,
+    bool? isEmailVerified,
+    String? password,
+  }) {
+    return UserEntity(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      phone: phone ?? this.phone,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      memberships: memberships ?? this.memberships,
+      status: status ?? this.status,
+      language: language ?? this.language,
+      dateCreated: dateCreated ?? this.dateCreated,
+      dateUpdated: dateUpdated ?? this.dateUpdated,
+      lastLoginDate: lastLoginDate ?? this.lastLoginDate,
+      notificationTime: notificationTime ?? this.notificationTime,
+      configVersion: configVersion ?? this.configVersion,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
+      password: password ?? this.password,
+    );
+  }
 
   ProfileEntity toProfileEntity() {
     return ProfileEntity(
@@ -160,203 +124,46 @@ class UserEntity extends Equatable {
     );
   }
 
-  UserEntity copyWith({
-    String? uid,
-    UserStatus? status,
-    String? language,
-    String? timezone,
-    DateTime? dateCreated,
-    DateTime? dateUpdated,
-    DateTime? lastLoginDate,
-    DateTime? dateDeleted,
-    String? email,
-    String? firstName,
-    String? lastName,
-    String? phone,
-    String? avatarUrl,
-    String? authProvider,
-    NotificationSettings? notificationSettings,
-    UserStats? stats,
-    Map<String, String>? memberships,
-  }) {
-    return UserEntity(
-      uid: uid ?? this.uid,
-      status: status ?? this.status,
-      language: language ?? this.language,
-      timezone: timezone ?? this.timezone,
-      dateCreated: dateCreated ?? this.dateCreated,
-      dateUpdated: dateUpdated ?? this.dateUpdated,
-      lastLoginDate: lastLoginDate ?? this.lastLoginDate,
-      dateDeleted: dateDeleted ?? this.dateDeleted,
-      email: email ?? this.email,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
-      phone: phone ?? this.phone,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      authProvider: authProvider ?? this.authProvider,
-      notificationSettings: notificationSettings ?? this.notificationSettings,
-      stats: stats ?? this.stats,
-      memberships: memberships ?? this.memberships,
-    );
+  // Helper getters
+  String get fullName => '$firstName $lastName'.trim();
+  String get initials {
+    final names = fullName.split(' ').where((n) => n.isNotEmpty);
+    if (names.isEmpty) return '';
+    if (names.length == 1) return names.first.substring(0, 1).toUpperCase();
+    return (names.first.substring(0, 1) + names.last.substring(0, 1))
+        .toUpperCase();
   }
+
+  MembershipEntity? getMembershipForAssociation(String associationId) {
+    if (memberships.containsKey(associationId)) {
+      return MembershipEntity(
+        userId: uid,
+        associationId: associationId,
+        role: memberships[associationId]!,
+      );
+    }
+    return null;
+  }
+
+  bool get isSuperAdmin => memberships.containsValue('superadmin');
+  bool get isLocalUser => false; // Overridden by LocalUserEntity
 
   @override
   List<Object?> get props => [
         uid,
-        status,
-        language,
-        timezone,
-        dateCreated,
-        dateUpdated,
-        lastLoginDate,
-        dateDeleted,
         email,
         firstName,
         lastName,
         phone,
         avatarUrl,
-        authProvider,
-        notificationSettings,
-        stats,
         memberships,
+        status,
+        language,
+        dateCreated,
+        dateUpdated,
+        lastLoginDate,
+        notificationTime,
+        configVersion,
+        isEmailVerified,
       ];
-}
-
-// Usuario Tipo 1 - Local (Sin Firebase)
-class LocalUserEntity extends Equatable {
-  final String displayName;
-  final String associationId;
-
-  const LocalUserEntity({
-    required this.displayName,
-    required this.associationId,
-  });
-
-  LocalUserEntity copyWith({
-    String? displayName,
-    String? associationId,
-  }) {
-    return LocalUserEntity(
-      displayName: displayName ?? this.displayName,
-      associationId: associationId ?? this.associationId,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'displayName': displayName,
-      'associationId': associationId,
-    };
-  }
-
-  factory LocalUserEntity.fromMap(Map<String, dynamic> map) {
-    return LocalUserEntity(
-      displayName: map['displayName'] ?? '',
-      associationId: map['associationId'] ?? '',
-    );
-  }
-
-  @override
-  List<Object?> get props => [displayName, associationId];
-}
-
-class NotificationSettings extends Equatable {
-  final bool push;
-  final bool email;
-  final String preferredTime;
-  final List<String> categories;
-
-  const NotificationSettings({
-    this.push = true,
-    this.email = false,
-    this.preferredTime = 'morning',
-    this.categories = const [],
-  });
-
-  NotificationSettings copyWith({
-    bool? push,
-    bool? email,
-    String? preferredTime,
-    List<String>? categories,
-  }) {
-    return NotificationSettings(
-      push: push ?? this.push,
-      email: email ?? this.email,
-      preferredTime: preferredTime ?? this.preferredTime,
-      categories: categories ?? this.categories,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'push': push,
-      'email': email,
-      'preferredTime': preferredTime,
-      'categories': categories,
-    };
-  }
-
-  factory NotificationSettings.fromMap(Map<String, dynamic> map) {
-    return NotificationSettings(
-      push: map['push'] ?? true,
-      email: map['email'] ?? false,
-      preferredTime: map['preferredTime'] ?? 'morning',
-      categories: List<String>.from(map['categories'] ?? []),
-    );
-  }
-
-  @override
-  List<Object?> get props => [push, email, preferredTime, categories];
-}
-
-class UserStats extends Equatable {
-  final int articlesRead;
-  final DateTime? lastArticleRead;
-  final int totalNotifications;
-  final int unreadNotifications;
-
-  const UserStats({
-    this.articlesRead = 0,
-    this.lastArticleRead,
-    this.totalNotifications = 0,
-    this.unreadNotifications = 0,
-  });
-
-  UserStats copyWith({
-    int? articlesRead,
-    DateTime? lastArticleRead,
-    int? totalNotifications,
-    int? unreadNotifications,
-  }) {
-    return UserStats(
-      articlesRead: articlesRead ?? this.articlesRead,
-      lastArticleRead: lastArticleRead ?? this.lastArticleRead,
-      totalNotifications: totalNotifications ?? this.totalNotifications,
-      unreadNotifications: unreadNotifications ?? this.unreadNotifications,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'articlesRead': articlesRead,
-      'lastArticleRead': lastArticleRead?.toIso8601String(),
-      'totalNotifications': totalNotifications,
-      'unreadNotifications': unreadNotifications,
-    };
-  }
-
-  factory UserStats.fromMap(Map<String, dynamic> map) {
-    return UserStats(
-      articlesRead: map['articlesRead'] ?? 0,
-      lastArticleRead: map['lastArticleRead'] != null
-          ? DateTime.parse(map['lastArticleRead'])
-          : null,
-      totalNotifications: map['totalNotifications'] ?? 0,
-      unreadNotifications: map['unreadNotifications'] ?? 0,
-    );
-  }
-
-  @override
-  List<Object?> get props =>
-      [articlesRead, lastArticleRead, totalNotifications, unreadNotifications];
 }

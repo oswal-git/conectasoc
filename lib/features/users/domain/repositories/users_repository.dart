@@ -15,10 +15,18 @@ abstract class UserRepository {
   Future<Either<Failure, List<UserEntity>>> getUsersByAssociation(
       String associationId);
 
+  Future<Either<Failure, UserEntity>> getUserById(String userId);
+
+  Future<Either<Failure, List<UserEntity>>> getAllUsers();
+
   Future<Either<Failure, ProfileEntity>> updateUser({
     required ProfileEntity user,
     File? newImageFile,
   });
+
+  Future<Either<Failure, void>> updateUserDetails(UserEntity user);
+
+  Future<Either<Failure, void>> deleteUser(String userId);
 
   Future<Either<Failure, void>> removeMembership({
     required String userId,

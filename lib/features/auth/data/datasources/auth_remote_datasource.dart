@@ -3,7 +3,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/core/errors/errors.dart';
 import 'package:conectasoc/features/auth/data/models/models.dart';
-import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
 abstract class AuthRemoteDataSource {
@@ -13,16 +12,9 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithEmail(String email, String password);
   Future<firebase.UserCredential> createFirebaseAuthUser(
       String email, String password);
-  Future<UserModel> createUserDocument({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    String? phone,
-    required Map<String, String> memberships,
-  });
   Future<void> signOut();
   Future<void> resetPasswordWithEmail(String email);
+  Future<void> createUserDocument(UserModel user);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -47,7 +39,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final doc = await firestore.collection('users').doc(user.uid).get();
       if (!doc.exists) return null;
 
-      return UserModel.fromFirestore(doc);
+      return UserModel.fromFirestore(doc, isEmailVerified: user.emailVerified);
     } catch (e) {
       throw ServerException('Error obteniendo usuario actual: $e');
     }
@@ -62,6 +54,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       final uid = credential.user?.uid;
+
       if (uid == null) {
         throw ServerException('No se pudo obtener el UID del usuario');
       }
@@ -76,7 +69,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'lastLoginDate': FieldValue.serverTimestamp(),
       });
 
-      return UserModel.fromFirestore(doc);
+      return UserModel.fromFirestore(doc,
+          isEmailVerified: credential.user!.emailVerified);
     } on firebase.FirebaseAuthException catch (e) {
       throw ServerException(_getAuthErrorMessage(e.code));
     } catch (e) {
@@ -98,38 +92,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> createUserDocument({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    String? phone,
-    required Map<String, String> memberships,
-  }) async {
+  Future<void> createUserDocument(UserModel user) async {
     try {
-      final now = DateTime.now();
-      // Usar el UserModel para construir el objeto, asegurando consistencia.
-      final userModel = UserModel(
-        uid: uid,
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        phone: phone,
-        memberships: memberships,
-        status: UserStatus.active,
-        dateCreated: now,
-        dateUpdated: now,
-        // Los demás campos usarán los valores por defecto de UserEntity
-      );
-
       // Convertir el modelo a un mapa de Firestore y guardarlo.
-      await firestore.collection('users').doc(uid).set(userModel.toFirestore());
-
-      final doc = await firestore.collection('users').doc(uid).get();
-      return UserModel.fromFirestore(doc);
+      await firestore.collection('users').doc(user.uid).set(user.toFirestore());
     } catch (e) {
-      // Si la creación del documento falla, es importante manejarlo.
-      // El repositorio se encarga de borrar el usuario de Auth.
       throw ServerException('Error en registro: $e');
     }
   }

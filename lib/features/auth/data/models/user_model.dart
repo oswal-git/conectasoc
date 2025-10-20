@@ -1,134 +1,99 @@
+// lib/features/auth/data/models/user_model.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   const UserModel({
     required super.uid,
-    required super.status,
-    super.language,
-    super.timezone,
-    required super.dateCreated,
-    required super.dateUpdated,
-    super.lastLoginDate,
-    super.dateDeleted,
     required super.email,
     required super.firstName,
     required super.lastName,
-    super.phone,
-    super.avatarUrl,
-    super.authProvider,
-    super.notificationSettings,
-    super.stats,
     required super.memberships,
+    required super.status,
+    required super.dateCreated,
+    required super.dateUpdated,
+    required super.isEmailVerified,
+    super.phone,
+    super.notificationTime,
+    super.configVersion,
+    super.avatarUrl,
+    super.lastLoginDate,
+    super.language,
   });
 
-  // Convertir desde Firestore
-  factory UserModel.fromFirestore(DocumentSnapshot doc) {
+  factory UserModel.fromFirestore(DocumentSnapshot doc,
+      {bool isEmailVerified = false}) {
     final data = doc.data() as Map<String, dynamic>;
+
+    // Safely parse memberships
+    final Map<String, String> memberships =
+        Map<String, String>.from(data['memberships'] ?? {});
+
+    // Safely parse status
+    final String statusString = data['status'] ?? 'inactive';
+    final UserStatus status = UserStatus.values.firstWhere(
+      (e) => e.value == statusString,
+      orElse: () => UserStatus.inactive,
+    );
 
     return UserModel(
       uid: doc.id,
-      status: UserStatus.fromString(data['status'] ?? 'active'),
-      language: data['language'] ?? 'es',
-      timezone: data['timezone'],
-      dateCreated: (data['dateCreated'] as Timestamp).toDate(),
-      dateUpdated: (data['dateUpdated'] as Timestamp).toDate(),
-      lastLoginDate: data['lastLoginDate'] != null
-          ? (data['lastLoginDate'] as Timestamp).toDate()
-          : null,
-      dateDeleted: data['dateDeleted'] != null
-          ? (data['dateDeleted'] as Timestamp).toDate()
-          : null,
       email: data['email'] ?? '',
       firstName: data['firstName'] ?? '',
       lastName: data['lastName'] ?? '',
       phone: data['phone'],
       avatarUrl: data['avatarUrl'],
-      authProvider: data['authProvider'] ?? 'password',
-      notificationSettings: data['notificationSettings'] != null
-          ? NotificationSettings.fromMap(
-              Map<String, dynamic>.from(data['notificationSettings']))
-          : const NotificationSettings(),
-      stats: data['stats'] != null
-          ? UserStats.fromMap(Map<String, dynamic>.from(data['stats']))
-          : const UserStats(),
-      memberships: Map<String, String>.from(data['memberships'] ?? {}),
+      memberships: memberships,
+      status: status,
+      language: data['language'] ?? 'es',
+      dateCreated:
+          (data['dateCreated'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      dateUpdated:
+          (data['dateUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      lastLoginDate: (data['lastLoginDate'] as Timestamp?)?.toDate(),
+      notificationTime: data['notificationTime'] ?? 0,
+      configVersion: data['configVersion'] ?? 1,
+      isEmailVerified: isEmailVerified, // Set from parameter
     );
   }
 
-  // Convertir a Firestore
-  Map<String, dynamic> toFirestore() {
-    final map = <String, dynamic>{
-      'status': status.value,
-      'language': language,
-      'timezone': timezone,
-      'dateCreated': Timestamp.fromDate(dateCreated),
-      'dateUpdated': Timestamp.fromDate(dateUpdated),
-      'email': email,
-      'firstName': firstName,
-      'lastName': lastName,
-      'phone': phone,
-      'avatarUrl': avatarUrl,
-      'authProvider': authProvider,
-      'notificationSettings': notificationSettings.toMap(),
-      'stats': stats.toMap(),
-      'memberships': memberships,
-    };
-
-    // Agregar campos opcionales solo si existen
-    if (lastLoginDate != null) {
-      map['lastLoginDate'] = Timestamp.fromDate(lastLoginDate!);
-    }
-    if (dateDeleted != null) {
-      map['dateDeleted'] = Timestamp.fromDate(dateDeleted!);
-    }
-
-    return map;
-  }
-
-  // Crear desde Entity
   factory UserModel.fromEntity(UserEntity entity) {
     return UserModel(
       uid: entity.uid,
-      status: entity.status,
-      language: entity.language,
-      timezone: entity.timezone,
-      dateCreated: entity.dateCreated,
-      dateUpdated: entity.dateUpdated,
-      lastLoginDate: entity.lastLoginDate,
-      dateDeleted: entity.dateDeleted,
       email: entity.email,
       firstName: entity.firstName,
       lastName: entity.lastName,
       phone: entity.phone,
       avatarUrl: entity.avatarUrl,
-      authProvider: entity.authProvider,
-      notificationSettings: entity.notificationSettings,
-      stats: entity.stats,
       memberships: entity.memberships,
+      status: entity.status,
+      dateCreated: entity.dateCreated,
+      dateUpdated: entity.dateUpdated,
+      isEmailVerified: entity.isEmailVerified,
+      language: entity.language,
+      notificationTime: entity.notificationTime,
+      configVersion: entity.configVersion,
+      // La contraseña no se incluye en el modelo de datos, solo se usa en la entidad para la creación.
     );
   }
 
-  // Convertir a Entity
-  UserEntity toEntity() {
-    return UserEntity(
-      uid: uid,
-      status: status,
-      language: language,
-      timezone: timezone,
-      dateCreated: dateCreated,
-      dateUpdated: dateUpdated,
-      lastLoginDate: lastLoginDate,
-      dateDeleted: dateDeleted,
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      phone: phone,
-      avatarUrl: avatarUrl,
-      authProvider: authProvider,
-      notificationSettings: notificationSettings,
-      stats: stats,
-      memberships: memberships,
-    );
+  Map<String, dynamic> toFirestore() {
+    return {
+      'email': email,
+      'firstName': firstName,
+      'lastName': lastName,
+      'phone': phone,
+      'avatarUrl': avatarUrl,
+      'memberships': memberships,
+      'status': status.value,
+      'language': language,
+      'dateCreated': FieldValue.serverTimestamp(),
+      'dateUpdated': FieldValue.serverTimestamp(),
+      'notificationTime': notificationTime,
+      'configVersion': configVersion,
+      'lastLoginDate':
+          lastLoginDate != null ? Timestamp.fromDate(lastLoginDate!) : null,
+    };
   }
 }

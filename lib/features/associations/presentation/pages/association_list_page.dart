@@ -5,6 +5,7 @@ import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -33,10 +34,9 @@ class _AssociationListPageView extends StatelessWidget {
       body: const AssociationListView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Guardar referencias antes del 'await' para evitar usar el context de forma insegura.
-          final navigator = Navigator.of(context);
           final bloc = context.read<AssociationBloc>();
-          await navigator.pushNamed(RouteNames.associationEdit, arguments: '');
+          GoRouter.of(context)
+              .go('${RouteNames.home}/${RouteNames.associationEdit}');
           bloc.add(LoadAssociations());
         },
         child: const Icon(Icons.add),
@@ -152,19 +152,26 @@ class _AssociationListItem extends StatelessWidget {
                   association.logoUrl != null && association.logoUrl!.isNotEmpty
                       ? CachedNetworkImageProvider(association.logoUrl!)
                       : null,
-              child: association.logoUrl == null || association.logoUrl!.isEmpty
-                  ? Icon(Icons.business, color: Colors.grey[400])
-                  : null,
+              child:
+                  (association.logoUrl == null || association.logoUrl!.isEmpty)
+                      ? Image.asset(
+                          'assets/images/generi_asoc-32.png',
+                          width: 40,
+                          height: 40,
+                          color: Colors.grey[600],
+                          colorBlendMode: BlendMode.srcIn,
+                          fit: BoxFit.contain,
+                        )
+                      : null,
             ),
             title: Text(association.longName,
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text('${association.shortName}\n${association.email}'),
             isThreeLine: true,
             onTap: () async {
-              final navigator = Navigator.of(context);
               final bloc = context.read<AssociationBloc>();
-              await navigator.pushNamed(RouteNames.associationEdit,
-                  arguments: association.id);
+              GoRouter.of(context).go(
+                  '${RouteNames.home}/${RouteNames.associationEdit}/${association.id}');
               bloc.add(LoadAssociations());
             },
           ),

@@ -6,14 +6,13 @@ class SnackBarService {
   static void showSnackBar(
     String message, {
     bool isError = false,
-    SnackBarAction? action,
+    Duration? duration,
   }) {
     scaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red[700] : null,
-        behavior: SnackBarBehavior.floating,
-        action: action,
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: duration ?? const Duration(seconds: 4), // Valor por defecto
       ),
     );
   }

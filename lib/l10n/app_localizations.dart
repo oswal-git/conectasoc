@@ -328,6 +328,12 @@ abstract class AppLocalizations {
   /// **'Asociación'**
   String get association;
 
+  /// No description provided for @noAssociationAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay asociación disponible'**
+  String get noAssociationAvailable;
+
   /// No description provided for @search.
   ///
   /// In es, this message translates to:
@@ -513,6 +519,168 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Persona de contacto'**
   String get contactPerson;
+
+  /// Title for the user list screen.
+  ///
+  /// In es, this message translates to:
+  /// **'Listado de usuarios'**
+  String get usersListTitle;
+
+  /// Title for the user edit screen.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Usuario'**
+  String get editUser;
+
+  /// Title for the email verification screen.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificar Correo'**
+  String get verifyEmailTitle;
+
+  /// Headline for the email verification screen.
+  ///
+  /// In es, this message translates to:
+  /// **'Verifica tu correo electrónico'**
+  String get verifyEmailHeadline;
+
+  /// Instructional text on the email verification screen.
+  ///
+  /// In es, this message translates to:
+  /// **'Hemos enviado un correo de verificación a {email}. Por favor, revisa tu bandeja de entrada y sigue las instrucciones para activar tu cuenta.'**
+  String verifyEmailInstruction(Object email);
+
+  /// Button text to resend the verification email.
+  ///
+  /// In es, this message translates to:
+  /// **'Reenviar correo'**
+  String get resendEmail;
+
+  /// Snackbar message confirming the verification email was resent.
+  ///
+  /// In es, this message translates to:
+  /// **'Correo de verificación reenviado.'**
+  String get verificationEmailSent;
+
+  /// Snackbar message for an error when resending the verification email.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al reenviar el correo: {error}'**
+  String errorResendingEmail(Object error);
+
+  /// No description provided for @status.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get status;
+
+  /// No description provided for @memberships.
+  ///
+  /// In es, this message translates to:
+  /// **'Membresías'**
+  String get memberships;
+
+  /// No description provided for @userHasNoMemberships.
+  ///
+  /// In es, this message translates to:
+  /// **'Este usuario no pertenece a ninguna asociación.'**
+  String get userHasNoMemberships;
+
+  /// No description provided for @roleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Rol'**
+  String get roleTitle;
+
+  /// No description provided for @addMembership.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir Membresía'**
+  String get addMembership;
+
+  /// No description provided for @addMembershipDialogTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir Membresía'**
+  String get addMembershipDialogTitle;
+
+  /// No description provided for @selectAssociation.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar asociación'**
+  String get selectAssociation;
+
+  /// No description provided for @add.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir'**
+  String get add;
+
+  /// No description provided for @notifications.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificaciones'**
+  String get notifications;
+
+  /// No description provided for @never.
+  ///
+  /// In es, this message translates to:
+  /// **'Nunca'**
+  String get never;
+
+  /// No description provided for @morning.
+  ///
+  /// In es, this message translates to:
+  /// **'Mañana'**
+  String get morning;
+
+  /// No description provided for @afternoon.
+  ///
+  /// In es, this message translates to:
+  /// **'Tarde'**
+  String get afternoon;
+
+  /// No description provided for @morningAndAfternoon.
+  ///
+  /// In es, this message translates to:
+  /// **'Mañana y Tarde'**
+  String get morningAndAfternoon;
+
+  /// No description provided for @deleteUser.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar Usuario'**
+  String get deleteUser;
+
+  /// Confirmation message for deleting a user.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro de que quieres borrar a {userName}? Esta acción es irreversible.'**
+  String deleteUserConfirmation(String userName);
+
+  /// Title for the user creation screen.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear Usuario'**
+  String get createUser;
+
+  /// Label for the password input field.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get password;
+
+  /// Label for the switch to toggle editing mode.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo Edición'**
+  String get editMode;
+
+  /// Text for the 'All' filter chip.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas'**
+  String get all;
 }
 
 class _AppLocalizationsDelegate

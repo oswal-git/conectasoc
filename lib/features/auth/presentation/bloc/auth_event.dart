@@ -96,7 +96,10 @@ class AuthRegisterRequested extends AuthEvent {
   List<Object> get props => [email, password, firstName, lastName, phone ?? ''];
 }
 
-class AuthSignOutRequested extends AuthEvent {}
+class AuthSignOutRequested extends AuthEvent {
+  final String? message;
+  const AuthSignOutRequested({this.message});
+}
 
 class AuthDeleteLocalUser extends AuthEvent {}
 

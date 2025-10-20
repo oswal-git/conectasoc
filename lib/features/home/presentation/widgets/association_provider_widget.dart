@@ -1,9 +1,9 @@
 // lib/features/home/presentation/widgets/association_provider.dart
 
+import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:conectasoc/features/auth/domain/domain.dart';
 import 'package:conectasoc/injection_container.dart';
 
 class AssociationProviderWidget extends StatefulWidget {

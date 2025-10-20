@@ -28,10 +28,13 @@ class SplashPage extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.people,
-                size: 60,
-                color: Colors.blue,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.5,
+                child: Image.asset(
+                  'assets/images/logo_conectasoc_t.png',
+                  fit: BoxFit.contain,
+                  // color: Colors.blue, // ⚠️ Opcional: ver nota abajo
+                ),
               ),
             ),
             const SizedBox(height: 32),

@@ -6,9 +6,12 @@ class RouteNames {
   static const String login = '/login';
   static const String register = '/register';
   static const String localUserSetup = '/local-user-setup';
+  static const String verification = '/verification';
   static const String home = '/home';
-  static const String joinAssociation = '/joinAssociation';
-  static const String profile = '/profile';
-  static const String associationsList = '/associations';
-  static const String associationEdit = '/association/edit';
+  static const String joinAssociation = 'joinAssociation';
+  static const String profile = 'profile';
+  static const String associationsList = 'associations';
+  static const String associationEdit = 'associations/edit';
+  static const String usersList = 'users-list';
+  static const String userEdit = 'user-edit';
 }

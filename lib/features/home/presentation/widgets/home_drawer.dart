@@ -1,11 +1,13 @@
 // lib/features/home/presentation/widgets/home_drawer.dart
 
-import 'package:conectasoc/app/router/router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:conectasoc/app/router/router.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
+import 'package:conectasoc/services/snackbar_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({super.key});
@@ -22,9 +24,11 @@ class HomeDrawer extends StatelessWidget {
               _buildDrawerItem(
                 context: context,
                 icon: Icons.home_outlined,
-                text: AppLocalizations.of(context)!.homePage,
-                onTap: () =>
-                    Navigator.of(context).pushReplacementNamed(RouteNames.home),
+                text: 'Inicio',
+                onTap: () {
+                  GoRouter.of(context).pop();
+                  GoRouter.of(context).go(RouteNames.home);
+                },
               ),
               // Menú de Administración
               if (state is AuthAuthenticated) ...[
@@ -35,33 +39,42 @@ class HomeDrawer extends StatelessWidget {
                   _buildDrawerItem(
                     context: context,
                     icon: Icons.people_outline,
-                    text: AppLocalizations.of(context)!.users,
-                    onTap: () {
-                      // TODO: Navegar a la pantalla de usuarios
-                      // Por ejemplo: Navigator.of(context).pushNamed(RouteNames.usersList);
-                    },
+                    text: AppLocalizations.of(context)!.usersListTitle,
+                    onTap: () => GoRouter.of(context)
+                        .push('${RouteNames.home}/${RouteNames.usersList}'),
                   ),
                   // Si el usuario es superadmin global, puede ver todas las asociaciones.
                   // Si es solo admin, puede editar la suya.
-                  // La propiedad `isSuperAdmin` del usuario global indica si tiene ese rol en CUALQUIER membresía.
-                  // Esto es útil para decidir si mostrar la lista completa de asociaciones o solo la actual.
                   if (state.user.isSuperAdmin &&
                       state.currentMembership?.role == 'superadmin')
                     _buildDrawerItem(
+                      context: context,
+                      icon: Icons.business_outlined,
+                      text: AppLocalizations.of(context)!.associationsListTitle,
+                      onTap: () => GoRouter.of(context).go(
+                          '${RouteNames.home}/${RouteNames.associationsList}'),
+                    )
+                  else if (state.currentMembership?.associationId != null)
+                    _buildDrawerItem(
                         context: context,
                         icon: Icons.business_outlined,
-                        text:
-                            AppLocalizations.of(context)!.associationsListTitle,
-                        onTap: () => Navigator.of(context)
-                            .pushNamed(RouteNames.associationsList))
+                        text: AppLocalizations.of(context)!.association,
+                        onTap: () {
+                          GoRouter.of(context).go(
+                              '${RouteNames.home}/${RouteNames.associationEdit}/${state.currentMembership!.associationId}');
+                        })
                   else
                     _buildDrawerItem(
                         context: context,
                         icon: Icons.business_outlined,
                         text: AppLocalizations.of(context)!.association,
-                        onTap: () => Navigator.of(context).pushNamed(
-                            RouteNames.associationEdit,
-                            arguments: state.currentMembership!.associationId)),
+                        onTap: () {
+                          SnackBarService.showSnackBar(
+                            AppLocalizations.of(context)!
+                                .noAssociationAvailable,
+                            isError: true,
+                          );
+                        }),
                 ],
               ],
               if (state is AuthAuthenticated)
@@ -70,7 +83,8 @@ class HomeDrawer extends StatelessWidget {
                   icon: Icons.person_outline,
                   text: AppLocalizations.of(context)!.myProfile,
                   onTap: () {
-                    Navigator.of(context).pushNamed(RouteNames.profile);
+                    GoRouter.of(context)
+                        .push('${RouteNames.home}/${RouteNames.profile}');
                   },
                 ),
               if (state is AuthAuthenticated)
@@ -79,7 +93,8 @@ class HomeDrawer extends StatelessWidget {
                   icon: Icons.add_business_outlined,
                   text: AppLocalizations.of(context)!.joinAssociation,
                   onTap: () {
-                    Navigator.of(context).pushNamed(RouteNames.joinAssociation);
+                    GoRouter.of(context).push(
+                        '${RouteNames.home}/${RouteNames.joinAssociation}');
                   },
                 ),
               const Divider(),
@@ -104,8 +119,9 @@ class HomeDrawer extends StatelessWidget {
         accountEmail: Text(accountEmailText),
         currentAccountPicture: GestureDetector(
           onTap: () {
-            Navigator.of(context).pop(); // Cierra el drawer
-            Navigator.of(context).pushNamed(RouteNames.profile);
+            GoRouter.of(context); // Cierra el drawer
+            GoRouter.of(context)
+                .push('${RouteNames.home}/${RouteNames.profile}');
           },
           child: CircleAvatar(
             backgroundImage: user.avatarUrl != null
@@ -162,10 +178,7 @@ class HomeDrawer extends StatelessWidget {
     return ListTile(
       leading: Icon(icon),
       title: Text(text),
-      onTap: () {
-        Navigator.of(context).pop(); // Cierra el drawer
-        onTap();
-      },
+      onTap: onTap,
     );
   }
 
@@ -177,7 +190,10 @@ class HomeDrawer extends StatelessWidget {
         context: context,
         icon: Icons.logout,
         text: l10n.logout,
-        onTap: () => context.read<AuthBloc>().add(AuthSignOutRequested()),
+        onTap: () {
+          Navigator.pop(context);
+          context.read<AuthBloc>().add(AuthSignOutRequested());
+        },
       );
     }
     if (state is AuthLocalUser) {
@@ -185,15 +201,20 @@ class HomeDrawer extends StatelessWidget {
         context: context,
         icon: Icons.exit_to_app,
         text: l10n.exitReadOnlyMode,
-        onTap: () => context.read<AuthBloc>().add(AuthDeleteLocalUser()),
+        onTap: () {
+          Navigator.pop(context);
+          context.read<AuthBloc>().add(AuthDeleteLocalUser());
+        },
       );
     }
     return _buildDrawerItem(
       context: context,
       icon: Icons.login,
       text: l10n.login,
-      onTap: () => Navigator.of(context)
-          .pushNamedAndRemoveUntil(RouteNames.welcome, (route) => false),
+      onTap: () {
+        Navigator.pop(context);
+        GoRouter.of(context).go(RouteNames.welcome);
+      },
     );
   }
 }

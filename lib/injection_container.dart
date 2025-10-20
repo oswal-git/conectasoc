@@ -21,6 +21,9 @@ import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/association_bloc.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/edit/association_edit_bloc.dart';
 
+// Home - Presentation
+import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
+
 // Users - Data
 import 'package:conectasoc/features/users/data/datasources/user_remote_datasource.dart';
 import 'package:conectasoc/features/users/data/repositories/users_repository_impl.dart';
@@ -43,6 +46,13 @@ import 'package:conectasoc/features/auth/domain/usecases/usecases.dart';
 // Auth - Presentation
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 
+// Articles - Data
+import 'package:conectasoc/features/articles/data/repositories/article_repository_impl.dart';
+
+// Articles - Domain
+import 'package:conectasoc/features/articles/domain/repositories/article_repository.dart';
+import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -56,6 +66,19 @@ Future<void> init() async {
       repository: sl(),
       registerUseCase: sl(),
       saveLocalUserUseCase: sl(),
+    ),
+  );
+
+  // Register Bloc
+  sl.registerFactory(
+    () => RegisterBloc(
+      getAllAssociationsUseCase: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => LocalUserSetupBloc(
+      getAllAssociationsUseCase: sl(),
     ),
   );
 
@@ -92,20 +115,44 @@ Future<void> init() async {
     ),
   );
 
+  // User List
+  sl.registerFactory(
+    () => UserListBloc(
+      getAllUsersUseCase: sl(),
+      getUsersByAssociationUseCase: sl(),
+    ),
+  );
+
   // User Feature
-  sl.registerLazySingleton<UserBloc>(
+  sl.registerFactory(
       () => UserBloc(joinAssociationUseCase: sl(), authBloc: sl()));
   sl.registerLazySingleton(() => JoinAssociationUseCase(sl()));
   sl.registerLazySingleton(() => GetUsersByAssociationUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserByIdUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateUserUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteUserUseCase(sl()));
+  sl.registerLazySingleton(() => CreateUserUseCase(repository: sl()));
   sl.registerLazySingleton<UserRepository>(
       () => UserRepositoryImpl(remoteDataSource: sl()));
   // Se elimina la dependencia de FirebaseStorage, ya que se usa CloudinaryService.
   sl.registerLazySingleton<UserRemoteDataSource>(
       () => UserRemoteDataSourceImpl(firestore: sl()));
+  sl.registerLazySingleton(() => GetAllUsersUseCase(sl()));
 
   sl.registerFactory(
     () => ProfileBloc(
       userRepository: sl(),
+    ),
+  );
+
+  // User Edit
+  sl.registerFactory(
+    () => UserEditBloc(
+      getUserByIdUseCase: sl(),
+      updateUserUseCase: sl(),
+      getAllAssociationsUseCase: sl(),
+      deleteUserUseCase: sl(),
+      createUserUseCase: sl(),
     ),
   );
 
@@ -144,6 +191,30 @@ Future<void> init() async {
   // Data Sources
   sl.registerLazySingleton<AssociationRemoteDataSource>(
     () => AssociationRemoteDataSourceImpl(firestore: sl()),
+  );
+
+  // ============================================
+  // FEATURES - ARTICLES & HOME
+  // ============================================
+
+  // Bloc
+  sl.registerFactory(
+    () => HomeBloc(
+      getArticlesUseCase: sl(),
+      getCategoriesUseCase: sl(),
+      getSubcategoriesUseCase: sl(),
+      getAllAssociationsUseCase: sl(),
+    ),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetArticlesUseCase(sl()));
+  sl.registerLazySingleton(() => GetCategoriesUseCase(sl()));
+  sl.registerLazySingleton(() => GetSubcategoriesUseCase(sl()));
+
+  // Repository
+  sl.registerLazySingleton<ArticleRepository>(
+    () => ArticleRepositoryImpl(firestore: sl()),
   );
 
   // ============================================

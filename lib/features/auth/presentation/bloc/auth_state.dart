@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/bloc/auth_state.dart
 
+import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
@@ -39,7 +40,14 @@ class AuthAuthenticated extends AuthState {
 }
 
 // Sin autenticación (ni local ni Firebase)
-class AuthUnauthenticated extends AuthState {}
+
+class AuthUnauthenticated extends AuthState {
+  final String? message;
+  const AuthUnauthenticated({this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
 
 // Error
 class AuthError extends AuthState {
@@ -83,4 +91,12 @@ class AuthUpgradeAvailable extends AuthState {
 
   @override
   List<Object?> get props => [localUser];
+}
+
+class AuthNeedsVerification extends AuthState {
+  final String email;
+  const AuthNeedsVerification(this.email);
+
+  @override
+  List<Object> get props => [email];
 }

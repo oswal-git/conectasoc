@@ -80,22 +80,30 @@ class RegisterUseCase {
           }
 
           // Paso 3: Crear el documento del usuario en Firestore.
-          final userDocResult = await repository.createUserDocument(
-            uid: firebaseUser!.uid,
+          // Construir la entidad de usuario completa.
+          final newUserEntity = UserEntity(
+            uid: firebaseUser!.uid, // UID de Firebase Auth
             email: email,
             firstName: firstName,
             lastName: lastName,
             phone: phone,
             memberships: {finalAssociationId: profile},
+            status: UserStatus
+                .pending, // Los nuevos usuarios empiezan como pendientes
+            isEmailVerified: false, // El email aún no está verificado
+            dateCreated: DateTime.now(),
+            dateUpdated: DateTime.now(),
           );
 
-          return await userDocResult.fold(
-            (failure) => Left(failure),
-            (userEntity) async {
-              // Paso 4: Enviar email de verificación y limpiar usuario local.
-              await firebaseUser!.sendEmailVerification();
-              await repository.deleteLocalUser();
-              return Right(userEntity);
+          final userDocResult =
+              await repository.createUserDocumentFromEntity(newUserEntity);
+
+          return userDocResult.fold(
+            (failure) => Left(failure), // Si falla la creación del documento
+            (_) async {
+              await firebaseUser!
+                  .sendEmailVerification(); // Enviar email de verificación
+              return Right(newUserEntity); // Devolver la entidad creada
             },
           );
         },
