@@ -73,22 +73,39 @@
       ├── data
         ├── models
             ├── article_model.dart
+            ├── category_model.dart
+            ├── models.dart
         ├── repositories
             ├── article_repository_impl.dart
       ├── domain
         ├── entities
             ├── article_entity.dart
+            ├── article_filter_entity.dart
             ├── entities.dart
         ├── repositories
             ├── article_repository.dart
         ├── usecases
+            ├── create_article_usecase.dart
+            ├── delete_article_usecase.dart
+            ├── get_article_by_id_usecase.dart
             ├── get_articles_usecase.dart
             ├── get_categories_usecase.dart
             ├── get_subcategories_usecase.dart
+            ├── update_article_usecase.dart
             ├── usecases.dart
       ├── presentation
         ├── bloc
             ├── article_bloc.dart
+            ├── article_event_bloc.dart
+            ├── article_state_bloc.dart
+            ├── bloc.dart
+          ├── edit
+              ├── article_edit_bloc.dart
+              ├── article_edit_event.dart
+              ├── article_edit_state.dart
+        ├── pages
+            ├── article_edit_page.dart
+            ├── pages.dart
     ├── associations
       ├── data
         ├── datasources
@@ -209,6 +226,7 @@
       ├── domain
         ├── entities
             ├── entities.dart
+            ├── i_user.dart
             ├── profile_entity.dart
             ├── user.dart
         ├── repositories

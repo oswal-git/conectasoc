@@ -681,6 +681,324 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Todas'**
   String get all;
+
+  /// No description provided for @createArticle.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear Artículo'**
+  String get createArticle;
+
+  /// No description provided for @editArticle.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Artículo'**
+  String get editArticle;
+
+  /// No description provided for @title.
+  ///
+  /// In es, this message translates to:
+  /// **'Título'**
+  String get title;
+
+  /// No description provided for @abstractContent.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen'**
+  String get abstractContent;
+
+  /// No description provided for @category.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get category;
+
+  /// No description provided for @subcategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Subcategoría'**
+  String get subcategory;
+
+  /// No description provided for @sections.
+  ///
+  /// In es, this message translates to:
+  /// **'Secciones'**
+  String get sections;
+
+  /// No description provided for @publishDateLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de Publicación'**
+  String get publishDateLabel;
+
+  /// No description provided for @effectiveDateLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de Efecto'**
+  String get effectiveDateLabel;
+
+  /// No description provided for @expirationDateLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de Expiración (opcional)'**
+  String get expirationDateLabel;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In es, this message translates to:
+  /// **'Campo requerido'**
+  String get requiredField;
+
+  /// No description provided for @selectCoverImage.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar imagen de portada'**
+  String get selectCoverImage;
+
+  /// No description provided for @articles.
+  ///
+  /// In es, this message translates to:
+  /// **'Artículos'**
+  String get articles;
+
+  /// No description provided for @deleteArticle.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar Artículo'**
+  String get deleteArticle;
+
+  /// No description provided for @articleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Título del Artículo'**
+  String get articleTitle;
+
+  /// No description provided for @articleAbstract.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen del Artículo'**
+  String get articleAbstract;
+
+  /// No description provided for @coverImage.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen de Portada'**
+  String get coverImage;
+
+  /// No description provided for @articleStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get articleStatus;
+
+  /// No description provided for @addSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir Sección'**
+  String get addSection;
+
+  /// No description provided for @removeSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar Sección'**
+  String get removeSection;
+
+  /// No description provided for @reorderSections.
+  ///
+  /// In es, this message translates to:
+  /// **'Reordenar Secciones'**
+  String get reorderSections;
+
+  /// No description provided for @statusRedaccion.
+  ///
+  /// In es, this message translates to:
+  /// **'En Redacción'**
+  String get statusRedaccion;
+
+  /// No description provided for @statusPublicado.
+  ///
+  /// In es, this message translates to:
+  /// **'Publicado'**
+  String get statusPublicado;
+
+  /// No description provided for @statusRevision.
+  ///
+  /// In es, this message translates to:
+  /// **'En Revisión'**
+  String get statusRevision;
+
+  /// No description provided for @statusExpirado.
+  ///
+  /// In es, this message translates to:
+  /// **'Expirado'**
+  String get statusExpirado;
+
+  /// No description provided for @statusAnulado.
+  ///
+  /// In es, this message translates to:
+  /// **'Anulado'**
+  String get statusAnulado;
+
+  /// No description provided for @categoryInformacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Información'**
+  String get categoryInformacion;
+
+  /// No description provided for @categoryNoticias.
+  ///
+  /// In es, this message translates to:
+  /// **'Noticias'**
+  String get categoryNoticias;
+
+  /// No description provided for @categoryActas.
+  ///
+  /// In es, this message translates to:
+  /// **'Actas'**
+  String get categoryActas;
+
+  /// No description provided for @subcategoryServicios.
+  ///
+  /// In es, this message translates to:
+  /// **'Servicios'**
+  String get subcategoryServicios;
+
+  /// No description provided for @subcategoryCultura.
+  ///
+  /// In es, this message translates to:
+  /// **'Cultura'**
+  String get subcategoryCultura;
+
+  /// No description provided for @subcategoryReuniones.
+  ///
+  /// In es, this message translates to:
+  /// **'Reuniones'**
+  String get subcategoryReuniones;
+
+  /// No description provided for @subcategoryAsambleas.
+  ///
+  /// In es, this message translates to:
+  /// **'Asambleas'**
+  String get subcategoryAsambleas;
+
+  /// No description provided for @subcategoryMunicipio.
+  ///
+  /// In es, this message translates to:
+  /// **'Municipio'**
+  String get subcategoryMunicipio;
+
+  /// No description provided for @subcategoryUrbanizacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Urbanización'**
+  String get subcategoryUrbanizacion;
+
+  /// No description provided for @searchArticles.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar artículos...'**
+  String get searchArticles;
+
+  /// No description provided for @filterByCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar por categoría'**
+  String get filterByCategory;
+
+  /// No description provided for @articleCreatedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Artículo creado correctamente.'**
+  String get articleCreatedSuccess;
+
+  /// No description provided for @articleUpdatedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Artículo actualizado correctamente.'**
+  String get articleUpdatedSuccess;
+
+  /// No description provided for @articleDeletedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Artículo eliminado correctamente.'**
+  String get articleDeletedSuccess;
+
+  /// No description provided for @titleRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El título es obligatorio.'**
+  String get titleRequired;
+
+  /// No description provided for @abstractRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El resumen es obligatorio.'**
+  String get abstractRequired;
+
+  /// No description provided for @coverRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'La imagen de portada es obligatoria.'**
+  String get coverRequired;
+
+  /// No description provided for @categoryRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'La categoría es obligatoria.'**
+  String get categoryRequired;
+
+  /// No description provided for @subcategoryRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'La subcategoría es obligatoria.'**
+  String get subcategoryRequired;
+
+  /// No description provided for @publicationDateRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'La fecha de publicación es obligatoria.'**
+  String get publicationDateRequired;
+
+  /// No description provided for @effectiveDateRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'La fecha de vigencia es obligatoria.'**
+  String get effectiveDateRequired;
+
+  /// No description provided for @publicationDateInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'La fecha de publicación debe ser hoy o posterior.'**
+  String get publicationDateInvalid;
+
+  /// No description provided for @effectiveDateInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'La fecha de vigencia debe ser igual o posterior a la de publicación.'**
+  String get effectiveDateInvalid;
+
+  /// No description provided for @expirationDateInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'La fecha de caducidad debe ser igual o posterior a la de publicación.'**
+  String get expirationDateInvalid;
+
+  /// No description provided for @sectionContentRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada sección debe tener contenido o una imagen.'**
+  String get sectionContentRequired;
+
+  /// No description provided for @readMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo Lectura'**
+  String get readMode;
+
+  /// No description provided for @section.
+  ///
+  /// In es, this message translates to:
+  /// **'Sección'**
+  String get section;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,10 @@
 // lib/features/home/presentation/pages/home_page.dart
 
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:conectasoc/app/router/route_names.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
@@ -11,7 +15,9 @@ import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -32,7 +38,7 @@ class HomePage extends StatelessWidget {
     }
 
     return BlocProvider(
-      create: (context) =>
+      create: (context) => // Pass isEditMode to HomeBloc
           sl<HomeBloc>()..add(LoadHomeData(user: user, membership: membership)),
       child: _HomePageView(canEdit: canEdit),
     );
@@ -56,14 +62,26 @@ class _HomePageView extends StatelessWidget {
               builder: (context, state) {
                 final isEditMode =
                     state is HomeLoaded ? state.isEditMode : false;
-                return Tooltip(
-                  message: AppLocalizations.of(context)!.editMode,
-                  child: Switch(
-                    value: isEditMode,
-                    onChanged: (_) =>
-                        context.read<HomeBloc>().add(ToggleEditMode()),
-                    activeThumbColor: Colors.white,
+                return IconButton(
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    transitionBuilder: (child, animation) {
+                      return RotationTransition(
+                        turns: animation,
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    child: Icon(
+                      isEditMode ? Icons.check_circle : Icons.edit_outlined,
+                      key: ValueKey(isEditMode),
+                      color: isEditMode ? Colors.green : null,
+                    ),
                   ),
+                  onPressed: () =>
+                      context.read<HomeBloc>().add(ToggleEditMode()),
+                  tooltip: isEditMode
+                      ? AppLocalizations.of(context)!.saveChanges
+                      : AppLocalizations.of(context)!.editMode,
                 );
               },
             ),
@@ -71,6 +89,29 @@ class _HomePageView extends StatelessWidget {
       ),
       drawer: const HomeDrawer(), // El drawer se define aquí.
       body: const _HomeView(),
+      floatingActionButton: BlocBuilder<HomeBloc, HomeState>(
+        builder: (context, state) {
+          // Obtenemos el estado de AuthBloc para acceder a la info del usuario.
+          final authState = context.read<AuthBloc>().state;
+
+          final bool canCreate = (state is HomeLoaded) &&
+              (authState is AuthAuthenticated) &&
+              state.isEditMode &&
+              (authState.user.canEditContent);
+
+          if (canCreate) {
+            return FloatingActionButton(
+              onPressed: () {
+                context.goNamed(RouteNames.articleCreate);
+              },
+              tooltip: AppLocalizations.of(context)!.createArticle,
+              child: const Icon(Icons.add),
+            );
+          } else {
+            return const SizedBox.shrink();
+          }
+        },
+      ),
     );
   }
 
@@ -247,16 +288,27 @@ class _HomePageView extends StatelessWidget {
   }
 }
 
-class _HomeView extends StatelessWidget {
+class _HomeView extends StatefulWidget {
   const _HomeView();
+  @override
+  State<_HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<_HomeView> {
+  // Debounce timer for search input
+  static Timer? _searchDebounce;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(16.0),
           child: TextField(
+            controller: TextEditingController(
+                text: (context.watch<HomeBloc>().state is HomeLoaded)
+                    ? (context.watch<HomeBloc>().state as HomeLoaded).searchTerm
+                    : ''),
             decoration: InputDecoration(
               hintText: AppLocalizations.of(context)!.search,
               prefixIcon: const Icon(Icons.search),
@@ -265,40 +317,109 @@ class _HomeView extends StatelessWidget {
                 borderSide: BorderSide.none,
               ),
               filled: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
             ),
-            onChanged: (query) =>
-                context.read<HomeBloc>().add(SearchQueryChanged(query)),
+            onChanged: (query) {
+              _searchDebounce?.cancel();
+              _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                context.read<HomeBloc>().add(SearchQueryChanged(query));
+              });
+            },
           ),
         ),
         const _CategoryFilterBar(),
         Expanded(
-          child: BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) {
-              if (state is HomeLoading || state is HomeInitial) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (state is HomeError) {
-                return Center(child: Text(state.message));
-              }
-              if (state is HomeLoaded) {
-                if (state.filteredArticles.isEmpty) {
-                  return Center(
-                      child: Text(AppLocalizations.of(context)!.noArticlesYet));
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 80), // For FAB
-                  itemCount: state.filteredArticles.length,
-                  itemBuilder: (context, index) {
-                    final article = state.filteredArticles[index];
-                    return _ArticleCard(article: article);
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+          child: _ArticleList(),
         ),
       ],
+    );
+  }
+}
+
+class _ArticleList extends StatefulWidget {
+  @override
+  __ArticleListState createState() => __ArticleListState();
+}
+
+class __ArticleListState extends State<_ArticleList> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      final authState = context.read<AuthBloc>().state;
+      UserEntity? user;
+      if (authState is AuthAuthenticated) {
+        user = authState.user;
+      }
+      context.read<HomeBloc>().add(LoadMoreArticles(user: user));
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Trigger loading a bit before reaching the absolute end
+    return currentScroll >= (maxScroll * 0.9);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        if (state is HomeLoading || state is HomeInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is HomeError) {
+          return Center(child: Text(state.message));
+        }
+        if (state is HomeLoaded) {
+          if (state.filteredArticles.isEmpty) {
+            return Center(
+                child: Text(
+              state.searchTerm.isNotEmpty
+                  ? AppLocalizations.of(context)!.noResultsFound
+                  : AppLocalizations.of(context)!.noArticlesYet,
+              textAlign: TextAlign.center,
+            ));
+          }
+          return ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.only(bottom: 80), // For FAB
+            itemCount: state.hasMore
+                ? state.filteredArticles.length + 1
+                : state.filteredArticles.length,
+            itemBuilder: (context, index) {
+              if (index >= state.filteredArticles.length) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              final article = state.filteredArticles[index];
+              return _ArticleCard(article: article);
+            },
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 }
@@ -393,15 +514,27 @@ class _ArticleCard extends StatelessWidget {
 
   const _ArticleCard({required this.article});
 
+  // Helper to convert Quill JSON to plain text
+  String _quillJsonToPlainText(String quillJson) {
+    if (quillJson.isEmpty) return '';
+    try {
+      final doc = quill.Document.fromJson(jsonDecode(quillJson));
+      return doc.toPlainText().trim();
+    } catch (e) {
+      return ''; // Handle malformed JSON gracefully
+    }
+  }
+
+  // Determine background color based on article status
   Color _getBackgroundColor(ArticleStatus status) {
     switch (status) {
-      case ArticleStatus.draft:
+      case ArticleStatus.redaccion:
         return Colors.blue.shade50;
-      case ArticleStatus.inReview:
+      case ArticleStatus.revision:
         return Colors.yellow.shade50;
-      case ArticleStatus.expired:
+      case ArticleStatus.expirado:
         return Colors.orange.shade50;
-      case ArticleStatus.cancelled:
+      case ArticleStatus.anulado:
         return Colors.red.shade50;
       default:
         return Colors.white;
@@ -411,60 +544,85 @@ class _ArticleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: _getBackgroundColor(article.status),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 100,
-              height: 100,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                child: CachedNetworkImage(
-                  imageUrl: article.coverUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      const Center(child: CircularProgressIndicator()),
-                  errorWidget: (context, url, error) =>
-                      const Icon(Icons.image_not_supported, color: Colors.grey),
+      color: _getBackgroundColor(article.status),
+      child: InkWell(
+        onTap: () {
+          // Navigate to article detail or edit page
+          final homeState = context.read<HomeBloc>().state;
+          if (homeState is HomeLoaded && homeState.isEditMode) {
+            context.goNamed(RouteNames.articleEdit,
+                pathParameters: {'articleId': article.id});
+          } else {
+            context.goNamed(RouteNames.articleDetail,
+                pathParameters: {'articleId': article.id});
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: CachedNetworkImage(
+                    imageUrl: article.coverUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) =>
+                        const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => const Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    article.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _quillJsonToPlainText(
+                          article.title), // Render rich text as plain
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _quillJsonToPlainText(
+                          article.abstractContent), // Render rich text as plain
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${article.categoryId} > ${article.subcategoryId} - ${DateFormat.yMd().format(article.publishDate)}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Colors.grey.shade600),
                         ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    article.abstractContent,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${article.categoryId} > ${article.subcategoryId} - ${DateFormat.yMd().format(article.publishDate)}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.grey.shade600),
-                  ),
-                ],
+                        if (context.read<HomeBloc>().state is HomeLoaded &&
+                            (context.read<HomeBloc>().state as HomeLoaded)
+                                .isEditMode)
+                          const Icon(Icons.edit, size: 18, color: Colors.blue),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

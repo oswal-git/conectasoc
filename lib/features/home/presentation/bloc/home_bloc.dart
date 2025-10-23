@@ -1,22 +1,33 @@
-import 'package:conectasoc/features/articles/domain/entities/entities.dart';
-import 'package:conectasoc/features/associations/domain/entities/entities.dart';
-import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
+import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 
+import 'package:conectasoc/core/services/translation_service.dart';
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
-import 'package:conectasoc/features/associations/domain/usecases/get_all_associations_usecase.dart';
+import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
+import 'package:conectasoc/features/auth/domain/entities/entities.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetArticlesUseCase getArticlesUseCase;
   final GetCategoriesUseCase getCategoriesUseCase;
   final GetSubcategoriesUseCase getSubcategoriesUseCase;
   final GetAllAssociationsUseCase getAllAssociationsUseCase;
+  final TranslationService translationService;
+  final AuthBloc authBloc;
+
+  // Lista interna para mantener los artículos originales sin traducir
+  List<ArticleEntity> _originalArticles = [];
 
   HomeBloc({
     required this.getArticlesUseCase,
     required this.getCategoriesUseCase,
     required this.getSubcategoriesUseCase,
     required this.getAllAssociationsUseCase,
+    required this.translationService,
+    required this.authBloc,
   }) : super(HomeInitial()) {
     on<LoadHomeData>(_onLoadHomeData);
     on<ToggleEditMode>(_onToggleEditMode);
@@ -24,6 +35,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<CategorySelected>(_onCategorySelected);
     on<SubcategorySelected>(_onSubcategorySelected);
     on<ClearCategoryFilter>(_onClearCategoryFilter);
+    on<LoadMoreArticles>(_onLoadMoreArticles);
   }
 
   Future<void> _onLoadHomeData(
@@ -33,73 +45,138 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(HomeLoading());
 
     try {
-      final results = await Future.wait([
-        getArticlesUseCase(user: event.user, membership: event.membership),
-        getCategoriesUseCase(),
-        getAllAssociationsUseCase(),
-      ]);
+      final isEditMode =
+          state is HomeLoaded && (state as HomeLoaded).isEditMode;
 
-      final articlesResult = results[0];
-      final categoriesResult = results[1];
-      final associationsResult = results[2];
+      // For a fresh load, we don't pass a lastDocument
+      final articlesResult = await getArticlesUseCase(
+          user: event.user, isEditMode: isEditMode, lastDocument: null);
+      final categoriesResult = await getCategoriesUseCase();
+      final associationsResult = await getAllAssociationsUseCase();
 
       // Extraer valores o lanzar error
-      final articles = articlesResult.fold(
-          (failure) => throw failure, (data) => data) as List<ArticleEntity>;
-      final categories = categoriesResult.fold(
-          (failure) => throw failure, (data) => data) as List<CategoryEntity>;
+      final articlesData =
+          articlesResult.fold((failure) => throw failure, (data) => data);
+      _originalArticles = articlesData.item1;
+      final lastDocument = articlesData.item2;
+
+      final categories =
+          categoriesResult.fold((failure) => throw failure, (data) => data);
       final associations =
-          associationsResult.fold((failure) => throw failure, (data) => data)
-              as List<AssociationEntity>;
+          associationsResult.fold((failure) => throw failure, (data) => data);
+
+      List<ArticleEntity> articlesToDisplay = _originalArticles;
+
+      // Si no estamos en modo edición, traducir los artículos
+      if (!isEditMode) {
+        final authState = authBloc.state;
+        String targetLang = 'es'; // Idioma por defecto
+        if (authState is AuthAuthenticated) {
+          targetLang = authState.user.language;
+        }
+
+        // Usamos Future.wait para traducir todos los artículos en paralelo
+        articlesToDisplay = await Future.wait(_originalArticles.map((article) =>
+            translationService.translateArticle(article, targetLang)));
+      }
 
       emit(HomeLoaded(
-        allArticles: articles,
-        filteredArticles: articles,
+        // 'allArticles' ahora contiene la lista para mostrar (traducida o no)
+        allArticles: articlesToDisplay,
+        // 'filteredArticles' se inicializa con la misma lista
+        filteredArticles: articlesToDisplay,
         categories: categories,
+        searchTerm: '', // Initialize search term
         associations: associations,
+        hasMore: articlesData.item1.length == 20, // Assuming a page size of 20
+        lastDocument: lastDocument,
       ));
     } catch (e) {
       emit(HomeError(e.toString()));
     }
   }
 
+  Future<void> _onLoadMoreArticles(
+    LoadMoreArticles event,
+    Emitter<HomeState> emit,
+  ) async {
+    if (state is! HomeLoaded) return;
+    final currentState = state as HomeLoaded;
+
+    // Prevent multiple fetches if we're already loading or have no more data
+    if (!currentState.hasMore) return;
+
+    final articlesResult = await getArticlesUseCase(
+      user: event.user,
+      isEditMode: currentState.isEditMode,
+      lastDocument: currentState.lastDocument,
+    );
+
+    articlesResult.fold(
+      (failure) => emit(HomeError(failure.message)),
+      (articlesData) {
+        final newArticles = articlesData.item1;
+        final lastDocument = articlesData.item2;
+
+        // Append new articles to the existing list
+        final updatedArticles =
+            List<ArticleEntity>.from(currentState.allArticles)
+              ..addAll(newArticles);
+
+        emit(currentState.copyWith(
+          allArticles: updatedArticles,
+          filteredArticles: updatedArticles, // Update filtered list as well
+          hasMore: newArticles.length == 20, // Assuming a page size of 20
+          lastDocument: lastDocument,
+        ));
+      },
+    );
+  }
+
   void _onToggleEditMode(ToggleEditMode event, Emitter<HomeState> emit) {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
-      emit(currentState.copyWith(isEditMode: !currentState.isEditMode));
+      final newEditMode = !currentState.isEditMode;
+
+      // Recargamos los datos para aplicar la lógica de traducción correcta
+      final authState = authBloc.state;
+      UserEntity? user;
+      MembershipEntity? membership;
+
+      if (authState is AuthAuthenticated) {
+        user = authState.user;
+        membership = authState.currentMembership;
+      }
+
+      // Emitimos el nuevo estado de edición y luego disparamos la recarga de datos
+      emit(currentState.copyWith(isEditMode: newEditMode));
+      add(LoadHomeData(user: user, membership: membership));
     }
   }
 
   void _onSearchQueryChanged(
       SearchQueryChanged event, Emitter<HomeState> emit) {
     if (state is HomeLoaded) {
-      final currentState = state as HomeLoaded;
-      final filtered = currentState.allArticles.where((article) {
-        final query = event.query.toLowerCase();
-        return article.title.toLowerCase().contains(query) ||
-            article.abstractContent.toLowerCase().contains(query);
-      }).toList();
-      emit(currentState.copyWith(filteredArticles: filtered));
+      final currentState = state as HomeLoaded; // Update searchTerm in state
+      emit(currentState.copyWith(searchTerm: event.query));
+      _applyFilters(emit, currentState.copyWith(searchTerm: event.query));
     }
   }
 
   void _onCategorySelected(CategorySelected event, Emitter<HomeState> emit) {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
-      // Cargar subcategorías para la categoría seleccionada
+      // Load subcategories for the selected category
       getSubcategoriesUseCase(event.category.id).then((result) {
         result.fold(
           (failure) => emit(HomeError(failure.message)),
           (subcategories) {
-            final filtered = currentState.allArticles
-                .where((article) => article.categoryId == event.category.id)
-                .toList();
-            emit(currentState.copyWith(
-              filteredArticles: filtered,
+            final newState = currentState.copyWith(
               selectedCategory: event.category,
               subcategories: subcategories,
               selectedSubcategory: null, // Limpiar subcategoría
-            ));
+            );
+            _applyFilters(emit, newState);
           },
         );
       });
@@ -109,26 +186,76 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   void _onSubcategorySelected(
       SubcategorySelected event, Emitter<HomeState> emit) {
     if (state is HomeLoaded) {
-      final currentState = state as HomeLoaded;
-      final filtered = currentState.allArticles
-          .where((article) => article.subcategoryId == event.subcategory.id)
-          .toList();
-      emit(currentState.copyWith(
-        filteredArticles: filtered,
+      final currentState = state as HomeLoaded; // Update subcategory in state
+      final newState = currentState.copyWith(
         selectedSubcategory: event.subcategory,
-      ));
+      );
+      _applyFilters(emit, newState);
     }
   }
 
   void _onClearCategoryFilter(
       ClearCategoryFilter event, Emitter<HomeState> emit) {
     if (state is HomeLoaded) {
-      final currentState = state as HomeLoaded;
-      emit(currentState.copyWith(
-        filteredArticles: currentState.allArticles,
+      final currentState =
+          state as HomeLoaded; // Clear all category/subcategory filters
+      final newState = currentState.copyWith(
+        subcategories: [], // Clear subcategories
         selectedCategory: null,
         selectedSubcategory: null,
-      ));
+      );
+      _applyFilters(emit, newState);
+    }
+  }
+
+  // Helper method to apply all active filters
+  void _applyFilters(Emitter<HomeState> emit, HomeLoaded currentState) {
+    List<ArticleEntity> filtered = currentState.allArticles;
+
+    // Apply search term filter
+    if (currentState.searchTerm.isNotEmpty) {
+      final query = currentState.searchTerm.toLowerCase();
+      filtered = filtered.where((article) {
+        // Render rich text to plain text for search
+        final titlePlain = _quillJsonToPlainText(article.title);
+        final abstractPlain = _quillJsonToPlainText(article.abstractContent);
+        final sectionsPlain = article.sections
+            .map((s) => _quillJsonToPlainText(s.richTextContent ?? ''))
+            .join(' ');
+
+        return titlePlain.toLowerCase().contains(query) ||
+            abstractPlain.toLowerCase().contains(query) ||
+            sectionsPlain.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    // Apply category filter
+    if (currentState.selectedCategory != null) {
+      filtered = filtered
+          .where((article) =>
+              article.categoryId == currentState.selectedCategory!.id)
+          .toList();
+    }
+
+    // Apply subcategory filter
+    if (currentState.selectedSubcategory != null) {
+      filtered = filtered
+          .where((article) =>
+              article.subcategoryId == currentState.selectedSubcategory!.id)
+          .toList();
+    }
+
+    emit(currentState.copyWith(filteredArticles: filtered));
+  }
+
+  // Helper to convert Quill JSON to plain text for search
+  String _quillJsonToPlainText(String quillJson) {
+    if (quillJson.isEmpty) return '';
+    try {
+      final doc = quill.Document.fromJson(jsonDecode(quillJson));
+      return doc.toPlainText().trim();
+    } catch (e) {
+      return ''; // Handle malformed JSON gracefully
     }
   }
 }

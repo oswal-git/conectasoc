@@ -102,49 +102,6 @@ match /databases/{database}/documents {
     // COLECCIÓN: articles
     // =========================================
     match /articles/{articleId} {
-      // Leer: usuarios autenticados pueden leer artículos publicados
-      // o artículos de su asociación (sin importar estado)
-      allow read: if isSignedIn();
-      
-      // Crear: superadmin, admin, o editor
-      allow create: if isSignedIn() && (
-        isSuperAdmin() ||
-        'admin' in getUserData().memberships.values() ||
-        'editor' in getUserData().memberships.values()
-      );
-      
-      // Actualizar: superadmin, admin de la asociación, o el autor
-      allow update: if isSignedIn() && (
-        isSuperAdmin() ||
-        isAdmin(resource.data.associationId) ||
-        request.auth.uid == resource.data.authorId
-      );
-      
-      // Eliminar: superadmin o admin de la asociación
-      allow delete: if isSuperAdmin() || isAdmin(resource.data.associationId);
-    }
-    
-    // =========================================
-    // COLECCIÓN: categories & subcategories
-    // =========================================
-    match /categories/{categoryId} {
-      // Cualquiera puede leer las categorías para los filtros.
-      allow read, list: if true;
-      // Solo los superadmins pueden crear, modificar o borrar categorías.
-      allow write: if isSuperAdmin();
-    }
-
-    match /subcategories/{subcategoryId} {
-      // Cualquiera puede leer las subcategorías para los filtros.
-      allow read, list: if true;
-      // Solo los superadmins pueden crear, modificar o borrar subcategorías.
-      allow write: if isSuperAdmin();
-    }
-
-    // =========================================
-    // COLECCIÓN: articles
-    // =========================================
-    match /articles/{articleId} {
       // Función para verificar si un artículo es genérico (sin asociación)
       function isGenericArticle() {
         return resource.data.assocId == null || resource.data.assocId == '';
@@ -188,7 +145,7 @@ match /databases/{database}/documents {
         isAdmin(resource.data.assocId)
       );
     }
-
+    
     // =========================================
     // COLECCIÓN: itemArticles
     // =========================================
@@ -201,6 +158,23 @@ match /databases/{database}/documents {
       );
     }
     
+    // =========================================
+    // COLECCIÓN: categories & subcategories
+    // =========================================
+    match /categories/{categoryId} {
+      // Cualquiera puede leer las categorías para los filtros.
+      allow read, list: if true;
+      // Solo los superadmins pueden crear, modificar o borrar categorías.
+      allow write: if isSuperAdmin();
+    }
+
+    match /subcategories/{subcategoryId} {
+      // Cualquiera puede leer las subcategorías para los filtros.
+      allow read, list: if true;
+      // Solo los superadmins pueden crear, modificar o borrar subcategorías.
+      allow write: if isSuperAdmin();
+    }
+
     // =========================================
     // COLECCIÓN: images
     // =========================================

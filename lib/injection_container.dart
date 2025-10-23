@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:conectasoc/core/services/translation_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -52,6 +53,9 @@ import 'package:conectasoc/features/articles/data/repositories/article_repositor
 // Articles - Domain
 import 'package:conectasoc/features/articles/domain/repositories/article_repository.dart';
 import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
+
+// Articles - Presentation
+import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -200,17 +204,45 @@ Future<void> init() async {
   // Bloc
   sl.registerFactory(
     () => HomeBloc(
-      getArticlesUseCase: sl(),
+        getArticlesUseCase: sl(),
+        getCategoriesUseCase: sl(),
+        getSubcategoriesUseCase: sl(),
+        getAllAssociationsUseCase: sl(),
+        translationService: sl(),
+        authBloc: sl()),
+  );
+
+  sl.registerFactory(() => ArticleBloc(
+        getArticlesUseCase: sl(),
+        authBloc: sl(),
+      ));
+
+  sl.registerFactoryParam<ArticleEditBloc, AuthBloc, void>(
+    (authBloc, _) => ArticleEditBloc(
+      createArticleUseCase: sl(),
+      updateArticleUseCase: sl(),
+      deleteArticleUseCase: sl(),
+      getArticleByIdUseCase: sl(),
       getCategoriesUseCase: sl(),
       getSubcategoriesUseCase: sl(),
-      getAllAssociationsUseCase: sl(),
+      authBloc: authBloc, // Se pasa desde el contexto
     ),
   );
+
+  sl.registerFactory(() => ArticleDetailBloc(
+        authBloc: sl(),
+        getArticleByIdUseCase: sl(),
+        translationService: sl(),
+      ));
 
   // Use Cases
   sl.registerLazySingleton(() => GetArticlesUseCase(sl()));
   sl.registerLazySingleton(() => GetCategoriesUseCase(sl()));
   sl.registerLazySingleton(() => GetSubcategoriesUseCase(sl()));
+  sl.registerLazySingleton(() => GetArticleByIdUseCase(sl()));
+  sl.registerLazySingleton(() => CreateArticleUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateArticleUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteArticleUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<ArticleRepository>(
@@ -226,6 +258,7 @@ Future<void> init() async {
     () => LocalStorageService(sl()),
   );
   sl.registerLazySingleton(() => CloudinaryService());
+  sl.registerLazySingleton(() => TranslationService());
 
   // ============================================
   // EXTERNAL

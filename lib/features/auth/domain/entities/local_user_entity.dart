@@ -1,6 +1,7 @@
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
-class LocalUserEntity extends Equatable {
+class LocalUserEntity extends Equatable implements IUser {
   final String displayName;
   final String associationId;
 
@@ -11,6 +12,12 @@ class LocalUserEntity extends Equatable {
 
   @override
   List<Object?> get props => [displayName, associationId];
+
+  @override
+  List<String> get associationIds => [associationId];
+
+  @override
+  bool get canEditContent => false; // Un usuario local nunca puede editar.
 
   Map<String, dynamic> toMap() {
     return {
@@ -25,4 +32,7 @@ class LocalUserEntity extends Equatable {
       associationId: map['associationId'] as String,
     );
   }
+
+  @override
+  bool get isSuperAdmin => false;
 }

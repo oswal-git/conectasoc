@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'firebase_options.dart';
 
 // Inyección de dependencias
@@ -52,7 +53,10 @@ class ConectaSocApp extends StatelessWidget {
               onGenerateTitle: (context) =>
                   AppLocalizations.of(context)!.appTitle,
               debugShowCheckedModeBanner: false,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              localizationsDelegates: [
+                ...AppLocalizations.localizationsDelegates,
+                FlutterQuillLocalizations.delegate,
+              ],
               supportedLocales: AppLocalizations.supportedLocales,
               locale: userLocale, // Aquí se establece el idioma dinámicamente
               localeListResolutionCallback: (deviceLocales, supportedLocales) {

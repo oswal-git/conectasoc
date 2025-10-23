@@ -49,3 +49,12 @@ class SubcategorySelected extends HomeEvent {
 }
 
 class ClearCategoryFilter extends HomeEvent {}
+
+class LoadMoreArticles extends HomeEvent {
+  final UserEntity? user;
+
+  const LoadMoreArticles({this.user});
+
+  @override
+  List<Object?> get props => [user];
+}

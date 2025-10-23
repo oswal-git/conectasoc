@@ -1,7 +1,7 @@
 // lib/features/auth/domain/entities/user_entity.dart
 
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
-import 'package:conectasoc/features/users/domain/entities/profile_entity.dart';
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 enum UserStatus {
@@ -14,7 +14,7 @@ enum UserStatus {
   final String value;
 }
 
-class UserEntity extends Equatable {
+class UserEntity extends Equatable implements IUser {
   final String uid;
   final String email;
   final String firstName;
@@ -145,8 +145,19 @@ class UserEntity extends Equatable {
     return null;
   }
 
-  bool get isSuperAdmin => memberships.containsValue('superadmin');
+  @override
+  bool get isSuperAdmin =>
+      memberships.values.any((role) => role == 'superadmin');
   bool get isLocalUser => false; // Overridden by LocalUserEntity
+  // Getter para saber si el usuario tiene permisos de edición de contenido
+  @override
+  bool get canEditContent {
+    return memberships.values.any(
+        (role) => role == 'superadmin' || role == 'admin' || role == 'editor');
+  }
+
+  @override
+  List<String> get associationIds => memberships.keys.toList();
 
   @override
   List<Object?> get props => [

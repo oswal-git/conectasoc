@@ -321,4 +321,168 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get all => 'Todas';
+
+  @override
+  String get createArticle => 'Crear Artículo';
+
+  @override
+  String get editArticle => 'Editar Artículo';
+
+  @override
+  String get title => 'Título';
+
+  @override
+  String get abstractContent => 'Resumen';
+
+  @override
+  String get category => 'Categoría';
+
+  @override
+  String get subcategory => 'Subcategoría';
+
+  @override
+  String get sections => 'Secciones';
+
+  @override
+  String get publishDateLabel => 'Fecha de Publicación';
+
+  @override
+  String get effectiveDateLabel => 'Fecha de Efecto';
+
+  @override
+  String get expirationDateLabel => 'Fecha de Expiración (opcional)';
+
+  @override
+  String get requiredField => 'Campo requerido';
+
+  @override
+  String get selectCoverImage => 'Seleccionar imagen de portada';
+
+  @override
+  String get articles => 'Artículos';
+
+  @override
+  String get deleteArticle => 'Borrar Artículo';
+
+  @override
+  String get articleTitle => 'Título del Artículo';
+
+  @override
+  String get articleAbstract => 'Resumen del Artículo';
+
+  @override
+  String get coverImage => 'Imagen de Portada';
+
+  @override
+  String get articleStatus => 'Estado';
+
+  @override
+  String get addSection => 'Añadir Sección';
+
+  @override
+  String get removeSection => 'Eliminar Sección';
+
+  @override
+  String get reorderSections => 'Reordenar Secciones';
+
+  @override
+  String get statusRedaccion => 'En Redacción';
+
+  @override
+  String get statusPublicado => 'Publicado';
+
+  @override
+  String get statusRevision => 'En Revisión';
+
+  @override
+  String get statusExpirado => 'Expirado';
+
+  @override
+  String get statusAnulado => 'Anulado';
+
+  @override
+  String get categoryInformacion => 'Información';
+
+  @override
+  String get categoryNoticias => 'Noticias';
+
+  @override
+  String get categoryActas => 'Actas';
+
+  @override
+  String get subcategoryServicios => 'Servicios';
+
+  @override
+  String get subcategoryCultura => 'Cultura';
+
+  @override
+  String get subcategoryReuniones => 'Reuniones';
+
+  @override
+  String get subcategoryAsambleas => 'Asambleas';
+
+  @override
+  String get subcategoryMunicipio => 'Municipio';
+
+  @override
+  String get subcategoryUrbanizacion => 'Urbanización';
+
+  @override
+  String get searchArticles => 'Buscar artículos...';
+
+  @override
+  String get filterByCategory => 'Filtrar por categoría';
+
+  @override
+  String get articleCreatedSuccess => 'Artículo creado correctamente.';
+
+  @override
+  String get articleUpdatedSuccess => 'Artículo actualizado correctamente.';
+
+  @override
+  String get articleDeletedSuccess => 'Artículo eliminado correctamente.';
+
+  @override
+  String get titleRequired => 'El título es obligatorio.';
+
+  @override
+  String get abstractRequired => 'El resumen es obligatorio.';
+
+  @override
+  String get coverRequired => 'La imagen de portada es obligatoria.';
+
+  @override
+  String get categoryRequired => 'La categoría es obligatoria.';
+
+  @override
+  String get subcategoryRequired => 'La subcategoría es obligatoria.';
+
+  @override
+  String get publicationDateRequired =>
+      'La fecha de publicación es obligatoria.';
+
+  @override
+  String get effectiveDateRequired => 'La fecha de vigencia es obligatoria.';
+
+  @override
+  String get publicationDateInvalid =>
+      'La fecha de publicación debe ser hoy o posterior.';
+
+  @override
+  String get effectiveDateInvalid =>
+      'La fecha de vigencia debe ser igual o posterior a la de publicación.';
+
+  @override
+  String get expirationDateInvalid =>
+      'La fecha de caducidad debe ser igual o posterior a la de publicación.';
+
+  @override
+  String get sectionContentRequired =>
+      'Cada sección debe tener contenido o una imagen.';
+
+  @override
+  String get readMode => 'Modo Lectura';
+
+  @override
+  String get section => 'Sección';
 }

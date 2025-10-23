@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
+
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
-import 'package:equatable/equatable.dart';
 
 abstract class HomeState extends Equatable {
   const HomeState();
@@ -21,7 +23,10 @@ class HomeLoaded extends HomeState {
   final List<SubcategoryEntity> subcategories;
   final CategoryEntity? selectedCategory;
   final SubcategoryEntity? selectedSubcategory;
+  final String searchTerm;
   final bool isEditMode;
+  final bool hasMore;
+  final DocumentSnapshot? lastDocument; // Firestore-specific cursor
 
   const HomeLoaded({
     required this.allArticles,
@@ -30,8 +35,11 @@ class HomeLoaded extends HomeState {
     required this.associations,
     this.subcategories = const [],
     this.selectedCategory,
+    this.searchTerm = '',
     this.selectedSubcategory,
     this.isEditMode = false,
+    this.hasMore = true,
+    this.lastDocument,
   });
 
   HomeLoaded copyWith({
@@ -42,7 +50,10 @@ class HomeLoaded extends HomeState {
     List<SubcategoryEntity>? subcategories,
     CategoryEntity? selectedCategory,
     SubcategoryEntity? selectedSubcategory,
+    String? searchTerm,
     bool? isEditMode,
+    bool? hasMore,
+    DocumentSnapshot? lastDocument,
   }) {
     return HomeLoaded(
       allArticles: allArticles ?? this.allArticles,
@@ -52,7 +63,10 @@ class HomeLoaded extends HomeState {
       subcategories: subcategories ?? this.subcategories,
       selectedCategory: selectedCategory,
       selectedSubcategory: selectedSubcategory,
+      searchTerm: searchTerm ?? this.searchTerm,
       isEditMode: isEditMode ?? this.isEditMode,
+      hasMore: hasMore ?? this.hasMore,
+      lastDocument: lastDocument,
     );
   }
 
@@ -65,7 +79,10 @@ class HomeLoaded extends HomeState {
         subcategories,
         selectedCategory,
         selectedSubcategory,
-        isEditMode
+        searchTerm,
+        isEditMode,
+        hasMore,
+        lastDocument,
       ];
 }
 

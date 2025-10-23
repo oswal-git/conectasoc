@@ -14,4 +14,7 @@ class RouteNames {
   static const String associationEdit = 'associations/edit';
   static const String usersList = 'users-list';
   static const String userEdit = 'user-edit';
+  static const String articleCreate = 'articleCreate';
+  static const String articleEdit = 'articleEdit';
+  static const String articleDetail = 'articleDetail';
 }

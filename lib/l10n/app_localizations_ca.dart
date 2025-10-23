@@ -320,4 +320,167 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get all => 'Totes';
+
+  @override
+  String get createArticle => 'Crear Article';
+
+  @override
+  String get editArticle => 'Editar Article';
+
+  @override
+  String get title => 'Títol';
+
+  @override
+  String get abstractContent => 'Resum';
+
+  @override
+  String get category => 'Categoria';
+
+  @override
+  String get subcategory => 'Subcategoria';
+
+  @override
+  String get sections => 'Seccions';
+
+  @override
+  String get publishDateLabel => 'Data de Publicació';
+
+  @override
+  String get effectiveDateLabel => 'Data d\'Efecte';
+
+  @override
+  String get expirationDateLabel => 'Data d\'Expiració (opcional)';
+
+  @override
+  String get requiredField => 'Camp requerit';
+
+  @override
+  String get selectCoverImage => 'Seleccionar imatge de portada';
+
+  @override
+  String get articles => 'Articles';
+
+  @override
+  String get deleteArticle => 'Esborrar Article';
+
+  @override
+  String get articleTitle => 'Títol de l\'Article';
+
+  @override
+  String get articleAbstract => 'Resum de l\'Article';
+
+  @override
+  String get coverImage => 'Imatge de Portada';
+
+  @override
+  String get articleStatus => 'Estat';
+
+  @override
+  String get addSection => 'Afegir Secció';
+
+  @override
+  String get removeSection => 'Eliminar Secció';
+
+  @override
+  String get reorderSections => 'Reordenar Seccions';
+
+  @override
+  String get statusRedaccion => 'En Redacció';
+
+  @override
+  String get statusPublicado => 'Publicat';
+
+  @override
+  String get statusRevision => 'En Revisió';
+
+  @override
+  String get statusExpirado => 'Expirat';
+
+  @override
+  String get statusAnulado => 'Anul·lat';
+
+  @override
+  String get categoryInformacion => 'Informació';
+
+  @override
+  String get categoryNoticias => 'Notícies';
+
+  @override
+  String get categoryActas => 'Actes';
+
+  @override
+  String get subcategoryServicios => 'Serveis';
+
+  @override
+  String get subcategoryCultura => 'Cultura';
+
+  @override
+  String get subcategoryReuniones => 'Reunions';
+
+  @override
+  String get subcategoryAsambleas => 'Assemblees';
+
+  @override
+  String get subcategoryMunicipio => 'Municipi';
+
+  @override
+  String get subcategoryUrbanizacion => 'Urbanització';
+
+  @override
+  String get searchArticles => 'Cercar articles...';
+
+  @override
+  String get filterByCategory => 'Filtrar per categoria';
+
+  @override
+  String get articleCreatedSuccess => 'Article creat correctament.';
+
+  @override
+  String get articleUpdatedSuccess => 'Article actualitzat correctament.';
+
+  @override
+  String get articleDeletedSuccess => 'Article eliminat correctament.';
+
+  @override
+  String get titleRequired => 'El títol és obligatori.';
+
+  @override
+  String get abstractRequired => 'El resum és obligatori.';
+
+  @override
+  String get coverRequired => 'La imatge de portada és obligatòria.';
+
+  @override
+  String get categoryRequired => 'La categoria és obligatòria.';
+
+  @override
+  String get subcategoryRequired => 'La subcategoria és obligatòria.';
+
+  @override
+  String get publicationDateRequired => 'La data de publicació és obligatòria.';
+
+  @override
+  String get effectiveDateRequired => 'La data de vigència és obligatòria.';
+
+  @override
+  String get publicationDateInvalid =>
+      'La data de publicació ha de ser avui o posterior.';
+
+  @override
+  String get effectiveDateInvalid =>
+      'La data de vigència ha de ser igual o posterior a la de publicació.';
+
+  @override
+  String get expirationDateInvalid =>
+      'La data de caducitat ha de ser igual o posterior a la de publicació.';
+
+  @override
+  String get sectionContentRequired =>
+      'Cada secció ha de tenir contingut o una imatge.';
+
+  @override
+  String get readMode => 'Mode Lectura';
+
+  @override
+  String get section => 'Secció';
 }

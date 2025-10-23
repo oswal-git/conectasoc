@@ -1,17 +1,14 @@
-import 'dart:io';
-
 import 'package:conectasoc/core/errors/failures.dart';
 import 'package:conectasoc/features/articles/domain/entities/article_entity.dart';
 import 'package:conectasoc/features/articles/domain/repositories/article_repository.dart';
 import 'package:dartz/dartz.dart';
 
-class UpdateArticleUseCase {
+class GetArticleByIdUseCase {
   final ArticleRepository repository;
 
-  UpdateArticleUseCase(this.repository);
+  GetArticleByIdUseCase(this.repository);
 
-  Future<Either<Failure, ArticleEntity>> call(ArticleEntity article,
-      {File? coverImageFile}) {
-    return repository.updateArticle(article, coverImageFile: coverImageFile);
+  Future<Either<Failure, ArticleEntity>> call(String articleId) {
+    return repository.getArticleById(articleId);
   }
 }

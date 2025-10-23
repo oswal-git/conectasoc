@@ -1,116 +1,60 @@
- 
-// // Estados
-// abstract class ArticlesState extends Equatable {
-//   const ArticlesState();
-  
-//   @override
-//   List<Object?> get props => [];
-// }
+import 'dart:async';
 
-// class ArticlesInitial extends ArticlesState {}
+import 'package:conectasoc/features/articles/domain/usecases/get_articles_usecase.dart';
+import 'package:conectasoc/features/articles/presentation/bloc/article_event_bloc.dart';
+import 'package:conectasoc/features/articles/presentation/bloc/article_state_bloc.dart';
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-// class ArticlesLoading extends ArticlesState {}
+class ArticleBloc extends Bloc<ArticleEvent, ArticleState> {
+  final GetArticlesUseCase _getArticlesUseCase;
+  final AuthBloc _authBloc;
+  StreamSubscription? _authSubscription;
 
-// class ArticlesLoaded extends ArticlesState {
-//   final List<ArticleEntity> articles;
-//   final bool hasMore;
-//   final bool isLoadingMore;
-//   final String? selectedCategory;
-//   final ArticleFilter filter;
-  
-//   const ArticlesLoaded({
-//     required this.articles,
-//     this.hasMore = false,
-//     this.isLoadingMore = false,
-//     this.selectedCategory,
-//     required this.filter,
-//   });
-  
-//   @override
-//   List<Object?> get props => [
-//     articles, hasMore, isLoadingMore, selectedCategory, filter
-//   ];
-  
-//   ArticlesLoaded copyWith({
-//     List<ArticleEntity>? articles,
-//     bool? hasMore,
-//     bool? isLoadingMore,
-//     String? selectedCategory,
-//     ArticleFilter? filter,
-//   }) {
-//     return ArticlesLoaded(
-//       articles: articles ?? this.articles,
-//       hasMore: hasMore ?? this.hasMore,
-//       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-//       selectedCategory: selectedCategory ?? this.selectedCategory,
-//       filter: filter ?? this.filter,
-//     );
-//   }
-// }
+  ArticleBloc({
+    required GetArticlesUseCase getArticlesUseCase,
+    required AuthBloc authBloc,
+  })  : _getArticlesUseCase = getArticlesUseCase,
+        _authBloc = authBloc,
+        super(ArticleInitial()) {
+    on<LoadArticles>(_onLoadArticles);
 
-// class ArticlesError extends ArticlesState {
-//   final String message;
-//   final List<ArticleEntity>? cachedArticles;
-  
-//   const ArticlesError(this.message, {this.cachedArticles});
-  
-//   @override
-//   List<Object?> get props => [message, cachedArticles];
-// }
+    // Listen to auth changes to reload articles with correct permissions
+    _authSubscription = _authBloc.stream.listen((authState) {
+      add(LoadArticles());
+    });
+  }
 
-// // Eventos
-// abstract class ArticlesEvent extends Equatable {
-//   const ArticlesEvent();
-  
-//   @override
-//   List<Object?> get props => [];
-// }
+  Future<void> _onLoadArticles(
+    LoadArticles event,
+    Emitter<ArticleState> emit,
+  ) async {
+    emit(ArticleLoading());
+    final authState = _authBloc.state;
+    IUser? user;
+    if (authState is AuthAuthenticated) {
+      user = authState.user;
+    } else if (authState is AuthLocalUser) {
+      user = authState.localUser;
+    }
 
-// class ArticlesLoadRequested extends ArticlesEvent {
-//   final bool refresh;
-//   final ArticleFilter filter;
-  
-//   const ArticlesLoadRequested({
-//     this.refresh = false,
-//     this.filter = const ArticleFilter(),
-//   });
-  
-//   @override
-//   List<Object?> get props => [refresh, filter];
-// }
+    final result = await _getArticlesUseCase(
+      user: user,
+      categoryId: event.filter.categoryId,
+      subcategoryId: event.filter.subcategoryId,
+      searchTerm: event.filter.searchTerm,
+    );
+    result.fold(
+      (failure) => emit(ArticleError(failure.message)),
+      (articles) =>
+          emit(ArticleLoaded(articles: articles, filter: event.filter)),
+    );
+  }
 
-// class ArticlesLoadMoreRequested extends ArticlesEvent {}
-
-// class ArticlesFilterChanged extends ArticlesEvent {
-//   final ArticleFilter filter;
-  
-//   const ArticlesFilterChanged(this.filter);
-  
-//   @override
-//   List<Object?> get props => [filter];
-// }
-
-// class ArticleCreated extends ArticlesEvent {
-//   final ArticleEntity article;
-  
-//   const ArticleCreated(this.article);
-  
-//   @override
-//   List<Object?> get props => [article];
-// }
-
-// class ArticleUpdated extends ArticlesEvent {
-//   final ArticleEntity article;
-  
-//   const ArticleUpdated(this.article);
-  
-//   @override
-//   List<Object?> get props => [article];
-// }
-
-// class ArticleDeleted extends ArticlesEvent {
-//   final String articleId;
-  
-//   const ArticleDeleted(this.articleId);
-  
-//   @override
+  @override
+  Future<void> close() {
+    _authSubscription?.cancel();
+    return super.close();
+  }
+}

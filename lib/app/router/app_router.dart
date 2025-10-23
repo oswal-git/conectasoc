@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:conectasoc/features/articles/presentation/pages/pages.dart';
 import 'package:conectasoc/features/associations/presentation/pages/pages.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/pages/pages.dart';
@@ -92,6 +93,28 @@ class AppRouter {
             path: 'user-edit/:id', // Ruta relativa a /home
             builder: (context, state) =>
                 UserEditPage(userId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'articles/create',
+            name: RouteNames.articleCreate,
+            builder: (context, state) => const ArticleEditPage(),
+          ),
+          GoRoute(
+            path: 'articles/:id/edit',
+            name: RouteNames.articleEdit,
+            builder: (context, state) {
+              final id = state.pathParameters['id'];
+              // Podríamos añadir una comprobación de que el id no es nulo
+              return ArticleEditPage(articleId: id);
+            },
+          ),
+          GoRoute(
+            name: RouteNames.articleDetail,
+            path: '/articles/:articleId',
+            builder: (context, state) {
+              final articleId = state.pathParameters['articleId']!;
+              return ArticleDetailPage(articleId: articleId);
+            },
           ),
         ],
       ),

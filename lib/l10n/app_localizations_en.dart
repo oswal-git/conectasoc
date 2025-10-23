@@ -321,4 +321,167 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get all => 'All';
+
+  @override
+  String get createArticle => 'Create Article';
+
+  @override
+  String get editArticle => 'Edit Article';
+
+  @override
+  String get title => 'Title';
+
+  @override
+  String get abstractContent => 'Abstract';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get subcategory => 'Subcategory';
+
+  @override
+  String get sections => 'Sections';
+
+  @override
+  String get publishDateLabel => 'Publication Date';
+
+  @override
+  String get effectiveDateLabel => 'Effective Date';
+
+  @override
+  String get expirationDateLabel => 'Expiration Date (optional)';
+
+  @override
+  String get requiredField => 'Required field';
+
+  @override
+  String get selectCoverImage => 'Select Cover Image';
+
+  @override
+  String get articles => 'Articles';
+
+  @override
+  String get deleteArticle => 'Delete Article';
+
+  @override
+  String get articleTitle => 'Article Title';
+
+  @override
+  String get articleAbstract => 'Article Abstract';
+
+  @override
+  String get coverImage => 'Cover Image';
+
+  @override
+  String get articleStatus => 'Status';
+
+  @override
+  String get addSection => 'Add Section';
+
+  @override
+  String get removeSection => 'Remove Section';
+
+  @override
+  String get reorderSections => 'Reorder Sections';
+
+  @override
+  String get statusRedaccion => 'Draft';
+
+  @override
+  String get statusPublicado => 'Published';
+
+  @override
+  String get statusRevision => 'In Review';
+
+  @override
+  String get statusExpirado => 'Expired';
+
+  @override
+  String get statusAnulado => 'Cancelled';
+
+  @override
+  String get categoryInformacion => 'Information';
+
+  @override
+  String get categoryNoticias => 'News';
+
+  @override
+  String get categoryActas => 'Minutes';
+
+  @override
+  String get subcategoryServicios => 'Services';
+
+  @override
+  String get subcategoryCultura => 'Culture';
+
+  @override
+  String get subcategoryReuniones => 'Meetings';
+
+  @override
+  String get subcategoryAsambleas => 'Assemblies';
+
+  @override
+  String get subcategoryMunicipio => 'Municipality';
+
+  @override
+  String get subcategoryUrbanizacion => 'Urbanization';
+
+  @override
+  String get searchArticles => 'Search articles...';
+
+  @override
+  String get filterByCategory => 'Filter by category';
+
+  @override
+  String get articleCreatedSuccess => 'Article created successfully.';
+
+  @override
+  String get articleUpdatedSuccess => 'Article updated successfully.';
+
+  @override
+  String get articleDeletedSuccess => 'Article deleted successfully.';
+
+  @override
+  String get titleRequired => 'Title is required.';
+
+  @override
+  String get abstractRequired => 'Abstract is required.';
+
+  @override
+  String get coverRequired => 'Cover image is required.';
+
+  @override
+  String get categoryRequired => 'Category is required.';
+
+  @override
+  String get subcategoryRequired => 'Subcategory is required.';
+
+  @override
+  String get publicationDateRequired => 'Publication date is required.';
+
+  @override
+  String get effectiveDateRequired => 'Effective date is required.';
+
+  @override
+  String get publicationDateInvalid =>
+      'Publication date must be today or later.';
+
+  @override
+  String get effectiveDateInvalid =>
+      'Effective date must be on or after publication date.';
+
+  @override
+  String get expirationDateInvalid =>
+      'Expiration date must be on or after publication date.';
+
+  @override
+  String get sectionContentRequired =>
+      'Each section must have content or an image.';
+
+  @override
+  String get readMode => 'Read Mode';
+
+  @override
+  String get section => 'Section';
 }
