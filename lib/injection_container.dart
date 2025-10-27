@@ -1,6 +1,10 @@
 // lib/injection_container.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:conectasoc/features/associations/data/datasources/settings_remote_datasource.dart';
+import 'package:conectasoc/features/associations/data/repositories/settings_repository_impl.dart';
+import 'package:conectasoc/features/associations/domain/repositories/settings_repository.dart';
+import 'package:conectasoc/features/associations/presentation/bloc/settings/settings_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:conectasoc/core/services/translation_service.dart';
 import 'package:get_it/get_it.dart';
@@ -56,6 +60,8 @@ import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 
 // Articles - Presentation
 import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
+
+// Settings
 
 final sl = GetIt.instance;
 
@@ -128,8 +134,13 @@ Future<void> init() async {
   );
 
   // User Feature
-  sl.registerFactory(
-      () => UserBloc(joinAssociationUseCase: sl(), authBloc: sl()));
+  sl.registerFactoryParam<UserBloc, AuthBloc, void>(
+    (authBloc, _) => UserBloc(
+      joinAssociationUseCase: sl(),
+      getAllAssociationsUseCase: sl(),
+      authBloc: authBloc, // Usamos el AuthBloc que se pasa como parámetro
+    ),
+  );
   sl.registerLazySingleton(() => JoinAssociationUseCase(sl()));
   sl.registerLazySingleton(() => GetUsersByAssociationUseCase(sl()));
   sl.registerLazySingleton(() => GetUserByIdUseCase(sl()));
@@ -225,6 +236,7 @@ Future<void> init() async {
       getArticleByIdUseCase: sl(),
       getCategoriesUseCase: sl(),
       getSubcategoriesUseCase: sl(),
+      sharedPreferences: sl(),
       authBloc: authBloc, // Se pasa desde el contexto
     ),
   );
@@ -249,6 +261,37 @@ Future<void> init() async {
     () => ArticleRepositoryImpl(firestore: sl()),
   );
 
+  // ============================================
+  // FEATURES - SETTINGS
+  // ============================================
+
+  // Bloc
+  sl.registerFactory(() => SettingsBloc(
+        getCategoriesUseCase: sl(),
+        getSubcategoriesUseCase: sl(),
+        createCategoryUseCase: sl(),
+        updateCategoryUseCase: sl(),
+        deleteCategoryUseCase: sl(),
+        createSubcategoryUseCase: sl(),
+        updateSubcategoryUseCase: sl(),
+        deleteSubcategoryUseCase: sl(),
+      ));
+
+  // Use Cases
+  sl.registerLazySingleton(() => CreateCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => CreateSubcategoryUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateSubcategoryUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteSubcategoryUseCase(sl()));
+
+  // Repository
+  sl.registerLazySingleton<SettingsRepository>(
+      () => SettingsRepositoryImpl(remoteDataSource: sl()));
+
+  // Data Source
+  sl.registerLazySingleton<SettingsRemoteDataSource>(
+      () => SettingsRemoteDataSourceImpl(firestore: sl()));
   // ============================================
   // CORE
   // ============================================

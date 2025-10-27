@@ -238,5 +238,15 @@
     "expirationDateInvalid": "La fecha de caducidad debe ser igual o posterior a la de publicación.",
     "sectionContentRequired": "Cada sección debe tener contenido o una imagen.",
     "readMode": "Modo Lectura",
-    "section": "Sección"
+    "section": "Sección",
+    "titleCharLimitExceeded": "El título no puede exceder los 100 caracteres.",
+    "abstractCharLimitExceeded": "El resumen no puede exceder los 200 caracteres.",
+    "removeSectionConfirmation": "¿Estás seguro de que quieres eliminar esta sección? Esta acción no se puede deshacer.",
+    "previewMode": "Previsualizar",
+    "edit": "Editar",
+    "draftFoundTitle": "Borrador encontrado",
+    "draftFoundMessage": "Hemos encontrado un borrador sin guardar. ¿Deseas restaurarlo?",
+    "discard": "Descartar",
+    "restore": "Restaurar",
+    "configuration": "Configuración"
 }

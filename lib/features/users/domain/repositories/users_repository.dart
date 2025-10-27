@@ -1,6 +1,6 @@
 // lib/features/users/domain/repositories/user_repository.dart
 
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:conectasoc/core/errors/failures.dart';
 import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';
@@ -21,7 +21,7 @@ abstract class UserRepository {
 
   Future<Either<Failure, ProfileEntity>> updateUser({
     required ProfileEntity user,
-    File? newImageFile,
+    Uint8List? newImageBytes,
   });
 
   Future<Either<Failure, void>> updateUserDetails(UserEntity user);

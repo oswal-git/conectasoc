@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:conectasoc/features/articles/domain/entities/article_entity.dart';
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 
 class CategoryModel extends CategoryEntity {
   const CategoryModel({

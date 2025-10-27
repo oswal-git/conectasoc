@@ -1,10 +1,15 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:conectasoc/features/articles/data/models/models.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
   final CreateArticleUseCase _createArticleUseCase;
@@ -13,6 +18,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
   final DeleteArticleUseCase _deleteArticleUseCase;
   final GetCategoriesUseCase _getCategoriesUseCase;
   final GetSubcategoriesUseCase _getSubcategoriesUseCase;
+  final SharedPreferences _sharedPreferences;
   final AuthBloc _authBloc;
 
   ArticleEditBloc({
@@ -22,6 +28,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     required DeleteArticleUseCase deleteArticleUseCase,
     required GetCategoriesUseCase getCategoriesUseCase,
     required GetSubcategoriesUseCase getSubcategoriesUseCase,
+    required SharedPreferences sharedPreferences,
     required AuthBloc authBloc,
   })  : _createArticleUseCase = createArticleUseCase,
         _updateArticleUseCase = updateArticleUseCase,
@@ -29,6 +36,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
         _deleteArticleUseCase = deleteArticleUseCase,
         _getCategoriesUseCase = getCategoriesUseCase,
         _getSubcategoriesUseCase = getSubcategoriesUseCase,
+        _sharedPreferences = sharedPreferences,
         _authBloc = authBloc,
         super(ArticleEditInitial()) {
     on<LoadArticleForEdit>(_onLoadArticleForEdit);
@@ -48,6 +56,10 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     on<ReorderSectionsEvent>(_onReorderSections);
     on<UpdateSectionContent>(_onUpdateSectionContent);
     on<UpdateSectionImage>(_onUpdateSectionImage);
+    on<AutoSaveDraft>(_onAutoSaveDraft);
+    on<RestoreDraft>(_onRestoreDraft);
+    on<TogglePreviewMode>(_onTogglePreviewMode);
+    on<DiscardDraft>(_onDiscardDraft);
   }
 
   Future<void> _onPrepareArticleCreation(
@@ -55,6 +67,9 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     Emitter<ArticleEditState> emit,
   ) async {
     emit(ArticleEditLoading());
+
+    // Limpiar cualquier borrador antiguo de "nuevo artículo" al empezar.
+    await _sharedPreferences.remove(_getDraftKey(null));
 
     final authState = _authBloc.state;
     if (authState is! AuthAuthenticated) {
@@ -72,36 +87,60 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
 
     try {
       final categoriesResult = await _getCategoriesUseCase();
+      ArticleEntity? newArticle;
 
       categoriesResult.fold(
         (failure) => emit(ArticleEditFailure(failure.message)),
         (categories) {
-          final newArticle = ArticleEntity.empty().copyWith(
+          newArticle = ArticleEntity.empty().copyWith(
             userId: user.uid,
             authorName: user.fullName,
             authorAvatarUrl: user.avatarUrl,
             assocId: currentMembership
                 .associationId, // Use current membership's assocId
-            associationShortName: currentMembership
-                .associationId, // Placeholder, should be fetched
-            status: ArticleStatus.redaccion, // Default status for new articles
-            sections: [
-              ArticleSection(id: UniqueKey().toString(), order: 0)
-            ], // Start with one empty section
+            associationShortName: currentMembership.associationId,
+            status: ArticleStatus.redaccion,
+            sections: const [], // Empezar sin secciones
           );
 
+          final titleCharCount =
+              _quillJsonToPlainText(newArticle!.title).length;
+          final abstractCharCount =
+              _quillJsonToPlainText(newArticle!.abstractContent).length;
+
           emit(ArticleEditLoaded(
-            article: newArticle,
+            article: newArticle!,
             categories: categories,
             subcategories: const [],
             isCreating: true,
+            titleCharCount: titleCharCount,
+            abstractCharCount: abstractCharCount,
           ));
         },
       );
+
+      if (newArticle == null) {
+        return; // Exit if article creation failed inside the fold.
+      }
+
+      // After setting the initial state, check for a draft.
+      final draftJson = _sharedPreferences.getString('draft_new_article');
+      if (draftJson != null) {
+        final draftArticle = ArticleModel.fromEntity(
+            ArticleEntity.fromJson(jsonDecode(draftJson)));
+        emit(ArticleEditDraftFound(
+            originalArticle: newArticle!, draftArticle: draftArticle));
+      }
     } catch (e) {
       emit(ArticleEditFailure(
           'Error inesperado al preparar la creación: ${e.toString()}'));
     }
+  }
+
+  String _getDraftKey(String? articleId) {
+    return articleId == null || articleId.isEmpty
+        ? 'draft_new_article'
+        : 'draft_$articleId';
   }
 
   Future<void> _onLoadArticleForEdit(
@@ -127,11 +166,28 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
           await _getSubcategoriesUseCase(article.categoryId);
       final subcategories = subcategoriesResult.fold((l) => throw l, (r) => r);
 
-      emit(ArticleEditLoaded(
+      final titleCharCount = _quillJsonToPlainText(article.title).length;
+      final abstractCharCount =
+          _quillJsonToPlainText(article.abstractContent).length;
+
+      final initialState = ArticleEditLoaded(
           article: article,
           status: article.status, // Initialize status in state
           categories: categories,
-          subcategories: subcategories));
+          subcategories: subcategories,
+          titleCharCount: titleCharCount,
+          abstractCharCount: abstractCharCount);
+      emit(initialState);
+
+      // After loading, check for a local draft.
+      final draftKey = _getDraftKey(event.articleId);
+      final draftJson = _sharedPreferences.getString(draftKey);
+      if (draftJson != null) {
+        final draftArticle = ArticleModel.fromEntity(
+            ArticleEntity.fromJson(jsonDecode(draftJson)));
+        emit(ArticleEditDraftFound(
+            originalArticle: article, draftArticle: draftArticle));
+      }
     } catch (e) {
       emit(ArticleEditFailure(
           'Error al cargar el artículo para editar: ${e.toString()}'));
@@ -147,18 +203,64 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     final currentState = state as ArticleEditLoaded;
     emit(currentState.copyWith(isSaving: true));
 
-    // Perform validation
-    if (currentState.article.title.isEmpty ||
-        currentState.article.abstractContent.isEmpty ||
-        currentState.article.categoryId.isEmpty ||
-        currentState.article.subcategoryId.isEmpty ||
-        currentState.article.sections.isEmpty ||
-        currentState.article.sections
-            .every((s) => s.richTextContent == null && s.imageUrl == null)) {
+    final titlePlainText = _quillJsonToPlainText(currentState.article.title);
+    final abstractPlainText =
+        _quillJsonToPlainText(currentState.article.abstractContent);
+
+    final l10n = event.l10n;
+
+    if (currentState.isCreating && currentState.newCoverImageBytes == null) {
       emit(currentState.copyWith(
-          isSaving: false,
-          errorMessage: () =>
-              'Por favor, complete todos los campos obligatorios y asegúrese de que las secciones tengan contenido.'));
+          isSaving: false, errorMessage: () => l10n.coverRequired));
+      return;
+    }
+
+    if (titlePlainText.isEmpty) {
+      emit(currentState.copyWith(
+          isSaving: false, errorMessage: () => l10n.titleRequired));
+      return;
+    }
+
+    if (titlePlainText.length > 100) {
+      emit(currentState.copyWith(
+        isSaving: false,
+        errorMessage: () => l10n.titleCharLimitExceeded,
+      ));
+      return;
+    }
+
+    if (abstractPlainText.isEmpty) {
+      emit(currentState.copyWith(
+          isSaving: false, errorMessage: () => l10n.abstractRequired));
+      return;
+    }
+
+    if (abstractPlainText.length > 200) {
+      emit(currentState.copyWith(
+        isSaving: false,
+        errorMessage: () => l10n.abstractCharLimitExceeded,
+      ));
+      return;
+    }
+
+    if (currentState.article.categoryId.isEmpty) {
+      emit(currentState.copyWith(
+          isSaving: false, errorMessage: () => l10n.categoryRequired));
+      return;
+    }
+
+    if (currentState.article.subcategoryId.isEmpty) {
+      emit(currentState.copyWith(
+          isSaving: false, errorMessage: () => l10n.subcategoryRequired));
+      return;
+    }
+
+    // Si hay secciones, ninguna puede estar completamente vacía.
+    if (currentState.article.sections.any((s) =>
+        (_quillJsonToPlainText(s.richTextContent ?? '').isEmpty) &&
+        (s.imageUrl == null || s.imageUrl!.isEmpty))) {
+      emit(currentState.copyWith(
+          isSaving: false, errorMessage: () => l10n.sectionContentRequired));
       return;
     }
 
@@ -168,26 +270,28 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     );
 
     if (currentState.isCreating) {
-      if (currentState.newCoverImageFile == null) {
-        emit(currentState.copyWith(
-            isSaving: false,
-            errorMessage: () => 'La imagen de portada es obligatoria.'));
-        return;
-      }
-      final result = await _createArticleUseCase(
-          articleToSave, currentState.newCoverImageFile!);
+      final result = await _createArticleUseCase(articleToSave,
+          currentState.newCoverImageBytes!, currentState.newSectionImageBytes);
       result.fold(
         (failure) => emit(currentState.copyWith(
             isSaving: false, errorMessage: () => failure.message)),
-        (_) => emit(ArticleEditSuccess()),
+        (_) {
+          // On success, clear the draft
+          _sharedPreferences.remove(_getDraftKey(null));
+          emit(ArticleEditSuccess());
+        },
       );
     } else {
       final result = await _updateArticleUseCase(articleToSave,
-          coverImageFile: currentState.newCoverImageFile);
+          newCoverImageBytes: currentState.newCoverImageBytes);
       result.fold(
         (failure) => emit(currentState.copyWith(
             isSaving: false, errorMessage: () => failure.message)),
-        (_) => emit(ArticleEditSuccess()),
+        (_) {
+          // On success, clear the draft
+          _sharedPreferences.remove(_getDraftKey(articleToSave.id));
+          emit(ArticleEditSuccess());
+        },
       );
     }
   }
@@ -209,8 +313,11 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
           .map((s) => s.imageUrl!)
           .toList(),
     );
-    result.fold((failure) => emit(ArticleEditFailure(failure.message)),
-        (_) => emit(ArticleEditSuccess()));
+    result.fold((failure) => emit(ArticleEditFailure(failure.message)), (_) {
+      // On success, clear the draft
+      _sharedPreferences.remove(_getDraftKey(event.articleId));
+      emit(ArticleEditSuccess());
+    });
   }
 
   void _onArticleFieldChanged(
@@ -219,7 +326,14 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
   ) {
     if (state is ArticleEditLoaded) {
       final currentState = state as ArticleEditLoaded;
-      emit(currentState.copyWith(article: event.article));
+      final titleCharCount = _quillJsonToPlainText(event.article.title).length;
+      final abstractCharCount =
+          _quillJsonToPlainText(event.article.abstractContent).length;
+      emit(currentState.copyWith(
+          article: event.article,
+          titleCharCount: titleCharCount,
+          abstractCharCount: abstractCharCount));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -228,6 +342,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     if (state is ArticleEditLoaded) {
       final currentState = state as ArticleEditLoaded;
       emit(currentState.copyWith(status: event.status));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -235,24 +350,32 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     CategoryChanged event,
     Emitter<ArticleEditState> emit,
   ) async {
-    if (state is ArticleEditLoaded) {
-      final currentState = state as ArticleEditLoaded;
-      // Actualiza la categoría y limpia la subcategoría
-      final updatedArticle = currentState.article
-          .copyWith(categoryId: event.categoryId, subcategoryId: '');
-      emit(currentState.copyWith(article: updatedArticle, subcategories: []));
+    if (state is! ArticleEditLoaded) return;
+    final currentState = state as ArticleEditLoaded;
+    // Actualiza la categoría y limpia la subcategoría
+    final updatedArticle = currentState.article
+        .copyWith(categoryId: event.categoryId, subcategoryId: '');
 
-      // Carga las nuevas subcategorías
-      final subcategoriesResult =
-          await _getSubcategoriesUseCase(event.categoryId);
-      subcategoriesResult.fold(
-        (failure) => emit(currentState.copyWith(
-            errorMessage: () =>
-                'Error al cargar subcategorías: ${failure.message}')),
-        (subcategories) =>
-            emit(currentState.copyWith(subcategories: subcategories)),
-      );
-    }
+    // Emite estado intermedio
+    emit(currentState.copyWith(article: updatedArticle, subcategories: []));
+
+    add(const AutoSaveDraft());
+
+    // Carga las nuevas subcategorías
+    final subcategoriesResult =
+        await _getSubcategoriesUseCase(event.categoryId);
+
+    // ⭐ Siempre usa state (no currentState) después de un await
+    if (state is! ArticleEditLoaded) return;
+    final latestState = state as ArticleEditLoaded;
+
+    subcategoriesResult.fold(
+      (failure) => emit(latestState.copyWith(
+          errorMessage: () =>
+              'Error al cargar subcategorías: ${failure.message}')),
+      (subcategories) =>
+          emit(latestState.copyWith(subcategories: subcategories)),
+    );
   }
 
   void _onSubcategoryChanged(
@@ -264,6 +387,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       emit(currentState.copyWith(
           article: currentState.article
               .copyWith(subcategoryId: event.subcategoryId)));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -273,6 +397,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       final currentState = state as ArticleEditLoaded;
       emit(currentState.copyWith(
           article: currentState.article.copyWith(publishDate: event.date)));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -282,6 +407,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       final currentState = state as ArticleEditLoaded;
       emit(currentState.copyWith(
           article: currentState.article.copyWith(effectiveDate: event.date)));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -291,6 +417,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       final currentState = state as ArticleEditLoaded;
       emit(currentState.copyWith(
           article: currentState.article.copyWith(expirationDate: event.date)));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -298,7 +425,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       UpdateCoverImage event, Emitter<ArticleEditState> emit) {
     if (state is ArticleEditLoaded) {
       final currentState = state as ArticleEditLoaded;
-      emit(currentState.copyWith(newCoverImageFile: event.newCoverImageFile));
+      emit(currentState.copyWith(newCoverImageBytes: event.newCoverImageBytes));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -313,6 +441,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       ));
       emit(currentState.copyWith(
           article: currentState.article.copyWith(sections: newSections)));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -328,6 +457,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       }
       emit(currentState.copyWith(
           article: currentState.article.copyWith(sections: newSections)));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -339,12 +469,14 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
           List<ArticleSection>.from(currentState.article.sections);
       final ArticleSection movedSection = newSections.removeAt(event.oldIndex);
       newSections.insert(event.newIndex, movedSection);
-      // Update order property
+      // Actualizar la propiedad 'order' para reflejar la nueva posición
       for (int i = 0; i < newSections.length; i++) {
         newSections[i] = newSections[i].copyWith(order: i);
       }
+
       emit(currentState.copyWith(
           article: currentState.article.copyWith(sections: newSections)));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -359,6 +491,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       }).toList();
       emit(currentState.copyWith(
           article: currentState.article.copyWith(sections: newSections)));
+      add(const AutoSaveDraft());
     }
   }
 
@@ -366,13 +499,95 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       UpdateSectionImage event, Emitter<ArticleEditState> emit) {
     if (state is ArticleEditLoaded) {
       final currentState = state as ArticleEditLoaded;
+      final newBytesMap =
+          Map<String, Uint8List>.from(currentState.newSectionImageBytes);
+
+      if (event.imageBytes != null) {
+        newBytesMap[event.sectionId] = event.imageBytes!;
+      } else {
+        newBytesMap.remove(event.sectionId);
+      }
+
       final newSections = currentState.article.sections.map((s) {
-        return s.id == event.sectionId
-            ? s.copyWith(imageUrl: event.imageFile?.path)
-            : s; // Store path temporarily
+        return s.id == event.sectionId ? s.copyWith(imageUrl: '') : s;
       }).toList();
       emit(currentState.copyWith(
-          article: currentState.article.copyWith(sections: newSections)));
+          article: currentState.article.copyWith(sections: newSections),
+          newSectionImageBytes: newBytesMap));
+      add(const AutoSaveDraft());
+    }
+  }
+
+  Future<void> _onAutoSaveDraft(
+    AutoSaveDraft event,
+    Emitter<ArticleEditState> emit,
+  ) async {
+    if (state is ArticleEditLoaded) {
+      final currentState = state as ArticleEditLoaded;
+      final draftKey = _getDraftKey(currentState.article.id);
+      final articleJson =
+          jsonEncode(ArticleModel.fromEntity(currentState.article).toJson());
+      await _sharedPreferences.setString(draftKey, articleJson);
+    }
+  }
+
+  Future<void> _onRestoreDraft(
+    RestoreDraft event,
+    Emitter<ArticleEditState> emit,
+  ) async {
+    if (state is ArticleEditDraftFound) {
+      final currentState = state as ArticleEditDraftFound;
+      // To restore, we just need to emit an ArticleEditLoaded state with the draft article.
+      // We need to fetch categories/subcategories again for the draft.
+      final List<SubcategoryEntity> subcategories;
+      final categoriesResult = await _getCategoriesUseCase();
+
+      // Only fetch subcategories if a category is actually selected in the draft
+      if (currentState.draftArticle.categoryId.isNotEmpty) {
+        final subcategoriesResult = await _getSubcategoriesUseCase(
+            currentState.draftArticle.categoryId);
+        subcategories = subcategoriesResult.getOrElse(() => []);
+      } else {
+        subcategories = [];
+      }
+
+      emit(ArticleEditLoaded(
+        article: currentState.draftArticle,
+        status: currentState.draftArticle.status,
+        categories: categoriesResult.getOrElse(() => []),
+        subcategories: subcategories,
+        isCreating: currentState.draftArticle.id.isEmpty,
+      ));
+    }
+  }
+
+  void _onDiscardDraft(DiscardDraft event, Emitter<ArticleEditState> emit) {
+    if (state is ArticleEditDraftFound) {
+      final draftKey = _getDraftKey(event.originalArticle.id);
+      _sharedPreferences.remove(draftKey);
+      // Reload the original article to discard draft changes
+      add(LoadArticleForEdit(event.originalArticle.id));
+    }
+  }
+
+  void _onTogglePreviewMode(
+    TogglePreviewMode event,
+    Emitter<ArticleEditState> emit,
+  ) {
+    if (state is ArticleEditLoaded) {
+      final currentState = state as ArticleEditLoaded;
+      emit(currentState.copyWith(isPreviewMode: !currentState.isPreviewMode));
+    }
+  }
+
+  String _quillJsonToPlainText(String quillJson) {
+    if (quillJson.isEmpty) return '';
+    try {
+      final doc = quill.Document.fromJson(jsonDecode(quillJson));
+      return doc.toPlainText().trim();
+    } catch (e) {
+      // If JSON is malformed, it's likely not valid rich text.
+      return quillJson;
     }
   }
 }

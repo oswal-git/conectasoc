@@ -999,6 +999,66 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sección'**
   String get section;
+
+  /// No description provided for @titleCharLimitExceeded.
+  ///
+  /// In es, this message translates to:
+  /// **'El título no puede exceder los 100 caracteres.'**
+  String get titleCharLimitExceeded;
+
+  /// No description provided for @abstractCharLimitExceeded.
+  ///
+  /// In es, this message translates to:
+  /// **'El resumen no puede exceder los 200 caracteres.'**
+  String get abstractCharLimitExceeded;
+
+  /// No description provided for @removeSectionConfirmation.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro de que quieres eliminar esta sección? Esta acción no se puede deshacer.'**
+  String get removeSectionConfirmation;
+
+  /// No description provided for @previewMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Previsualizar'**
+  String get previewMode;
+
+  /// No description provided for @edit.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar'**
+  String get edit;
+
+  /// No description provided for @draftFoundTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrador encontrado'**
+  String get draftFoundTitle;
+
+  /// No description provided for @draftFoundMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Hemos encontrado un borrador sin guardar. ¿Deseas restaurarlo?'**
+  String get draftFoundMessage;
+
+  /// No description provided for @discard.
+  ///
+  /// In es, this message translates to:
+  /// **'Descartar'**
+  String get discard;
+
+  /// No description provided for @restore.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar'**
+  String get restore;
+
+  /// No description provided for @configuration.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración'**
+  String get configuration;
 }
 
 class _AppLocalizationsDelegate

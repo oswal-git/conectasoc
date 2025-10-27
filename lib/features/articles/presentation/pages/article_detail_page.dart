@@ -65,7 +65,7 @@ class ArticleDetailView extends StatelessWidget {
             background: CachedNetworkImage(
               imageUrl: article.coverUrl,
               fit: BoxFit.cover,
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               colorBlendMode: BlendMode.darken,
             ),
           ),

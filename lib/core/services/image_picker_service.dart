@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -7,7 +9,7 @@ class ImagePickerService {
   final ImagePicker _picker = ImagePicker();
   final ImageCropper _cropper = ImageCropper();
 
-  Future<String?> pickImage(BuildContext context) async {
+  Future<Uint8List?> pickImage(BuildContext context) async {
     // Extraer los datos del BuildContext ANTES del primer 'await'.
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
@@ -16,7 +18,7 @@ class ImagePickerService {
     if (!context.mounted) return null;
 
     final source = await _showImageSourceActionSheet(context);
-    if (source == null) return null;
+    if (source == null) return null; // User cancelled
 
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile == null) return null;
@@ -24,7 +26,11 @@ class ImagePickerService {
     // Pasamos los datos extraídos en lugar del BuildContext completo.
     final croppedFile =
         await _cropImage(l10n: l10n, theme: theme, filePath: pickedFile.path);
-    return croppedFile?.path;
+
+    if (croppedFile != null) {
+      return await croppedFile.readAsBytes();
+    }
+    return null;
   }
 
   Future<ImageSource?> _showImageSourceActionSheet(BuildContext context) async {

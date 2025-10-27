@@ -267,6 +267,8 @@ class _UserEditViewState extends State<_UserEditView> {
 
   void _showDeleteConfirmation(BuildContext context, String userName) {
     final l10n = AppLocalizations.of(context)!;
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -385,6 +387,8 @@ class _MembershipSection extends StatelessWidget {
 
     String? selectedAssociationId;
     String selectedRole = 'member';
+
+    if (!context.mounted) return;
 
     showDialog(
       context: context,

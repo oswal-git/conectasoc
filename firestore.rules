@@ -128,14 +128,46 @@ match /databases/{database}/documents {
         isEditor(request.resource.data.assocId)
       );
 
+      // --- Validation Function for Article Data ---
+      function isValidArticleData(data) {
+        return 
+          // Required fields
+          data.keys().hasAll([
+            'title', 'abstractContent', 'coverUrl', 'categoryId', 'subcategoryId', 
+            'publishDate', 'effectiveDate', 'status', 'sections', 'userId', 
+            'assocId', 'authorName', 'associationShortName', 'originalLanguage', 
+            'createdAt', 'modifiedAt', 'searchText'
+          ]) &&
+          // Type validation
+          data.title is string && data.title.size() > 0 &&
+          data.abstractContent is string && data.abstractContent.size() > 0 &&
+          data.coverUrl is string && data.coverUrl.size() > 0 &&
+          data.categoryId is string && data.categoryId.size() > 0 &&
+          data.subcategoryId is string && data.subcategoryId.size() > 0 &&
+          data.publishDate is timestamp &&
+          data.effectiveDate is timestamp &&
+          data.status is string &&
+          data.sections is list &&
+          data.userId is string && data.userId == request.auth.uid &&
+          data.assocId is string &&
+          data.authorName is string &&
+          data.associationShortName is string &&
+          data.originalLanguage is string &&
+          data.createdAt is timestamp &&
+          data.modifiedAt is timestamp &&
+          // Validate that publishDate is not in the past
+          data.publishDate >= request.time &&
+          // Validate that effectiveDate is not before publishDate
+          data.effectiveDate >= data.publishDate;
+      }
+
       // Actualizar:
       // 1. Superadmin puede actualizar todo.
       // 2. Admin puede actualizar artículos de su asociación.
       // 3. Editor puede actualizar artículos de su asociación SI es el autor.
       allow update: if isSignedIn() && (
         isSuperAdmin() || // Superadmin
-        isAdmin(resource.data.assocId) ||
-        (isEditor(resource.data.assocId) && request.auth.uid == resource.data.userId)
+        ((isAdmin(resource.data.assocId) || (isEditor(resource.data.assocId) && request.auth.uid == resource.data.userId)) && isValidArticleData(request.resource.data))
       );
 
       // Eliminar:

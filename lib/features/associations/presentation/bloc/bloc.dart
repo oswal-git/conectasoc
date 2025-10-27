@@ -4,3 +4,6 @@ export 'edit/association_edit_state.dart';
 export 'association_bloc.dart';
 export 'association_event.dart';
 export 'association_state.dart';
+export 'settings/settings_bloc.dart';
+export 'settings/settings_event_bloc.dart';
+export 'settings/settings_state_bloc.dart';

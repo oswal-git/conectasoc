@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:conectasoc/core/errors/failures.dart';
 import 'package:conectasoc/features/articles/domain/entities/article_entity.dart';
@@ -10,8 +10,11 @@ class UpdateArticleUseCase {
 
   UpdateArticleUseCase(this.repository);
 
-  Future<Either<Failure, ArticleEntity>> call(ArticleEntity article,
-      {File? coverImageFile}) {
-    return repository.updateArticle(article, coverImageFile: coverImageFile);
+  Future<Either<Failure, ArticleEntity>> call(
+    ArticleEntity article, {
+    Uint8List? newCoverImageBytes,
+  }) async {
+    return repository.updateArticle(article,
+        newCoverImageBytes: newCoverImageBytes);
   }
 }

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:conectasoc/core/services/image_picker_service.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
-import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -21,7 +20,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormBuilderState>();
-  String? _localImagePath;
 
   @override
   void initState() {
@@ -76,30 +74,30 @@ class _ProfilePageState extends State<ProfilePage> {
           if (state is ProfileLoading || state is ProfileInitial) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is ProfileLoaded) {
-            return _buildProfileForm(state.user, l10n);
+            return _buildProfileForm(state, l10n);
           } else {
-            return Center(child: Text(l10n.profileLoadError));
+            return Center(child: Text((state as ProfileUpdateFailure).error));
           }
         },
       ),
     );
   }
 
-  Widget _buildProfileForm(ProfileEntity user, AppLocalizations l10n) {
+  Widget _buildProfileForm(ProfileLoaded state, AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          _buildProfileImage(user.photoUrl),
+          _buildProfileImage(state.user.photoUrl, state.localImageBytes),
           const SizedBox(height: 24),
           FormBuilder(
             key: _formKey,
             initialValue: {
-              'name': user.name,
-              'lastname': user.lastname,
-              'email': user.email,
-              'phone': user.phone,
-              'language': user.language,
+              'name': state.user.name,
+              'lastname': state.user.lastname,
+              'email': state.user.email,
+              'phone': state.user.phone,
+              'language': state.user.language,
             },
             child: Column(
               children: [
@@ -158,11 +156,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileImage(String? imageUrl) {
+  Widget _buildProfileImage(String? imageUrl, Uint8List? localImageBytes) {
     ImageProvider? backgroundImage;
-    if (_localImagePath != null) {
-      backgroundImage = FileImage(File(_localImagePath!));
-    } else if (imageUrl != null) {
+    if (localImageBytes != null) {
+      backgroundImage = MemoryImage(localImageBytes);
+    } else if (imageUrl != null && imageUrl.isNotEmpty) {
       backgroundImage = CachedNetworkImageProvider(imageUrl);
     }
 
@@ -196,13 +194,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickAndCropImage() async {
-    final imagePath = await ImagePickerService().pickImage(context);
-    if (imagePath != null) {
-      if (!mounted) return;
-      setState(() {
-        _localImagePath = imagePath;
-      });
-      context.read<ProfileBloc>().add(ProfileImageChanged(imagePath));
+    final imageBytes = await ImagePickerService().pickImage(context);
+    if (!mounted) return;
+    if (imageBytes != null) {
+      // El BLoC ahora recibe el File directamente
+      context.read<ProfileBloc>().add(ProfileImageChanged(imageBytes));
     }
   }
 }

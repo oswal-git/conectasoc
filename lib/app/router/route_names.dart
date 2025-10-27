@@ -17,4 +17,5 @@ class RouteNames {
   static const String articleCreate = 'articleCreate';
   static const String articleEdit = 'articleEdit';
   static const String articleDetail = 'articleDetail';
+  static const String settings = 'settings';
 }

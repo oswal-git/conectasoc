@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:conectasoc/core/errors/failures.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
@@ -11,7 +11,7 @@ abstract class AssociationRepository {
 
   Future<Either<Failure, AssociationEntity>> updateAssociation({
     required AssociationEntity association,
-    File? newLogoFile,
+    Uint8List? logoBytes,
   });
 
   Future<Either<Failure, AssociationEntity>> createAssociation({
@@ -22,6 +22,7 @@ abstract class AssociationRepository {
     required String phone,
     String? creatorId,
     String? contactUserId,
+    Uint8List? logoBytes,
   });
 
   Future<Either<Failure, void>> deleteAssociation(String associationId);

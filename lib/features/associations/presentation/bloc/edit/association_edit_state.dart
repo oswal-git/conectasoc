@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
@@ -17,16 +18,16 @@ class AssociationEditLoaded extends AssociationEditState {
   final AssociationEntity association;
   final List<UserEntity> associationUsers;
   final bool isSaving;
-  final bool isCreating;
-  final String? newImagePath;
+  final Uint8List? newImageBytes;
   final String? errorMessage;
+  final bool isCreating;
 
   const AssociationEditLoaded({
     required this.association,
     this.associationUsers = const [],
     this.isSaving = false,
     this.isCreating = false,
-    this.newImagePath,
+    this.newImageBytes,
     this.errorMessage,
   });
 
@@ -35,7 +36,7 @@ class AssociationEditLoaded extends AssociationEditState {
     List<UserEntity>? associationUsers,
     bool? isSaving,
     bool? isCreating,
-    String? newImagePath,
+    Uint8List? newImageBytes,
     String? errorMessage,
     bool clearErrorMessage = false,
   }) {
@@ -44,7 +45,7 @@ class AssociationEditLoaded extends AssociationEditState {
       associationUsers: associationUsers ?? this.associationUsers,
       isSaving: isSaving ?? this.isSaving,
       isCreating: isCreating ?? this.isCreating,
-      newImagePath: newImagePath ?? this.newImagePath,
+      newImageBytes: newImageBytes ?? this.newImageBytes,
       errorMessage:
           clearErrorMessage ? null : errorMessage ?? this.errorMessage,
     );
@@ -55,7 +56,7 @@ class AssociationEditLoaded extends AssociationEditState {
         association,
         isSaving,
         isCreating,
-        newImagePath,
+        newImageBytes,
         errorMessage,
       ];
 }

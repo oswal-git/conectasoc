@@ -1,16 +1,18 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:tuple/tuple.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/core/constants/cloudinary_config.dart';
 import 'package:conectasoc/core/errors/failures.dart';
 import 'package:conectasoc/features/articles/data/models/models.dart';
-import 'package:conectasoc/features/articles/domain/entities/article_entity.dart';
 import 'package:conectasoc/features/articles/domain/repositories/article_repository.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:conectasoc/services/cloudinary_service.dart';
 import 'package:dartz/dartz.dart' hide Tuple2;
+import 'package:uuid/uuid.dart';
 
 class ArticleRepositoryImpl implements ArticleRepository {
   final FirebaseFirestore firestore;
@@ -113,14 +115,19 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
   @override
   Future<Either<Failure, ArticleEntity>> createArticle(
-      ArticleEntity article, File coverImageFile) async {
+    ArticleEntity article,
+    Uint8List coverImageBytes, {
+    Map<String, Uint8List> sectionImageBytes = const {},
+  }) async {
     String? uploadedCoverUrl;
     final List<String> uploadedSectionImageUrls = [];
+    const uuid = Uuid();
 
     try {
       // 1. Subir imagen de portada a Cloudinary
-      final uploadResult = await CloudinaryService.uploadImage(
-        imageFile: coverImageFile,
+      final uploadResult = await CloudinaryService.uploadImageBytes(
+        imageBytes: coverImageBytes,
+        filename: uuid.v4(), // Generate a unique filename
         imageType: CloudinaryImageType.articleCover,
       );
 
@@ -133,11 +140,12 @@ class ArticleRepositoryImpl implements ArticleRepository {
       // 2. Subir imágenes de las secciones
       final List<ArticleSection> sectionsWithUploadedImages = [];
       for (final section in article.sections) {
-        if (section.imageUrl != null && !section.imageUrl!.startsWith('http')) {
-          final sectionImageFile = File(section.imageUrl!);
-          final sectionUpload = await CloudinaryService.uploadImage(
-            imageFile: sectionImageFile,
+        if (sectionImageBytes.containsKey(section.id)) {
+          final bytes = sectionImageBytes[section.id]!;
+          final sectionUpload = await CloudinaryService.uploadImageBytes(
+            imageBytes: bytes,
             imageType: CloudinaryImageType.articleSection,
+            filename: uuid.v4(),
           );
           if (!sectionUpload.success || sectionUpload.secureUrl == null) {
             // Si falla la subida de una imagen de sección, se lanza una excepción para activar el rollback.
@@ -198,16 +206,17 @@ class ArticleRepositoryImpl implements ArticleRepository {
   @override
   Future<Either<Failure, ArticleEntity>> updateArticle(
     ArticleEntity article, {
-    File? coverImageFile,
+    Uint8List? newCoverImageBytes,
     // sectionImageFiles no es necesario, la lógica se basa en las rutas de los ficheros en la entidad
   }) async {
     try {
       ArticleEntity articleToUpdate = article;
 
       // 1. Handle cover image update
-      if (coverImageFile != null) {
-        final uploadResult = await CloudinaryService.uploadImage(
-          imageFile: coverImageFile,
+      if (newCoverImageBytes != null) {
+        final uploadResult = await CloudinaryService.uploadImageBytes(
+          imageBytes: newCoverImageBytes,
+          filename: article.id, // Use article ID for a unique filename
           imageType: CloudinaryImageType.articleCover,
         );
         if (!uploadResult.success) {
@@ -321,12 +330,13 @@ class ArticleRepositoryImpl implements ArticleRepository {
       final snapshot = await firestore
           .collection('subcategories')
           .where('categoryId', isEqualTo: categoryId)
-          .orderBy('order')
           .get();
       final subcategories = snapshot.docs
           .map((doc) => SubcategoryModel.fromFirestore(
               doc as DocumentSnapshot<Map<String, dynamic>>))
           .toList();
+      // Ordenar en el cliente para evitar la necesidad de un índice compuesto
+      subcategories.sort((a, b) => a.order.compareTo(b.order));
       return Right(subcategories);
     } catch (e) {
       return Left(ServerFailure('Error al obtener las subcategorías: $e'));

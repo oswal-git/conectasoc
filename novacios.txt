@@ -6,7 +6,6 @@
       ├── web_plugin_registrant.dart
   ├── extension_discovery
       ├── devtools.json
-      ├── vs_code.json
   ├── flutter_build
       ├── dart_plugin_registrant.dart
     ├── 24d31f5bcd598d52a33554adb56ec8e9
@@ -66,6 +65,7 @@
     ├── services
         ├── image_picker_service.dart
         ├── local_storage_service.dart
+        ├── translation_service.dart
     ├── utils
         ├── validators.dart
   ├── features
@@ -81,7 +81,10 @@
         ├── entities
             ├── article_entity.dart
             ├── article_filter_entity.dart
+            ├── article_section_entity.dart
+            ├── category_entity.dart
             ├── entities.dart
+            ├── subcategory_entity.dart
         ├── repositories
             ├── article_repository.dart
         ├── usecases
@@ -99,27 +102,35 @@
             ├── article_event_bloc.dart
             ├── article_state_bloc.dart
             ├── bloc.dart
+          ├── detail
+              ├── article_detail_bloc.dart
+              ├── article_detail_event.dart
+              ├── article_detail_state.dart
           ├── edit
               ├── article_edit_bloc.dart
               ├── article_edit_event.dart
               ├── article_edit_state.dart
         ├── pages
+            ├── article_detail_page.dart
             ├── article_edit_page.dart
             ├── pages.dart
     ├── associations
       ├── data
         ├── datasources
             ├── association_remote_datasource.dart
+            ├── settings_remote_datasource.dart
         ├── models
             ├── association_model.dart
         ├── repositories
             ├── association_repository_impl.dart
+            ├── settings_repository_impl.dart
       ├── domain
         ├── entities
             ├── association_entity.dart
             ├── entities.dart
         ├── repositories
             ├── association_repository.dart
+            ├── settings_repository.dart
         ├── usecases
             ├── create_association_usecase.dart
             ├── delete_association_usecase.dart
@@ -128,6 +139,15 @@
             ├── undo_delete_association_usecase.dart
             ├── update_association_usecase.dart
             ├── usecases.dart
+          ├── settings
+              ├── create_category_usecase.dart
+              ├── create_subcategory_usecase.dart
+              ├── delete_category_usecase.dart
+              ├── delete_subcategory_usecase.dart
+              ├── reorder_categories_usecase.dart
+              ├── reorder_subcategories_usecase.dart
+              ├── update_category_usecase.dart
+              ├── update_subcategory_usecase.dart
       ├── presentation
         ├── bloc
             ├── association_bloc.dart
@@ -138,10 +158,15 @@
               ├── association_edit_bloc.dart
               ├── association_edit_event.dart
               ├── association_edit_state.dart
+          ├── settings
+              ├── settings_bloc.dart
+              ├── settings_event_bloc.dart
+              ├── settings_state_bloc.dart
         ├── pages
             ├── association_edit_page.dart
             ├── association_list_page.dart
             ├── pages.dart
+            ├── settings_page.dart
         ├── widgets
             ├── association_avatar_widget.dart
     ├── auth

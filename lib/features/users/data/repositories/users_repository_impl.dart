@@ -1,6 +1,6 @@
 // lib/features/users/data/repositories/user_repository_impl.dart
 
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:conectasoc/core/constants/cloudinary_config.dart';
 import 'package:conectasoc/services/cloudinary_service.dart';
 import 'package:dartz/dartz.dart';
@@ -66,20 +66,21 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<Either<Failure, ProfileEntity>> updateUser({
     required ProfileEntity user,
-    File? newImageFile,
+    Uint8List? newImageBytes,
   }) async {
     try {
       String? newImageUrl;
       String? oldPublicId;
 
       // Si se va a subir una nueva imagen y ya existía una, obtenemos su public_id para borrarla.
-      if (newImageFile != null && user.photoUrl != null) {
+      if (newImageBytes != null && user.photoUrl != null) {
         oldPublicId = CloudinaryService.getPublicIdFromUrl(user.photoUrl!);
       }
 
-      if (newImageFile != null) {
-        final uploadResult = await CloudinaryService.uploadImage(
-          imageFile: newImageFile,
+      if (newImageBytes != null) {
+        final uploadResult = await CloudinaryService.uploadImageBytes(
+          imageBytes: newImageBytes,
+          filename: user.uid, // Use user ID for a unique filename
           imageType: CloudinaryImageType.avatar,
         );
         if (uploadResult.success) {

@@ -1,8 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
+import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
 import 'package:conectasoc/core/services/image_picker_service.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
@@ -10,11 +17,6 @@ import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/flutter_quill.dart' as quill;
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 class ArticleEditPage extends StatelessWidget {
   final String? articleId;
@@ -27,31 +29,9 @@ class ArticleEditPage extends StatelessWidget {
       create: (context) => sl<ArticleEditBloc>(
         param1: context.read<AuthBloc>(),
       )..add(articleId == null
-          ? PrepareArticleCreation()
-          : LoadArticleForEdit(articleId!)),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(articleId == null
-              ? AppLocalizations.of(context)!.createArticle
-              : AppLocalizations.of(context)!.editArticle),
-          actions: [
-            BlocBuilder<ArticleEditBloc, ArticleEditState>(
-              builder: (context, state) {
-                if (state is ArticleEditLoaded) {
-                  return IconButton(
-                    icon: const Icon(Icons.save),
-                    onPressed: () async {
-                      context.read<ArticleEditBloc>().add(const SaveArticle());
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
-        ),
-        body: const ArticleEditView(),
-      ),
+          ? PrepareArticleCreation() // Si no hay ID, preparamos para crear
+          : LoadArticleForEdit(articleId!)), // Si hay ID, cargamos para editar
+      child: const ArticleEditView(),
     );
   }
 }
@@ -65,6 +45,9 @@ class ArticleEditView extends StatefulWidget {
 
 class _ArticleEditViewState extends State<ArticleEditView> {
   final _formKey = GlobalKey<FormState>();
+
+  // State for toggling between edit and preview mode
+  bool _isPreviewMode = false;
 
   // Controladores para los editores de texto enriquecido
   late quill.QuillController _titleController;
@@ -81,6 +64,9 @@ class _ArticleEditViewState extends State<ArticleEditView> {
   // Mantener un registro del último artículo sincronizado para evitar actualizaciones redundantes
   ArticleEntity? _lastSyncedArticle;
 
+  int _titleCharCount = 0;
+  int _abstractCharCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -90,9 +76,12 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     _titleFocusNode = FocusNode();
     _abstractFocusNode = FocusNode();
     _abstractScrollController = ScrollController();
+    _titleScrollController = ScrollController();
 
     _titleController.addListener(_onTitleChanged);
     _abstractController.addListener(_onAbstractChanged);
+    _titleController.addListener(_updateTitleCharCount);
+    _abstractController.addListener(_updateAbstractCharCount);
   }
 
   @override
@@ -100,12 +89,33 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     _titleController.removeListener(_onTitleChanged);
     _abstractController.removeListener(_onAbstractChanged);
     _titleController.dispose();
+    _titleController.removeListener(_updateTitleCharCount);
+    _abstractController.removeListener(_updateAbstractCharCount);
     _abstractController.dispose();
     _titleFocusNode.dispose();
     _abstractFocusNode.dispose();
+    _titleScrollController.dispose();
     _abstractScrollController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _updateTitleCharCount() {
+    final plainText = _titleController.document.toPlainText().trim();
+    if (mounted) {
+      setState(() {
+        _titleCharCount = plainText.length;
+      });
+    }
+  }
+
+  void _updateAbstractCharCount() {
+    final plainText = _abstractController.document.toPlainText().trim();
+    if (mounted) {
+      setState(() {
+        _abstractCharCount = plainText.length;
+      });
+    }
   }
 
   void _onTitleChanged() {
@@ -173,6 +183,14 @@ class _ArticleEditViewState extends State<ArticleEditView> {
       );
       _abstractController.moveCursorToEnd(); // Keep cursor at end after update
     }
+
+    // Sync character counts on initial load
+    // Use addPostFrameCallback to avoid calling setState during build
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _updateTitleCharCount();
+      _updateAbstractCharCount();
+    });
+
     _lastSyncedArticle = article; // Almacenar el último artículo sincronizado
   }
 
@@ -180,39 +198,120 @@ class _ArticleEditViewState extends State<ArticleEditView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return BlocListener<ArticleEditBloc, ArticleEditState>(
-      listener: (context, state) {
-        if (state is ArticleEditSuccess) {
-          SnackBarService.showSnackBar(
-              l10n.articleCreatedSuccess); // Or articleUpdatedSuccess
-          context.pop(); // Volver a la pantalla anterior
-        } else if (state is ArticleEditLoaded && state.errorMessage != null) {
-          SnackBarService.showSnackBar(state.errorMessage!() ?? '',
-              isError: true);
-        } else if (state is ArticleEditFailure) {
-          SnackBarService.showSnackBar(state.message, isError: true);
-        }
+    return BlocBuilder<ArticleEditBloc, ArticleEditState>(
+      builder: (context, state) {
+        // Determine the title based on the state.
+        final bool isCreating = state is! ArticleEditLoaded ||
+            state.article.id.isEmpty ||
+            state.isCreating;
+        final String title = isCreating ? l10n.createArticle : l10n.editArticle;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(title),
+            actions: [
+              // Preview Toggle Button
+              IconButton(
+                icon: Icon(_isPreviewMode ? Icons.edit : Icons.visibility),
+                tooltip:
+                    _isPreviewMode ? l10n.edit : l10n.previewMode, // Localized
+                onPressed: () {
+                  setState(() {
+                    _isPreviewMode = !_isPreviewMode;
+                  });
+                },
+              ),
+              // Save Button
+              if (state is ArticleEditLoaded)
+                IconButton(
+                    icon: const Icon(Icons.save),
+                    onPressed: () {
+                      // Ensure we are not in preview mode when saving
+                      if (_isPreviewMode) {
+                        setState(() {
+                          _isPreviewMode = false;
+                        });
+                      }
+
+                      // Ejecutar después de que se complete el frame actual
+                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          context
+                              .read<ArticleEditBloc>()
+                              .add(SaveArticle(l10n));
+                        }
+                      });
+                    }),
+            ],
+          ),
+          body: BlocListener<ArticleEditBloc, ArticleEditState>(
+            listener: (context, state) {
+              if (state is ArticleEditSuccess) {
+                SnackBarService.showSnackBar(
+                    l10n.articleCreatedSuccess); // Or articleUpdatedSuccess
+                context.pop(); // Volver a la pantalla anterior
+              } else if (state is ArticleEditLoaded &&
+                  state.errorMessage != null) {
+                SnackBarService.showSnackBar(state.errorMessage!() ?? '',
+                    isError: true);
+              } else if (state is ArticleEditDraftFound) {
+                final bloc = context.read<ArticleEditBloc>();
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (dialogContext) => AlertDialog(
+                    title: Text(l10n.draftFoundTitle),
+                    content: Text(l10n.draftFoundMessage),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          bloc.add(DiscardDraft(state.originalArticle));
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: Text(l10n.discard),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          bloc.add(const RestoreDraft());
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: Text(l10n.restore),
+                      ),
+                    ],
+                  ),
+                );
+              } else if (state is ArticleEditFailure) {
+                SnackBarService.showSnackBar(state.message, isError: true);
+              }
+            },
+            child: _buildBody(state, l10n),
+          ),
+        );
       },
-      child: BlocBuilder<ArticleEditBloc, ArticleEditState>(
-        // Usamos BlocBuilder para la UI
-        builder: (context, state) {
-          if (state is ArticleEditLoading || state is ArticleEditInitial) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is ArticleEditLoaded) {
-            _syncQuillControllers(state.article);
-            return _buildForm(context, state, l10n);
-          }
-          if (state is ArticleEditFailure) {
-            return Center(child: Text(state.message));
-          }
-          return const SizedBox.shrink();
-        },
-      ),
     );
   }
 
-  Widget _buildForm(
+  Widget _buildBody(ArticleEditState state, AppLocalizations l10n) {
+    if (state is ArticleEditLoading ||
+        state is ArticleEditInitial ||
+        state is ArticleEditDraftFound) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (state is ArticleEditLoaded) {
+      // Use addPostFrameCallback to ensure controller sync happens after build.
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        _syncQuillControllers(state.article);
+      });
+
+      return _isPreviewMode
+          ? buildPreview(context, state, l10n)
+          : buildForm(context, state, l10n);
+    } else if (state is ArticleEditFailure) {
+      return Center(child: Text(state.message));
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget buildForm(
       BuildContext context, ArticleEditLoaded state, AppLocalizations l10n) {
     return Form(
       key: _formKey,
@@ -223,9 +322,9 @@ class _ArticleEditViewState extends State<ArticleEditView> {
           children: [
             _CoverImagePicker(
               currentCoverUrl: state.article.coverUrl,
-              newImageFile: state.newCoverImageFile,
-              onImageSelected: (file) {
-                context.read<ArticleEditBloc>().add(UpdateCoverImage(file));
+              newImageBytes: state.newCoverImageBytes,
+              onImageSelected: (bytes) {
+                context.read<ArticleEditBloc>().add(UpdateCoverImage(bytes));
               },
               onImageCleared: () => context
                   .read<ArticleEditBloc>()
@@ -256,6 +355,16 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                 ),
               ),
             ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '$_titleCharCount / 100',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: _titleCharCount > 100 ? Colors.red : Colors.grey,
+                    ),
+              ),
+            ),
             const SizedBox(height: 16),
             Text(l10n.abstractContent,
                 style: Theme.of(context).textTheme.titleMedium),
@@ -282,12 +391,23 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                 ),
               ),
             ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '$_abstractCharCount / 200',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color:
+                          _abstractCharCount > 200 ? Colors.red : Colors.grey,
+                    ),
+              ),
+            ),
             const SizedBox(height: 24),
-            _buildCategorySelectors(context, state, l10n),
+            buildCategorySelectors(context, state, l10n),
             const SizedBox(height: 24),
-            _buildStatusDropdown(context, state, l10n),
+            buildStatusDropdown(context, state, l10n),
             const SizedBox(height: 24),
-            _buildDatePickers(context, state, l10n),
+            buildDatePickers(context, state, l10n),
             const SizedBox(height: 32),
             Text('--- ${l10n.sections.toUpperCase()} ---',
                 textAlign: TextAlign.center),
@@ -306,21 +426,131 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     );
   }
 
-  Widget _buildCategorySelectors(
+  Widget buildPreview(
+      BuildContext context, ArticleEditLoaded state, AppLocalizations l10n) {
+    final article = state.article;
+    ImageProvider? imageProvider;
+    if (state.newCoverImageBytes != null) {
+      imageProvider = MemoryImage(state.newCoverImageBytes!);
+    } else if (article.coverUrl.isNotEmpty) {
+      imageProvider = CachedNetworkImageProvider(article.coverUrl);
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (imageProvider != null)
+            Image(
+              image: imageProvider,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 250,
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                quill.QuillEditor(
+                  controller: _titleController,
+                  focusNode: _titleFocusNode,
+                  scrollController: _titleScrollController,
+                  config: quill.QuillEditorConfig(
+                    padding: const EdgeInsets.only(bottom: 8),
+                  ),
+                ),
+                // Abstract
+                quill.QuillEditor(
+                  controller: _abstractController,
+                  focusNode: _abstractFocusNode,
+                  scrollController: _abstractScrollController,
+                  config: quill.QuillEditorConfig(
+                    padding: const EdgeInsets.only(bottom: 16),
+                  ),
+                ),
+                // Metadata
+                Text(
+                  '${l10n.category}: ${article.categoryId} > ${l10n.subcategory}: ${article.subcategoryId}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${l10n.publishDateLabel}: ${DateFormat.yMMMd(l10n.localeName).format(article.publishDate)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const Divider(height: 32),
+                // Sections
+                ...article.sections
+                    .map((section) => buildPreviewSection(context, section)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildPreviewSection(BuildContext context, ArticleSection section) {
+    final quill.QuillController? contentController =
+        section.richTextContent != null && section.richTextContent!.isNotEmpty
+            ? quill.QuillController(
+                document: quill.Document.fromJson(
+                    jsonDecode(section.richTextContent!)),
+                selection: const TextSelection.collapsed(offset: 0),
+              )
+            : null;
+    final FocusNode contentFocusNode = FocusNode();
+    final ScrollController contentScrollController = ScrollController();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (section.imageUrl != null && section.imageUrl!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(File(section.imageUrl!),
+                    fit: BoxFit.cover, width: double.infinity),
+              ),
+            ),
+          if (contentController != null)
+            quill.QuillEditor(
+              controller: contentController,
+              focusNode: contentFocusNode,
+              scrollController: contentScrollController,
+              config: quill.QuillEditorConfig(
+                padding: EdgeInsets.zero,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildCategorySelectors(
       BuildContext context, ArticleEditLoaded state, AppLocalizations l10n) {
     return Row(
       children: [
         Expanded(
           child: DropdownButtonFormField<String>(
+            key: Key('category_${state.article.categoryId}'),
             initialValue: state.article.categoryId.isEmpty
                 ? null
                 : state.article.categoryId,
             decoration: InputDecoration(labelText: l10n.category),
-            items: state.categories.map((category) {
-              return DropdownMenuItem(
-                value: category.id,
-                child: Text(category.name),
-              );
+            // Use toSet() to remove duplicates before mapping
+            items: state.categories.toSet().map((category) {
+              return DropdownMenuItem<String>(
+                  value: category.id,
+                  child: Text(
+                    category.name,
+                    overflow: TextOverflow.ellipsis,
+                  ));
             }).toList(),
             onChanged: (value) {
               if (value != null) {
@@ -334,15 +564,19 @@ class _ArticleEditViewState extends State<ArticleEditView> {
         const SizedBox(width: 16),
         Expanded(
           child: DropdownButtonFormField<String>(
+            key: Key('subcategory_${state.article.subcategoryId}'),
             initialValue: state.article.subcategoryId.isEmpty
                 ? null
                 : state.article.subcategoryId,
             decoration: InputDecoration(labelText: l10n.subcategory),
-            items: state.subcategories.map((subcategory) {
-              return DropdownMenuItem(
-                value: subcategory.id,
-                child: Text(subcategory.name),
-              );
+            // Use toSet() to remove duplicates before mapping
+            items: state.subcategories.toSet().map((subcategory) {
+              return DropdownMenuItem<String>(
+                  value: subcategory.id,
+                  child: Text(
+                    subcategory.name,
+                    overflow: TextOverflow.ellipsis,
+                  ));
             }).toList(),
             onChanged: (value) {
               if (value != null) {
@@ -357,7 +591,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     );
   }
 
-  Widget _buildStatusDropdown(
+  Widget buildStatusDropdown(
       BuildContext context, ArticleEditLoaded state, AppLocalizations l10n) {
     return DropdownButtonFormField<ArticleStatus>(
       initialValue: state.status,
@@ -394,7 +628,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     );
   }
 
-  Widget _buildDatePickers(
+  Widget buildDatePickers(
       BuildContext context, ArticleEditLoaded state, AppLocalizations l10n) {
     return Column(
       children: [
@@ -434,13 +668,13 @@ class _ArticleEditViewState extends State<ArticleEditView> {
 
 class _CoverImagePicker extends StatelessWidget {
   final String currentCoverUrl;
-  final File? newImageFile;
-  final Function(File) onImageSelected;
+  final Uint8List? newImageBytes;
+  final Function(Uint8List) onImageSelected;
   final VoidCallback onImageCleared;
 
   const _CoverImagePicker({
     required this.currentCoverUrl,
-    this.newImageFile,
+    this.newImageBytes,
     required this.onImageSelected,
     required this.onImageCleared,
   });
@@ -451,18 +685,21 @@ class _CoverImagePicker extends StatelessWidget {
     final imagePickerService = ImagePickerService();
 
     ImageProvider? imageProvider;
-    if (newImageFile != null) {
+    if (newImageBytes != null) {
       // Prioritize newly selected image
-      imageProvider = FileImage(newImageFile!);
+      imageProvider = MemoryImage(newImageBytes!);
     } else if (currentCoverUrl.isNotEmpty) {
       imageProvider = CachedNetworkImageProvider(currentCoverUrl);
     }
 
     return GestureDetector(
       onTap: () async {
-        final path = await imagePickerService.pickImage(context);
-        if (path != null) {
-          onImageSelected(File(path));
+        final bytes = await imagePickerService.pickImage(context);
+        // After an async gap, check if the widget is still in the tree.
+        if (!context.mounted) return;
+
+        if (bytes != null) {
+          onImageSelected(bytes);
         }
       },
       child: AspectRatio(
@@ -528,14 +765,14 @@ class _DatePickerField extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext anContext) {
+  Widget build(BuildContext context) {
     final controller = TextEditingController(
       text: selectedDate != null
-          ? DateFormat.yMd(AppLocalizations.of(anContext)!.localeName)
+          ? DateFormat.yMd(AppLocalizations.of(context)!.localeName)
               .format(selectedDate!)
           : '',
     );
-    final l10n = AppLocalizations.of(anContext)!;
+    final l10n = AppLocalizations.of(context)!;
 
     return TextFormField(
       controller: controller,
@@ -559,12 +796,18 @@ class _DatePickerField extends StatelessWidget {
       ),
       onTap: () async {
         final now = DateTime.now();
+        // The context is captured before the async call.
+        if (!context.mounted) return;
+
         final pickedDate = await showDatePicker(
-          context: anContext,
+          context: context,
           initialDate: selectedDate ?? now,
-          firstDate: now,
+          firstDate: DateTime(now.year - 5),
           lastDate: DateTime(now.year + 5),
         );
+        // After the async gap, we don't use the context, so this is safe.
+        // A mounted check is good practice if we were to use context here.
+
         if (pickedDate != null) {
           onDateSelected(pickedDate);
         }
@@ -686,11 +929,40 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
   }
 
   Future<void> _pickImage() async {
-    final path = await _imagePickerService.pickImage(context);
-    if (path != null) {
-      context
-          .read<ArticleEditBloc>()
-          .add(UpdateSectionImage(widget.section.id, File(path)));
+    final bytes = await _imagePickerService.pickImage(context);
+    // After an async gap, check if the widget is still in the tree
+    if (!mounted) return;
+
+    if (bytes != null) {
+      if (!mounted) return;
+      context.read<ArticleEditBloc>().add(
+            UpdateSectionImage(widget.section.id, bytes),
+          );
+    }
+  }
+
+  Future<void> _confirmRemoveSection() async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.removeSection),
+        content: Text(l10n.removeSectionConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      widget.onRemove();
     }
   }
 
@@ -714,7 +986,7 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
                     IconButton(
                         onPressed: _pickImage, icon: const Icon(Icons.image)),
                     IconButton(
-                        onPressed: widget.onRemove,
+                        onPressed: _confirmRemoveSection,
                         icon: const Icon(Icons.delete, color: Colors.red)),
                     ReorderableDragStartListener(
                       index: widget.index,
@@ -725,15 +997,14 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
               ],
             ),
             const SizedBox(height: 8),
-            if (widget.section.imageUrl != null &&
-                widget.section.imageUrl!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: CachedNetworkImage(
-                    imageUrl: widget.section.imageUrl!,
-                    height: 150,
-                    fit: BoxFit.cover),
-              ),
+            BlocBuilder<ArticleEditBloc, ArticleEditState>(
+              builder: (context, state) {
+                if (state is ArticleEditLoaded) {
+                  return buildSectionImage(context, state, widget.section);
+                }
+                return const SizedBox.shrink();
+              },
+            ),
             quill.QuillSimpleToolbar(controller: _quillController),
             Container(
               height: 150,
@@ -750,6 +1021,38 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget buildSectionImage(
+      BuildContext context, ArticleEditLoaded state, ArticleSection section) {
+    final imageBytes = state.newSectionImageBytes[section.id];
+    final imageUrl = section.imageUrl;
+    final isNetworkImage = imageUrl != null &&
+        (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: imageBytes != null
+            ? Image.memory(
+                imageBytes,
+                height: 150,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              )
+            : isNetworkImage
+                ? CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
+                  )
+                : const SizedBox.shrink(),
       ),
     );
   }

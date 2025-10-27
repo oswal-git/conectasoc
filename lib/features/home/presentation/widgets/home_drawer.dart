@@ -76,6 +76,16 @@ class HomeDrawer extends StatelessWidget {
                           );
                         }),
                 ],
+                // Opción de Configuración solo para superadmin
+                if (state.user.isSuperAdmin &&
+                    state.currentMembership?.role == 'superadmin')
+                  _buildDrawerItem(
+                    context: context,
+                    icon: Icons.settings_outlined,
+                    text: AppLocalizations.of(context)!.configuration,
+                    onTap: () => GoRouter.of(context)
+                        .push('${RouteNames.home}/${RouteNames.settings}'),
+                  ),
               ],
               if (state is AuthAuthenticated)
                 _buildDrawerItem(

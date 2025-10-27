@@ -483,4 +483,38 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get section => 'Secció';
+
+  @override
+  String get titleCharLimitExceeded =>
+      'El títol no pot excedir els 100 caràcters.';
+
+  @override
+  String get abstractCharLimitExceeded =>
+      'El resum no pot excedir els 200 caràcters.';
+
+  @override
+  String get removeSectionConfirmation =>
+      'Estàs segur que vols eliminar aquesta secció? Aquesta acció no es pot desfer.';
+
+  @override
+  String get previewMode => 'Previsualitzar';
+
+  @override
+  String get edit => 'Editar';
+
+  @override
+  String get draftFoundTitle => 'Esborrany Trobat';
+
+  @override
+  String get draftFoundMessage =>
+      'Hem trobat un esborrany sense desar. Vols restaurar-lo?';
+
+  @override
+  String get discard => 'Descartar';
+
+  @override
+  String get restore => 'Restaurar';
+
+  @override
+  String get configuration => 'Configuració';
 }

@@ -1,4 +1,5 @@
 import 'package:conectasoc/core/errors/failures.dart';
+import 'dart:typed_data';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/associations/domain/repositories/association_repository.dart';
 import 'package:dartz/dartz.dart';
@@ -16,6 +17,7 @@ class CreateAssociationUseCase {
     required String phone,
     String? creatorId,
     String? contactUserId,
+    Uint8List? logoBytes,
   }) async {
     return await repository.createAssociation(
       shortName: shortName,
@@ -25,6 +27,7 @@ class CreateAssociationUseCase {
       phone: phone,
       creatorId: creatorId,
       contactUserId: contactUserId,
+      logoBytes: logoBytes,
     );
   }
 }

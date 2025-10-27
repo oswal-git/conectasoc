@@ -116,6 +116,11 @@ class AppRouter {
               return ArticleDetailPage(articleId: articleId);
             },
           ),
+          GoRoute(
+            path: 'settings',
+            name: RouteNames.settings,
+            builder: (context, state) => const SettingsPage(),
+          ),
         ],
       ),
     ],

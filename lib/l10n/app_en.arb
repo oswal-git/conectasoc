@@ -238,5 +238,15 @@
     "expirationDateInvalid": "Expiration date must be on or after publication date.",
     "sectionContentRequired": "Each section must have content or an image.",
     "readMode": "Read Mode",
-    "section": "Section"
+    "section": "Section",
+    "titleCharLimitExceeded": "Title cannot exceed 100 characters.",
+    "abstractCharLimitExceeded": "Abstract cannot exceed 200 characters.",
+    "removeSectionConfirmation": "Are you sure you want to delete this section? This action cannot be undone.",
+    "previewMode": "Preview",
+    "edit": "Edit",
+    "draftFoundTitle": "Draft Found",
+    "draftFoundMessage": "We found an unsaved draft. Do you want to restore it?",
+    "discard": "Discard",
+    "restore": "Restore",
+    "configuration": "Configuration"
 }

@@ -6,7 +6,6 @@ import 'package:conectasoc/core/services/translation_service.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
-import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
 
@@ -133,24 +132,35 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
   }
 
-  void _onToggleEditMode(ToggleEditMode event, Emitter<HomeState> emit) {
+  Future<void> _onToggleEditMode(
+      ToggleEditMode event, Emitter<HomeState> emit) async {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
       final newEditMode = !currentState.isEditMode;
 
-      // Recargamos los datos para aplicar la lógica de traducción correcta
-      final authState = authBloc.state;
-      UserEntity? user;
-      MembershipEntity? membership;
+      List<ArticleEntity> articlesToDisplay;
 
-      if (authState is AuthAuthenticated) {
-        user = authState.user;
-        membership = authState.currentMembership;
+      final authState = authBloc.state;
+      if (newEditMode) {
+        // Al entrar en modo edición, mostramos los artículos originales.
+        articlesToDisplay = _originalArticles;
+      } else {
+        // Al salir del modo edición, traducimos los artículos si es necesario.
+        String targetLang = 'es'; // Idioma por defecto
+        if (authState is AuthAuthenticated) {
+          targetLang = authState.user.language;
+        }
+        articlesToDisplay = await Future.wait(_originalArticles.map((article) =>
+            translationService.translateArticle(article, targetLang)));
       }
 
-      // Emitimos el nuevo estado de edición y luego disparamos la recarga de datos
-      emit(currentState.copyWith(isEditMode: newEditMode));
-      add(LoadHomeData(user: user, membership: membership));
+      // Aplicamos los filtros existentes a la nueva lista de artículos.
+      final newState = currentState.copyWith(
+        isEditMode: newEditMode,
+        allArticles: articlesToDisplay, // Actualizamos la lista base
+      );
+
+      _applyFilters(emit, newState);
     }
   }
 
@@ -210,7 +220,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   // Helper method to apply all active filters
   void _applyFilters(Emitter<HomeState> emit, HomeLoaded currentState) {
-    List<ArticleEntity> filtered = currentState.allArticles;
+    List<ArticleEntity> filtered = List.from(currentState.allArticles);
 
     // Apply search term filter
     if (currentState.searchTerm.isNotEmpty) {

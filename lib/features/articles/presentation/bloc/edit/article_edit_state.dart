@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
@@ -21,18 +21,26 @@ class ArticleEditLoaded extends ArticleEditState {
   final bool isCreating;
   final bool isSaving;
   final String? Function()? errorMessage;
-  final File? newCoverImageFile; // New field for cover image
+  final Uint8List? newCoverImageBytes;
   final ArticleStatus status; // New field for article status
+  final Map<String, Uint8List> newSectionImageBytes;
+  final bool isPreviewMode;
+  final int titleCharCount;
+  final int abstractCharCount;
 
   const ArticleEditLoaded({
     required this.article,
     required this.categories,
     required this.subcategories,
+    this.newSectionImageBytes = const {},
     this.isCreating = false,
     this.isSaving = false,
     this.errorMessage,
-    this.newCoverImageFile,
+    this.newCoverImageBytes,
     this.status = ArticleStatus.redaccion, // Default status
+    this.isPreviewMode = false,
+    this.titleCharCount = 0,
+    this.abstractCharCount = 0,
   });
 
   ArticleEditLoaded copyWith({
@@ -42,8 +50,12 @@ class ArticleEditLoaded extends ArticleEditState {
     bool? isCreating,
     bool? isSaving,
     String? Function()? errorMessage,
-    File? newCoverImageFile,
+    Uint8List? newCoverImageBytes,
     ArticleStatus? status,
+    Map<String, Uint8List>? newSectionImageBytes,
+    bool? isPreviewMode,
+    int? titleCharCount,
+    int? abstractCharCount,
   }) {
     return ArticleEditLoaded(
       article: article ?? this.article,
@@ -52,15 +64,45 @@ class ArticleEditLoaded extends ArticleEditState {
       isCreating: isCreating ?? this.isCreating,
       isSaving: isSaving ?? this.isSaving,
       errorMessage: errorMessage,
-      newCoverImageFile: newCoverImageFile ?? this.newCoverImageFile,
+      newCoverImageBytes: newCoverImageBytes ?? this.newCoverImageBytes,
       status: status ?? this.status,
+      newSectionImageBytes: newSectionImageBytes ?? this.newSectionImageBytes,
+      isPreviewMode: isPreviewMode ?? this.isPreviewMode,
+      titleCharCount: titleCharCount ?? this.titleCharCount,
+      abstractCharCount: abstractCharCount ?? this.abstractCharCount,
     );
   }
 
   @override
   List<Object?> get props => [
-        article, categories, subcategories, isCreating, isSaving, errorMessage,
-        newCoverImageFile, status, // Include new fields in props
+        article,
+        categories,
+        subcategories,
+        isCreating,
+        isSaving,
+        errorMessage,
+        newCoverImageBytes,
+        status,
+        newSectionImageBytes,
+        isPreviewMode,
+        titleCharCount,
+        abstractCharCount,
+      ];
+}
+
+class ArticleEditDraftFound extends ArticleEditState {
+  final ArticleEntity originalArticle;
+  final ArticleEntity draftArticle;
+
+  const ArticleEditDraftFound({
+    required this.originalArticle,
+    required this.draftArticle,
+  });
+
+  @override
+  List<Object?> get props => [
+        originalArticle,
+        draftArticle,
       ];
 }
 

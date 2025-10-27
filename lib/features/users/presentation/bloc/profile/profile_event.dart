@@ -1,5 +1,7 @@
 // lib/features/users/presentation/bloc/profile/profile_event.dart
 
+import 'dart:typed_data';
+
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -49,17 +51,17 @@ class ProfileLanguageChanged extends ProfileEvent {
   List<Object> get props => [language];
 }
 
-class ProfileImageChanged extends ProfileEvent {
-  const ProfileImageChanged(this.imagePath);
-  final String imagePath;
-
-  @override
-  List<Object> get props => [imagePath];
-}
-
 class SaveProfileChanges extends ProfileEvent {
   final AuthBloc authBloc;
   const SaveProfileChanges(this.authBloc);
   @override
   List<Object> get props => [authBloc];
+}
+
+class ProfileImageChanged extends ProfileEvent {
+  final Uint8List imageBytes;
+  const ProfileImageChanged(this.imageBytes);
+
+  @override
+  List<Object?> get props => [imageBytes];
 }

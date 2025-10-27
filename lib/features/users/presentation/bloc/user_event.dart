@@ -19,3 +19,5 @@ class JoinAssociationRequested extends UserEvent {
   @override
   List<Object> get props => [userId, associationId];
 }
+
+class LoadAvailableAssociations extends UserEvent {}

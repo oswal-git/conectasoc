@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:conectasoc/features/articles/domain/entities/article_entity.dart';
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 
 // Hereda de ArticleEntity para reutilizar la lógica de negocio y la igualdad.
 class ArticleModel extends ArticleEntity {
@@ -123,6 +123,38 @@ class ArticleModel extends ArticleEntity {
               .where((s) => s.isNotEmpty)
               .toSet() // Elimina duplicados
               .toList(),
+    };
+  }
+
+  // Added for consistency with fromJson in ArticleEntity, useful for local storage
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'abstractContent': abstractContent,
+      'coverUrl': coverUrl,
+      'categoryId': categoryId,
+      'subcategoryId': subcategoryId,
+      'publishDate': publishDate.toIso8601String(),
+      'effectiveDate': effectiveDate.toIso8601String(),
+      'expirationDate': expirationDate?.toIso8601String(),
+      'status': status.value,
+      'sections': sections
+          .map((s) => {
+                'id': s.id,
+                'imageUrl': s.imageUrl,
+                'richTextContent': s.richTextContent,
+                'order': s.order,
+              })
+          .toList(),
+      'userId': userId,
+      'assocId': assocId,
+      'authorName': authorName,
+      'authorAvatarUrl': authorAvatarUrl,
+      'associationShortName': associationShortName,
+      'originalLanguage': originalLanguage,
+      'createdAt': createdAt.toIso8601String(),
+      'modifiedAt': modifiedAt.toIso8601String(),
     };
   }
 }

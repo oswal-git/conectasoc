@@ -485,4 +485,38 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get section => 'Sección';
+
+  @override
+  String get titleCharLimitExceeded =>
+      'El título no puede exceder los 100 caracteres.';
+
+  @override
+  String get abstractCharLimitExceeded =>
+      'El resumen no puede exceder los 200 caracteres.';
+
+  @override
+  String get removeSectionConfirmation =>
+      '¿Estás seguro de que quieres eliminar esta sección? Esta acción no se puede deshacer.';
+
+  @override
+  String get previewMode => 'Previsualizar';
+
+  @override
+  String get edit => 'Editar';
+
+  @override
+  String get draftFoundTitle => 'Borrador encontrado';
+
+  @override
+  String get draftFoundMessage =>
+      'Hemos encontrado un borrador sin guardar. ¿Deseas restaurarlo?';
+
+  @override
+  String get discard => 'Descartar';
+
+  @override
+  String get restore => 'Restaurar';
+
+  @override
+  String get configuration => 'Configuración';
 }

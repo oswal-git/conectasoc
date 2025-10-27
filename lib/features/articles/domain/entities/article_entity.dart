@@ -1,3 +1,4 @@
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 enum ArticleStatus {
@@ -116,6 +117,35 @@ class ArticleEntity extends Equatable {
     );
   }
 
+  factory ArticleEntity.fromJson(Map<String, dynamic> json) {
+    return ArticleEntity(
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      abstractContent: json['abstractContent'] ?? '',
+      coverUrl: json['coverUrl'] ?? '',
+      categoryId: json['categoryId'] ?? '',
+      subcategoryId: json['subcategoryId'] ?? '',
+      publishDate: DateTime.parse(json['publishDate']),
+      effectiveDate: DateTime.parse(json['effectiveDate']),
+      expirationDate: json['expirationDate'] != null
+          ? DateTime.parse(json['expirationDate'])
+          : null,
+      status: ArticleStatusExtension.fromValue(json['status'] ?? 'redaccion'),
+      sections: (json['sections'] as List<dynamic>?)
+              ?.map((s) => ArticleSection.fromJson(s))
+              .toList() ??
+          [],
+      userId: json['userId'] ?? '',
+      assocId: json['assocId'] ?? '',
+      authorName: json['authorName'] ?? '',
+      authorAvatarUrl: json['authorAvatarUrl'],
+      associationShortName: json['associationShortName'] ?? '',
+      originalLanguage: json['originalLanguage'] ?? 'es',
+      createdAt: DateTime.parse(json['createdAt']),
+      modifiedAt: DateTime.parse(json['modifiedAt']),
+    );
+  }
+
   ArticleEntity copyWith({
     String? id,
     String? title,
@@ -159,60 +189,4 @@ class ArticleEntity extends Equatable {
       modifiedAt: modifiedAt ?? this.modifiedAt,
     );
   }
-}
-
-class CategoryEntity extends Equatable {
-  final String id;
-  final String name;
-  final int order;
-
-  const CategoryEntity(
-      {required this.id, required this.name, required this.order});
-
-  @override
-  List<Object?> get props => [id, name, order];
-}
-
-class ArticleSection extends Equatable {
-  final String id;
-  final String? imageUrl;
-  final String? richTextContent; // flutter_quill Delta JSON
-  final int order;
-
-  const ArticleSection({
-    required this.id,
-    this.imageUrl,
-    this.richTextContent,
-    required this.order,
-  });
-
-  @override
-  List<Object?> get props => [id, imageUrl, richTextContent, order];
-
-  ArticleSection copyWith({
-    String? id,
-    String? imageUrl,
-    String? richTextContent,
-    int? order,
-  }) {
-    return ArticleSection(
-      id: id ?? this.id,
-      imageUrl: imageUrl ?? this.imageUrl,
-      richTextContent: richTextContent ?? this.richTextContent,
-      order: order ?? this.order,
-    );
-  }
-}
-
-class SubcategoryEntity extends CategoryEntity {
-  final String categoryId;
-
-  const SubcategoryEntity(
-      {required super.id,
-      required super.name,
-      required super.order,
-      required this.categoryId});
-
-  @override
-  List<Object?> get props => [id, name, order, categoryId];
 }

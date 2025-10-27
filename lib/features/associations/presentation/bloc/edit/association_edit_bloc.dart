@@ -1,13 +1,12 @@
-import 'dart:io';
+import 'package:dartz/dartz.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:conectasoc/core/errors/errors.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/edit/association_edit_event.dart';
-import 'package:conectasoc/features/users/domain/usecases/get_users_by_association_usecase.dart';
-import 'package:dartz/dartz.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/edit/association_edit_state.dart';
+import 'package:conectasoc/features/users/domain/usecases/get_users_by_association_usecase.dart';
 
 class AssociationEditBloc
     extends Bloc<AssociationEditEvent, AssociationEditState> {
@@ -145,7 +144,7 @@ class AssociationEditBloc
   void _onLogoChanged(LogoChanged event, Emitter<AssociationEditState> emit) {
     if (state is AssociationEditLoaded) {
       emit((state as AssociationEditLoaded)
-          .copyWith(newImagePath: event.imagePath));
+          .copyWith(newImageBytes: event.imageBytes));
     }
   }
 
@@ -157,9 +156,7 @@ class AssociationEditBloc
 
       final result = await updateAssociation(
         association: currentState.association,
-        newLogoFile: currentState.newImagePath != null
-            ? File(currentState.newImagePath!)
-            : null,
+        logoBytes: currentState.newImageBytes,
       );
 
       result.fold(
@@ -173,7 +170,7 @@ class AssociationEditBloc
           emit(currentState.copyWith(
               isSaving: false,
               association: updatedAssociation,
-              newImagePath: null));
+              newImageBytes: null));
         },
       );
     }
@@ -194,6 +191,7 @@ class AssociationEditBloc
         // El creatorId es nulo cuando crea un superadmin.
         // El contactUserId se toma del estado actual.
         contactUserId: currentState.association.contactUserId,
+        logoBytes: currentState.newImageBytes,
       );
 
       result.fold(

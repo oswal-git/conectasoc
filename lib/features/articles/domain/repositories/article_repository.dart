@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:dartz/dartz.dart' hide Tuple2;
@@ -25,7 +25,10 @@ abstract class ArticleRepository {
       String categoryId);
 
   Future<Either<Failure, ArticleEntity>> createArticle(
-      ArticleEntity article, File coverImageFile);
+    ArticleEntity article,
+    Uint8List coverImageBytes, {
+    Map<String, Uint8List> sectionImageBytes,
+  });
 
   Future<Either<Failure, void>> deleteArticle(
     String articleId, {
@@ -35,6 +38,8 @@ abstract class ArticleRepository {
 
   Future<Either<Failure, ArticleEntity>> getArticleById(String articleId);
 
-  Future<Either<Failure, ArticleEntity>> updateArticle(ArticleEntity article,
-      {File? coverImageFile});
+  Future<Either<Failure, ArticleEntity>> updateArticle(
+    ArticleEntity article, {
+    Uint8List? newCoverImageBytes,
+  });
 }

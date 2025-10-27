@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
 
@@ -13,7 +13,7 @@ class UpdateAssociationUseCase {
 
   Future<Either<Failure, AssociationEntity>> call({
     required AssociationEntity association,
-    File? newLogoFile,
+    Uint8List? logoBytes,
   }) async {
     // Validaciones
     if (association.shortName.isEmpty || association.longName.isEmpty) {
@@ -26,7 +26,7 @@ class UpdateAssociationUseCase {
 
     return await repository.updateAssociation(
       association: association,
-      newLogoFile: newLogoFile,
+      logoBytes: logoBytes,
     );
   }
 

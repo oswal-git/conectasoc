@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:conectasoc/core/constants/cloudinary_config.dart';
 import 'package:conectasoc/services/cloudinary_service.dart';
 import 'package:dartz/dartz.dart';
@@ -51,12 +51,12 @@ class AssociationRepositoryImpl implements AssociationRepository {
   @override
   Future<Either<Failure, AssociationEntity>> updateAssociation({
     required AssociationEntity association,
-    File? newLogoFile,
+    Uint8List? logoBytes,
   }) async {
     try {
       // Gestionar la subida y borrado del logo
-      final logoResult =
-          await _handleLogoUpdate(newLogoFile, association.logoUrl);
+      final logoResult = await _handleLogoUpdate(
+          logoBytes, association.logoUrl, association.shortName);
       final newLogoUrl = logoResult.getOrElse(() => null);
 
       final associationModel = AssociationModel.fromEntity(association);
@@ -77,8 +77,8 @@ class AssociationRepositoryImpl implements AssociationRepository {
   /// Método privado para manejar la lógica de actualización del logo.
   /// Devuelve la nueva URL del logo si la subida es exitosa.
   Future<Either<Failure, String?>> _handleLogoUpdate(
-      File? newLogoFile, String? currentLogoUrl) async {
-    if (newLogoFile == null) {
+      Uint8List? newLogoBytes, String? currentLogoUrl, String shortName) async {
+    if (newLogoBytes == null) {
       return const Right(null); // No hay cambios en el logo
     }
 
@@ -87,9 +87,10 @@ class AssociationRepositoryImpl implements AssociationRepository {
       oldPublicId = CloudinaryService.getPublicIdFromUrl(currentLogoUrl);
     }
 
-    final uploadResult = await CloudinaryService.uploadImage(
-      imageFile: newLogoFile,
+    final uploadResult = await CloudinaryService.uploadImageBytes(
+      imageBytes: newLogoBytes,
       imageType: CloudinaryImageType.logoAssociation,
+      filename: shortName,
     );
 
     if (!uploadResult.success) {
@@ -116,8 +117,24 @@ class AssociationRepositoryImpl implements AssociationRepository {
     required String phone,
     String? creatorId,
     String? contactUserId,
+    Uint8List? logoBytes,
   }) async {
     try {
+      String? logoUrl;
+      if (logoBytes != null) {
+        final uploadResult = await CloudinaryService.uploadImageBytes(
+          imageBytes: logoBytes,
+          imageType: CloudinaryImageType.logoAssociation,
+          filename: shortName, // Use shortName for a somewhat unique filename
+        );
+        if (uploadResult.success) {
+          logoUrl = uploadResult.secureUrl;
+        } else {
+          return Left(ServerFailure(
+              uploadResult.error ?? 'Error al subir el logo de la asociación'));
+        }
+      }
+
       final createdModel = await remoteDataSource.createAssociation(
         shortName: shortName,
         longName: longName,
@@ -126,6 +143,7 @@ class AssociationRepositoryImpl implements AssociationRepository {
         phone: phone,
         creatorId: creatorId,
         contactUserId: contactUserId,
+        logoUrl: logoUrl,
       );
       return Right(createdModel.toEntity());
     } on ServerException catch (e) {

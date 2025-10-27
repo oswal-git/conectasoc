@@ -238,5 +238,15 @@
     "expirationDateInvalid": "La data de caducitat ha de ser igual o posterior a la de publicació.",
     "sectionContentRequired": "Cada secció ha de tenir contingut o una imatge.",
     "readMode": "Mode Lectura",
-    "section": "Secció"
+    "section": "Secció",
+    "titleCharLimitExceeded": "El títol no pot excedir els 100 caràcters.",
+    "abstractCharLimitExceeded": "El resum no pot excedir els 200 caràcters.",
+    "removeSectionConfirmation": "Estàs segur que vols eliminar aquesta secció? Aquesta acció no es pot desfer.",
+    "previewMode": "Previsualitzar",
+    "edit": "Editar",
+    "draftFoundTitle": "Esborrany Trobat",
+    "draftFoundMessage": "Hem trobat un esborrany sense desar. Vols restaurar-lo?",
+    "discard": "Descartar",
+    "restore": "Restaurar",
+    "configuration": "Configuració"
 }

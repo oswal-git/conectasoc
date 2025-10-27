@@ -47,8 +47,13 @@ class ArticleBloc extends Bloc<ArticleEvent, ArticleState> {
     );
     result.fold(
       (failure) => emit(ArticleError(failure.message)),
-      (articles) =>
-          emit(ArticleLoaded(articles: articles, filter: event.filter)),
+      (articlesData) {
+        final articles = articlesData.item1;
+        // hasMore could be used for pagination in this BLoC if needed in the future.
+        final hasMore = articles.length == 20;
+        emit(ArticleLoaded(
+            articles: articles, filter: event.filter, hasMore: hasMore));
+      },
     );
   }
 

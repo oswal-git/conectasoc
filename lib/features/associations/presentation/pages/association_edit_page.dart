@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -148,9 +148,9 @@ class _AssociationEditViewState extends State<AssociationEditView> {
         children: [
           _LogoPicker(
             logoUrl: state.association.logoUrl,
-            newImagePath: state.newImagePath,
-            onImageSelected: (path) {
-              context.read<AssociationEditBloc>().add(LogoChanged(path));
+            newImageBytes: state.newImageBytes,
+            onImageSelected: (bytes) {
+              context.read<AssociationEditBloc>().add(LogoChanged(bytes));
             },
           ),
           const SizedBox(height: 24),
@@ -302,12 +302,12 @@ class _AssociationEditViewState extends State<AssociationEditView> {
 
 class _LogoPicker extends StatelessWidget {
   final String? logoUrl;
-  final String? newImagePath;
-  final Function(String) onImageSelected;
+  final Uint8List? newImageBytes;
+  final Function(Uint8List) onImageSelected;
 
   const _LogoPicker({
     this.logoUrl,
-    this.newImagePath,
+    this.newImageBytes,
     required this.onImageSelected,
   });
 
@@ -316,8 +316,8 @@ class _LogoPicker extends StatelessWidget {
     final imagePickerService = ImagePickerService();
 
     ImageProvider? backgroundImage;
-    if (newImagePath != null) {
-      backgroundImage = FileImage(File(newImagePath!));
+    if (newImageBytes != null) {
+      backgroundImage = MemoryImage(newImageBytes!);
     } else if (logoUrl != null && logoUrl!.isNotEmpty) {
       backgroundImage = CachedNetworkImageProvider(logoUrl!);
     }
@@ -338,9 +338,9 @@ class _LogoPicker extends StatelessWidget {
             right: 0,
             child: GestureDetector(
               onTap: () async {
-                final path = await imagePickerService.pickImage(context);
-                if (path != null) {
-                  onImageSelected(path);
+                final imageBytes = await imagePickerService.pickImage(context);
+                if (imageBytes != null) {
+                  onImageSelected(imageBytes);
                 }
               },
               child: CircleAvatar(

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 
 abstract class AssociationEditEvent extends Equatable {
@@ -46,8 +47,8 @@ class ContactPersonChanged extends AssociationEditEvent {
 }
 
 class LogoChanged extends AssociationEditEvent {
-  final String imagePath;
-  const LogoChanged(this.imagePath);
+  final Uint8List? imageBytes;
+  const LogoChanged(this.imageBytes);
 }
 
 class LoadAssociationUsers extends AssociationEditEvent {

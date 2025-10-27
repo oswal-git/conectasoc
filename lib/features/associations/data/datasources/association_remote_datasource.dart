@@ -15,6 +15,7 @@ abstract class AssociationRemoteDataSource {
     required String phone,
     String? creatorId,
     String? contactUserId,
+    String? logoUrl,
   });
   Future<void> deleteAssociation(String associationId);
   Future<void> undoDeleteAssociation(String associationId);
@@ -93,6 +94,7 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
     required String phone,
     String? creatorId,
     String? contactUserId,
+    String? logoUrl,
   }) async {
     try {
       // Verificar que no exista una con el mismo nombre corto
@@ -118,7 +120,7 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
         contactName: contactName,
         contactUserId: contactUserId,
         phone: phone,
-        logoUrl: '', // Logo vacío por defecto
+        logoUrl: logoUrl ?? '', // Use provided logoUrl or default to empty
         dateCreated: now, // Se sobrescribirá por el timestamp del servidor
         dateUpdated: now, // Se sobrescribirá por el timestamp del servidor
         dateDeleted: null, // Asegurar que el campo existe para las consultas

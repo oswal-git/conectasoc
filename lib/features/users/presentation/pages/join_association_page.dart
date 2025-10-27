@@ -1,7 +1,5 @@
 // lib/features/users/presentation/pages/join_association_page.dart
 
-import 'package:conectasoc/features/associations/domain/entities/entities.dart';
-import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -16,7 +14,9 @@ class JoinAssociationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return BlocProvider(
-      create: (context) => sl<UserBloc>(),
+      create: (context) => sl<UserBloc>(
+        param1: context.read<AuthBloc>(), // Pasamos el AuthBloc del contexto
+      )..add(LoadAvailableAssociations()),
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.joinAssociation),
@@ -27,101 +27,64 @@ class JoinAssociationPage extends StatelessWidget {
   }
 }
 
-class JoinAssociationView extends StatefulWidget {
+class JoinAssociationView extends StatelessWidget {
   const JoinAssociationView({super.key});
 
   @override
-  State<JoinAssociationView> createState() => _JoinAssociationViewState();
-}
-
-class _JoinAssociationViewState extends State<JoinAssociationView> {
-  List<AssociationEntity> _allAssociations = [];
-  List<AssociationEntity> _availableAssociations = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    if (!mounted) return;
-
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthAuthenticated) return;
-
-    final userMemberships = authState.user.memberships.keys.toSet();
-
-    final result = await sl<GetAllAssociationsUseCase>()();
-    result.fold(
-      (failure) {
-        // Handle error
-      },
-      (associations) {
-        setState(() {
-          _allAssociations = associations;
-          _availableAssociations = _allAssociations
-              .where((assoc) => !userMemberships.contains(assoc.id))
-              .toList();
-          _isLoading = false;
-        });
-      },
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_availableAssociations.isEmpty) {
-      return const Center(
-          child: Text('No hay nuevas asociaciones a las que unirse.'));
-    }
-
-    return BlocConsumer<UserBloc, UserState>(
-      listener: (context, state) {
-        if (state is UserError) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(
-                content: Text(state.message), backgroundColor: Colors.red));
-        }
-        if (state is UserUpdateSuccess) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(const SnackBar(
-                content: Text('¡Te has unido a la asociación!'),
-                backgroundColor: Colors.green));
-          Navigator.of(context).pop();
-        }
-      },
+    return BlocListener<UserBloc, UserState>(listener: (context, state) {
+      if (state is UserError) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+              content: Text(state.message), backgroundColor: Colors.red));
+      }
+      if (state is UserUpdateSuccess) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(
+              content: Text('¡Te has unido a la asociación!'),
+              backgroundColor: Colors.green));
+        Navigator.of(context).pop();
+      }
+    }, child: BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
-        final authState = context.read<AuthBloc>().state as AuthAuthenticated;
-        return ListView.builder(
-          itemCount: _availableAssociations.length,
-          itemBuilder: (context, index) {
-            final association = _availableAssociations[index];
-            return ListTile(
-              title: Text(association.longName),
-              subtitle: Text(association.shortName),
-              trailing: state is UserLoading
-                  ? const CircularProgressIndicator()
-                  : const Icon(Icons.add),
-              onTap: state is UserLoading
-                  ? null
-                  : () {
-                      context.read<UserBloc>().add(JoinAssociationRequested(
+        if (state is AvailableAssociationsLoading || state is UserInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (state is AvailableAssociationsLoaded) {
+          if (state.associations.isEmpty) {
+            return const Center(
+                child: Text('No hay nuevas asociaciones a las que unirse.'));
+          }
+
+          final authState = context.read<AuthBloc>().state as AuthAuthenticated;
+          final isJoining =
+              state is UserLoading; // Check if a join is in progress
+
+          return ListView.builder(
+            itemCount: state.associations.length,
+            itemBuilder: (context, index) {
+              final association = state.associations[index];
+              return ListTile(
+                title: Text(association.longName),
+                subtitle: Text(association.shortName),
+                trailing: isJoining
+                    ? const CircularProgressIndicator()
+                    : const Icon(Icons.add),
+                onTap: isJoining
+                    ? null
+                    : () => context.read<UserBloc>().add(
+                        JoinAssociationRequested(
                             userId: authState.user.uid,
-                            associationId: association.id,
-                          ));
-                    },
-            );
-          },
-        );
+                            associationId: association.id)),
+              );
+            },
+          );
+        }
+        return SizedBox.shrink();
       },
-    );
+    ));
   }
 }

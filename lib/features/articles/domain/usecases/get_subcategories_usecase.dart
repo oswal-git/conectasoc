@@ -1,5 +1,5 @@
 import 'package:conectasoc/core/errors/failures.dart';
-import 'package:conectasoc/features/articles/domain/entities/article_entity.dart';
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/domain/repositories/article_repository.dart';
 import 'package:dartz/dartz.dart';
 

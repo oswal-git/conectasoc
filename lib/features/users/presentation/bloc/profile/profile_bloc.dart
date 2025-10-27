@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/domain/repositories/users_repository.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
@@ -75,7 +73,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (state is ProfileLoaded) {
       // No actualizamos la URL aquí, solo guardamos la ruta local para la subida.
       final currentState = state as ProfileLoaded;
-      emit(currentState.copyWith(newImagePath: event.imagePath));
+      emit(currentState.copyWith(localImageBytes: event.imageBytes));
     }
   }
 
@@ -84,13 +82,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (state is ProfileLoaded) {
       final currentState = state as ProfileLoaded;
       emit(currentState.copyWith(
-          isSaving: true, newImagePath: currentState.newImagePath));
+          isSaving: true, localImageBytes: currentState.localImageBytes));
 
       final result = await _userRepository.updateUser(
         user: currentState.user,
-        newImageFile: currentState.newImagePath != null
-            ? File(currentState.newImagePath!)
-            : null,
+        newImageBytes: currentState.localImageBytes,
       );
 
       result.fold(
@@ -113,7 +109,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             // incluyendo la nueva URL de la imagen si se subió una.
             // También limpiamos el newImagePath local ya que la subida ha finalizado.
             emit(ProfileLoaded(
-                user: updatedUser, isSaving: false, newImagePath: null));
+                user: updatedUser, isSaving: false, localImageBytes: null));
           }
         },
       );

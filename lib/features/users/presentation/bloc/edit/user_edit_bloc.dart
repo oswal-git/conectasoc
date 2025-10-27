@@ -193,7 +193,8 @@ class UserEditBloc extends Bloc<UserEditEvent, UserEditState> {
         // Lógica de actualización
         final updatedUser = currentState.user
             .copyWith(configVersion: currentState.user.configVersion + 1);
-        final result = await updateUserUseCase(updatedUser);
+        final result =
+            await updateUserUseCase(user: updatedUser.toProfileEntity());
         emit(result.fold((failure) => UserEditFailure(failure.message),
             (_) => UserEditSuccess()));
       }

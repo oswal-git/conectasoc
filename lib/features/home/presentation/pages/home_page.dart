@@ -168,6 +168,8 @@ class _HomePageView extends StatelessWidget {
       BuildContext context, AuthAuthenticated authState, HomeState homeState) {
     if (homeState is! HomeLoaded) return;
 
+    if (!context.mounted) return;
+
     final authBloc = context.read<AuthBloc>();
     final l10n = AppLocalizations.of(context)!;
 
@@ -263,6 +265,8 @@ class _HomePageView extends StatelessWidget {
         // Si no se encuentra, se usa el nombre por defecto.
       }
     }
+
+    if (!context.mounted) return;
 
     showDialog(
       context: context,
