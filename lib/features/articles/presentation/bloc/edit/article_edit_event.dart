@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
-import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class ArticleEditEvent extends Equatable {
@@ -73,12 +72,7 @@ class PrepareArticleCreation extends ArticleEditEvent {}
 
 class SaveArticle extends ArticleEditEvent {
   // El archivo de la imagen de portada, si se ha seleccionado uno nuevo.
-  final AppLocalizations l10n;
-
-  const SaveArticle(this.l10n);
-
-  @override
-  List<Object?> get props => [l10n];
+  const SaveArticle();
 }
 
 class DeleteArticle extends ArticleEditEvent {

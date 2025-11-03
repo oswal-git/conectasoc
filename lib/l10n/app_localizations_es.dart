@@ -519,4 +519,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get configuration => 'Configuración';
+
+  @override
+  String get start => 'a partir de';
+
+  @override
+  String get toThe => 'al';
+
+  @override
+  String get from => 'del';
+
+  @override
+  String get effectivePublishDate => 'Fecha vigencia publicación';
 }

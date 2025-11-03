@@ -22,4 +22,12 @@ class CategoryEntity extends Equatable {
 
   @override
   List<Object?> get props => [id, name, order];
+
+  static CategoryEntity empty() {
+    return const CategoryEntity(
+      id: '',
+      name: '',
+      order: 0,
+    );
+  }
 }

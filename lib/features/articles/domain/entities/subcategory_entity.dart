@@ -26,4 +26,13 @@ class SubcategoryEntity extends CategoryEntity {
 
   @override
   List<Object?> get props => [id, name, order, categoryId];
+
+  static SubcategoryEntity empty() {
+    return const SubcategoryEntity(
+      id: '',
+      name: '',
+      order: 0,
+      categoryId: '',
+    );
+  }
 }

@@ -13,8 +13,14 @@ class UpdateArticleUseCase {
   Future<Either<Failure, ArticleEntity>> call(
     ArticleEntity article, {
     Uint8List? newCoverImageBytes,
+    Map<String, Uint8List>? newSectionImageBytes,
+    List<String>? imagesToDelete,
   }) async {
-    return repository.updateArticle(article,
-        newCoverImageBytes: newCoverImageBytes);
+    return repository.updateArticle(
+      article,
+      newCoverImageBytes: newCoverImageBytes,
+      newSectionImageBytes: newSectionImageBytes ?? const {},
+      imagesToDelete: imagesToDelete ?? const [],
+    );
   }
 }

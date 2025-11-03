@@ -100,15 +100,6 @@ class AppRouter {
             builder: (context, state) => const ArticleEditPage(),
           ),
           GoRoute(
-            path: 'articles/:id/edit',
-            name: RouteNames.articleEdit,
-            builder: (context, state) {
-              final id = state.pathParameters['id'];
-              // Podríamos añadir una comprobación de que el id no es nulo
-              return ArticleEditPage(articleId: id);
-            },
-          ),
-          GoRoute(
             name: RouteNames.articleDetail,
             path: '/articles/:articleId',
             builder: (context, state) {
@@ -122,6 +113,15 @@ class AppRouter {
             builder: (context, state) => const SettingsPage(),
           ),
         ],
+      ),
+      // Mover la ruta de edición fuera de /home para que `pushNamed` funcione como se espera.
+      GoRoute(
+        path: '/articles/:id/edit',
+        name: RouteNames.articleEdit,
+        builder: (context, state) {
+          final id = state.pathParameters['id'];
+          return ArticleEditPage(articleId: id);
+        },
       ),
     ],
     redirect: (BuildContext context, GoRouterState state) async {

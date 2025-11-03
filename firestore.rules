@@ -122,11 +122,17 @@ match /databases/{database}/documents {
 
       // Crear:
       // El usuario debe ser superadmin, admin o editor de la asociación que se está asignando.
+      // Y los datos del artículo deben ser válidos.
       allow create: if isSignedIn() && (
         isSuperAdmin() ||
         isAdmin(request.resource.data.assocId) ||
         isEditor(request.resource.data.assocId)
       );
+        isSuperAdmin() || // Superadmin puede saltarse la validación de datos
+        ((isAdmin(request.resource.data.assocId) || isEditor(request.resource.data.assocId)) &&
+         isValidArticleData(request.resource.data))
+      ) && request.resource.data.userId == request.auth.uid;
+
 
       // --- Validation Function for Article Data ---
       function isValidArticleData(data) {
@@ -155,10 +161,10 @@ match /databases/{database}/documents {
           data.originalLanguage is string &&
           data.createdAt is timestamp &&
           data.modifiedAt is timestamp &&
-          // Validate that publishDate is not in the past
-          data.publishDate >= request.time &&
-          // Validate that effectiveDate is not before publishDate
-          data.effectiveDate >= data.publishDate;
+          // La fecha de efecto debe ser igual o posterior a la de publicación
+          //data.effectiveDate >= data.publishDate && // Movido a la lógica del cliente
+          // La fecha de expiración (si existe) debe ser igual o posterior a la de efecto
+          (data.expirationDate == null || data.expirationDate >= data.effectiveDate); // Movido a la lógica del cliente
       }
 
       // Actualizar:
@@ -168,6 +174,7 @@ match /databases/{database}/documents {
       allow update: if isSignedIn() && (
         isSuperAdmin() || // Superadmin
         ((isAdmin(resource.data.assocId) || (isEditor(resource.data.assocId) && request.auth.uid == resource.data.userId)) && isValidArticleData(request.resource.data))
+        ((isAdmin(resource.data.assocId) || (isEditor(resource.data.assocId) && request.auth.uid == resource.data.userId)) && isValidArticleData(request.resource.data) && request.resource.data.userId == request.auth.uid)
       );
 
       // Eliminar:

@@ -248,5 +248,9 @@
     "draftFoundMessage": "Hem trobat un esborrany sense desar. Vols restaurar-lo?",
     "discard": "Descartar",
     "restore": "Restaurar",
-    "configuration": "Configuració"
+    "configuration": "Configuració",
+    "start": "a partir de",
+    "toThe": "al",
+    "from": "del",
+    "effectivePublishDate": "Data de vigència de la publicació"
 }

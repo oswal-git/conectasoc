@@ -517,4 +517,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get configuration => 'Configuration';
+
+  @override
+  String get start => 'from';
+
+  @override
+  String get toThe => 'to';
+
+  @override
+  String get from => 'from';
+
+  @override
+  String get effectivePublishDate => 'Effective date of publication';
 }

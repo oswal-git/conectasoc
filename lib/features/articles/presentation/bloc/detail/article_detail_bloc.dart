@@ -26,20 +26,26 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
   ) async {
     emit(ArticleDetailLoading());
     final result = await _getArticleByIdUseCase(event.articleId);
-    result.fold(
-      (failure) => emit(ArticleDetailError(failure.message)),
+
+    // Use a pattern that allows awaiting the async operations inside.
+    await result.fold(
+      (failure) async => emit(ArticleDetailError(failure.message)),
       (article) async {
-        final authState = _authBloc.state;
-        String targetLang = 'es'; // Default language
-        if (authState is AuthAuthenticated) {
-          targetLang = authState.user.language;
+        try {
+          final authState = _authBloc.state;
+          String targetLang = 'es'; // Default language
+          if (authState is AuthAuthenticated) {
+            targetLang = authState.user.language;
+          }
+
+          // Translate the article if the language differs
+          final finalArticle =
+              await _translationService.translateArticle(article, targetLang);
+
+          emit(ArticleDetailLoaded(finalArticle));
+        } catch (e) {
+          emit(ArticleDetailError('Error during translation: ${e.toString()}'));
         }
-
-        // Translate the article if the language differs
-        final finalArticle =
-            await _translationService.translateArticle(article, targetLang);
-
-        emit(ArticleDetailLoaded(finalArticle));
       },
     );
   }

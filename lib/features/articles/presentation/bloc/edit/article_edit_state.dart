@@ -24,9 +24,11 @@ class ArticleEditLoaded extends ArticleEditState {
   final Uint8List? newCoverImageBytes;
   final ArticleStatus status; // New field for article status
   final Map<String, Uint8List> newSectionImageBytes;
+  final bool isArticleValid;
   final bool isPreviewMode;
   final int titleCharCount;
   final int abstractCharCount;
+  final List<String> imagesToDelete; // Para rastrear imágenes a borrar
 
   const ArticleEditLoaded({
     required this.article,
@@ -39,8 +41,10 @@ class ArticleEditLoaded extends ArticleEditState {
     this.newCoverImageBytes,
     this.status = ArticleStatus.redaccion, // Default status
     this.isPreviewMode = false,
+    this.isArticleValid = false,
     this.titleCharCount = 0,
     this.abstractCharCount = 0,
+    this.imagesToDelete = const [],
   });
 
   ArticleEditLoaded copyWith({
@@ -53,9 +57,11 @@ class ArticleEditLoaded extends ArticleEditState {
     Uint8List? newCoverImageBytes,
     ArticleStatus? status,
     Map<String, Uint8List>? newSectionImageBytes,
+    bool? isArticleValid,
     bool? isPreviewMode,
     int? titleCharCount,
     int? abstractCharCount,
+    List<String>? imagesToDelete,
   }) {
     return ArticleEditLoaded(
       article: article ?? this.article,
@@ -67,9 +73,11 @@ class ArticleEditLoaded extends ArticleEditState {
       newCoverImageBytes: newCoverImageBytes ?? this.newCoverImageBytes,
       status: status ?? this.status,
       newSectionImageBytes: newSectionImageBytes ?? this.newSectionImageBytes,
+      isArticleValid: isArticleValid ?? this.isArticleValid,
       isPreviewMode: isPreviewMode ?? this.isPreviewMode,
       titleCharCount: titleCharCount ?? this.titleCharCount,
       abstractCharCount: abstractCharCount ?? this.abstractCharCount,
+      imagesToDelete: imagesToDelete ?? this.imagesToDelete,
     );
   }
 
@@ -84,9 +92,11 @@ class ArticleEditLoaded extends ArticleEditState {
         newCoverImageBytes,
         status,
         newSectionImageBytes,
+        isArticleValid,
         isPreviewMode,
         titleCharCount,
         abstractCharCount,
+        imagesToDelete,
       ];
 }
 
@@ -106,7 +116,14 @@ class ArticleEditDraftFound extends ArticleEditState {
       ];
 }
 
-class ArticleEditSuccess extends ArticleEditState {}
+class ArticleEditSuccess extends ArticleEditState {
+  final bool isCreating;
+
+  const ArticleEditSuccess({this.isCreating = false});
+
+  @override
+  List<Object?> get props => [isCreating];
+}
 
 class ArticleEditFailure extends ArticleEditState {
   final String message;

@@ -248,5 +248,9 @@
     "draftFoundMessage": "Hemos encontrado un borrador sin guardar. ¿Deseas restaurarlo?",
     "discard": "Descartar",
     "restore": "Restaurar",
-    "configuration": "Configuración"
+    "configuration": "Configuración",
+    "start": "a partir de",
+    "toThe": "al",
+    "from": "del",
+    "effectivePublishDate": "Fecha vigencia publicación"
 }

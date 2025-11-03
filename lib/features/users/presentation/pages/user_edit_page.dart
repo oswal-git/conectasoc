@@ -1,3 +1,4 @@
+import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -304,6 +305,8 @@ class _MembershipSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final currentUser =
+        (context.read<AuthBloc>().state as AuthAuthenticated).user;
     final userMemberships = user.memberships;
 
     return Column(
@@ -338,11 +341,22 @@ class _MembershipSection extends StatelessWidget {
                           initialValue: entry.value,
                           decoration:
                               InputDecoration(labelText: l10n.roleTitle),
-                          items: ['admin', 'editor', 'member'].map((role) {
+                          items: {
+                            // Lista base de roles
+                            'admin',
+                            'editor',
+                            'member',
+                            // Añadir 'superadmin' a la lista solo si el usuario actual es superadmin
+                            // y el rol que se está editando ya es 'superadmin'.
+                            if (currentUser.isSuperAdmin &&
+                                entry.value == 'superadmin')
+                              'superadmin',
+                          }.toList().map((role) {
+                            // toSet().toList() para evitar duplicados
                             return DropdownMenuItem(
                               value: role,
-                              child: Text(role),
-                            );
+                              child: Text(l10n.role(role)),
+                            ); // Usar l10n para traducir el rol
                           }).toList(),
                           onChanged: (value) {
                             if (value != null) {

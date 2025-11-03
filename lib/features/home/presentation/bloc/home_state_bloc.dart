@@ -27,6 +27,7 @@ class HomeLoaded extends HomeState {
   final bool isEditMode;
   final bool hasMore;
   final DocumentSnapshot? lastDocument; // Firestore-specific cursor
+  final bool isLoading;
 
   const HomeLoaded({
     required this.allArticles,
@@ -40,6 +41,7 @@ class HomeLoaded extends HomeState {
     this.isEditMode = false,
     this.hasMore = true,
     this.lastDocument,
+    this.isLoading = false,
   });
 
   HomeLoaded copyWith({
@@ -54,6 +56,7 @@ class HomeLoaded extends HomeState {
     bool? isEditMode,
     bool? hasMore,
     DocumentSnapshot? lastDocument,
+    bool? isLoading,
   }) {
     return HomeLoaded(
       allArticles: allArticles ?? this.allArticles,
@@ -67,6 +70,7 @@ class HomeLoaded extends HomeState {
       isEditMode: isEditMode ?? this.isEditMode,
       hasMore: hasMore ?? this.hasMore,
       lastDocument: lastDocument,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 
@@ -83,6 +87,7 @@ class HomeLoaded extends HomeState {
         isEditMode,
         hasMore,
         lastDocument,
+        isLoading,
       ];
 }
 

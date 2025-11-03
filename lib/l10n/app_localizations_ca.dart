@@ -517,4 +517,16 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get configuration => 'Configuració';
+
+  @override
+  String get start => 'a partir de';
+
+  @override
+  String get toThe => 'al';
+
+  @override
+  String get from => 'del';
+
+  @override
+  String get effectivePublishDate => 'Data de vigència de la publicació';
 }

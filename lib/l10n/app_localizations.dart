@@ -1059,6 +1059,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Configuración'**
   String get configuration;
+
+  /// No description provided for @start.
+  ///
+  /// In es, this message translates to:
+  /// **'a partir de'**
+  String get start;
+
+  /// No description provided for @toThe.
+  ///
+  /// In es, this message translates to:
+  /// **'al'**
+  String get toThe;
+
+  /// No description provided for @from.
+  ///
+  /// In es, this message translates to:
+  /// **'del'**
+  String get from;
+
+  /// No description provided for @effectivePublishDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha vigencia publicación'**
+  String get effectivePublishDate;
 }
 
 class _AppLocalizationsDelegate

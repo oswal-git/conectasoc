@@ -29,8 +29,10 @@ class ArticleEntity extends Equatable {
   final String title; // Rich text (JSON string)
   final String abstractContent; // Rich text (JSON string)
   final String coverUrl;
+  final String categoryName;
   final String categoryId;
   final String subcategoryId;
+  final String subcategoryName;
   final DateTime publishDate;
   final DateTime effectiveDate;
   final DateTime? expirationDate; // Puede ser nulo
@@ -52,8 +54,10 @@ class ArticleEntity extends Equatable {
     required this.title,
     required this.abstractContent,
     required this.coverUrl,
+    required this.categoryName,
     required this.categoryId,
     required this.subcategoryId,
+    required this.subcategoryName,
     required this.publishDate,
     required this.effectiveDate,
     this.expirationDate,
@@ -76,7 +80,9 @@ class ArticleEntity extends Equatable {
         abstractContent,
         coverUrl,
         categoryId,
+        categoryName,
         subcategoryId,
+        subcategoryName,
         publishDate,
         effectiveDate,
         expirationDate,
@@ -100,7 +106,9 @@ class ArticleEntity extends Equatable {
       abstractContent: '',
       coverUrl: '',
       categoryId: '',
+      categoryName: '',
       subcategoryId: '',
+      subcategoryName: '',
       publishDate: now,
       effectiveDate: now,
       status: ArticleStatus.redaccion,
@@ -124,7 +132,9 @@ class ArticleEntity extends Equatable {
       abstractContent: json['abstractContent'] ?? '',
       coverUrl: json['coverUrl'] ?? '',
       categoryId: json['categoryId'] ?? '',
+      categoryName: json['categoryName'] ?? '',
       subcategoryId: json['subcategoryId'] ?? '',
+      subcategoryName: json['subcategoryName'] ?? '',
       publishDate: DateTime.parse(json['publishDate']),
       effectiveDate: DateTime.parse(json['effectiveDate']),
       expirationDate: json['expirationDate'] != null
@@ -152,7 +162,9 @@ class ArticleEntity extends Equatable {
     String? abstractContent,
     String? coverUrl,
     String? categoryId,
+    String? categoryName,
     String? subcategoryId,
+    String? subcategoryName,
     DateTime? publishDate,
     DateTime? effectiveDate,
     DateTime? expirationDate,
@@ -173,10 +185,12 @@ class ArticleEntity extends Equatable {
       abstractContent: abstractContent ?? this.abstractContent,
       coverUrl: coverUrl ?? this.coverUrl,
       categoryId: categoryId ?? this.categoryId,
+      categoryName: categoryName ?? this.categoryName,
       subcategoryId: subcategoryId ?? this.subcategoryId,
+      subcategoryName: subcategoryName ?? this.subcategoryName,
       publishDate: publishDate ?? this.publishDate,
       effectiveDate: effectiveDate ?? this.effectiveDate,
-      expirationDate: expirationDate ?? this.expirationDate,
+      expirationDate: expirationDate,
       status: status ?? this.status,
       sections: sections ?? this.sections,
       userId: userId ?? this.userId,

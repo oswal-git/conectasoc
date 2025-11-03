@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
+import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_bloc.dart'; // Importamos la constante
 import 'package:tuple/tuple.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/core/constants/cloudinary_config.dart';
@@ -80,8 +80,9 @@ class ArticleRepositoryImpl implements ArticleRepository {
       }
 
       query = query
-          // Ya no podemos filtrar por effectiveDate, así que ordenamos por publishDate.
-          .orderBy('publishDate', descending: true)
+          // En modo edición, ordenamos por fecha de modificación para ver los más recientes primero.
+          // En modo lectura, por fecha de publicación.
+          .orderBy(isEditMode ? 'modifiedAt' : 'publishDate', descending: true)
           .limit(limit);
 
       if (lastDocument != null) {
@@ -93,6 +94,11 @@ class ArticleRepositoryImpl implements ArticleRepository {
       final articles = snapshot.docs
           .map((doc) => ArticleModel.fromFirestore(doc))
           .where((article) {
+        // En modo edición, no se deben aplicar filtros de fecha. Se muestran todos.
+        if (isEditMode) {
+          return true;
+        }
+
         // Filtro de expiración en el cliente
         final now = DateTime.now();
         final isEffective = article.effectiveDate.isBefore(now) ||
@@ -100,7 +106,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
         final isNotExpired = article.expirationDate == null ||
             article.expirationDate!.isAfter(now);
 
-        return (isEffective && isNotExpired) || isEditMode;
+        return isEffective && isNotExpired;
       }).toList();
 
       // Get the last document for the next page's cursor
@@ -207,65 +213,91 @@ class ArticleRepositoryImpl implements ArticleRepository {
   Future<Either<Failure, ArticleEntity>> updateArticle(
     ArticleEntity article, {
     Uint8List? newCoverImageBytes,
-    // sectionImageFiles no es necesario, la lógica se basa en las rutas de los ficheros en la entidad
+    Map<String, Uint8List> newSectionImageBytes = const {},
+    List<String> imagesToDelete = const [],
   }) async {
     try {
       ArticleEntity articleToUpdate = article;
+      const uuid = Uuid();
 
       // 1. Handle cover image update
-      if (newCoverImageBytes != null) {
+      if (newCoverImageBytes != null &&
+          newCoverImageBytes != kClearImageBytes) {
+        // Caso 1: El usuario ha seleccionado una nueva imagen.
         final uploadResult = await CloudinaryService.uploadImageBytes(
           imageBytes: newCoverImageBytes,
-          filename: article.id, // Use article ID for a unique filename
+          filename: article.id,
           imageType: CloudinaryImageType.articleCover,
         );
         if (!uploadResult.success) {
           return Left(ServerFailure(uploadResult.error ??
               'Error al subir la nueva imagen de portada.'));
         }
-
-        // Delete old cover image if it exists and is different
-        // Only delete if the old URL is different from the new one
-        // and it's an actual Cloudinary URL (starts with http)
+        // Borrar la imagen antigua si existe y es diferente a la nueva.
         if (article.coverUrl.isNotEmpty &&
             article.coverUrl.startsWith('http') &&
             article.coverUrl != uploadResult.secureUrl) {
           await CloudinaryService.deleteImage(article.coverUrl);
         }
-
         articleToUpdate =
             articleToUpdate.copyWith(coverUrl: uploadResult.secureUrl);
+      } else if (newCoverImageBytes == kClearImageBytes) {
+        // Caso 2: El usuario ha borrado explícitamente la imagen existente.
+        // newCoverImageBytes es kClearImageBytes.
+        // La coverUrl del artículo original (article.coverUrl) aún contiene la URL antigua
+        // porque el BLoC no la actualiza hasta que se guarda.
+
+        // Borramos la imagen antigua de Cloudinary.
+        if (article.coverUrl.startsWith('http')) {
+          await CloudinaryService.deleteImage(article.coverUrl);
+        }
+        // Actualizamos la URL a una cadena vacía.
+        articleToUpdate = articleToUpdate.copyWith(coverUrl: '');
+      }
+      // Caso 3: newCoverImageBytes es null.
+      // Esto significa que el usuario no ha tocado la imagen.
+      // En este caso, articleToUpdate.coverUrl ya tiene el valor correcto (la URL original),
+      // por lo que no se necesita ninguna acción.
+
+      // Borrar imágenes marcadas para eliminación (de portada o secciones)
+      for (final url in imagesToDelete) {
+        await CloudinaryService.deleteImage(url);
       }
 
-      // 2. Handle section images update
+      // 2. Handle section image updates
       final List<ArticleSection> updatedSections = [];
       for (final section in articleToUpdate.sections) {
-        if (section.imageUrl != null && !section.imageUrl!.startsWith('http')) {
-          // This is a new image file (path, not URL)
-          final sectionImageFile = File(section.imageUrl!);
-          final sectionUploadResult = await CloudinaryService.uploadImage(
-            imageFile: sectionImageFile,
+        if (newSectionImageBytes.containsKey(section.id)) {
+          final bytes = newSectionImageBytes[section.id]!;
+          final sectionUpload = await CloudinaryService.uploadImageBytes(
+            imageBytes: bytes,
             imageType: CloudinaryImageType.articleSection,
+            filename: uuid.v4(),
           );
-          if (!sectionUploadResult.success) {
-            return Left(ServerFailure(sectionUploadResult.error ??
-                'Error al subir imagen de sección.'));
+
+          if (!sectionUpload.success || sectionUpload.secureUrl == null) {
+            return Left(ServerFailure(sectionUpload.error ??
+                'Error al subir imagen de sección o URL nula.'));
           }
-          // If there was an old image URL, delete it
-          final oldSection = article.sections
-              .firstWhere((s) => s.id == section.id, orElse: () => section);
-          if (oldSection.imageUrl != null &&
-              oldSection.imageUrl!.startsWith('http') &&
-              oldSection.imageUrl != sectionUploadResult.secureUrl) {
-            await CloudinaryService.deleteImage(oldSection.imageUrl!);
+
+          // Borrar la imagen antigua de la sección si existía.
+          if (section.imageUrl != null &&
+              section.imageUrl!.isNotEmpty &&
+              section.imageUrl!.startsWith('http')) {
+            await CloudinaryService.deleteImage(section.imageUrl!);
           }
+
           updatedSections
-              .add(section.copyWith(imageUrl: sectionUploadResult.secureUrl));
+              .add(section.copyWith(imageUrl: sectionUpload.secureUrl!));
         } else {
-          updatedSections.add(section); // Keep existing image URL or null
+          updatedSections.add(section);
         }
       }
-      articleToUpdate = articleToUpdate.copyWith(sections: updatedSections);
+
+      // Si hubo cambios en las secciones, actualizamos el artículo.
+      if (updatedSections.isNotEmpty) {
+        articleToUpdate = articleToUpdate.copyWith(sections: updatedSections);
+      }
 
       // 3. Update the article in Firestore
       final articleModel = ArticleModel.fromEntity(articleToUpdate);
@@ -316,6 +348,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
       final categories = snapshot.docs
           .map((doc) => CategoryModel.fromFirestore(
               doc as DocumentSnapshot<Map<String, dynamic>>))
+          .map((model) => model.toEntity())
           .toList();
       return Right(categories);
     } catch (e) {
@@ -334,6 +367,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
       final subcategories = snapshot.docs
           .map((doc) => SubcategoryModel.fromFirestore(
               doc as DocumentSnapshot<Map<String, dynamic>>))
+          .map((model) => model.toEntity())
           .toList();
       // Ordenar en el cliente para evitar la necesidad de un índice compuesto
       subcategories.sort((a, b) => a.order.compareTo(b.order));

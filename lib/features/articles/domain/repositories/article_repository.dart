@@ -41,5 +41,7 @@ abstract class ArticleRepository {
   Future<Either<Failure, ArticleEntity>> updateArticle(
     ArticleEntity article, {
     Uint8List? newCoverImageBytes,
+    Map<String, Uint8List> newSectionImageBytes,
+    List<String> imagesToDelete = const [],
   });
 }

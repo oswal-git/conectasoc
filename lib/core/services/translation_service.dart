@@ -52,15 +52,45 @@ class TranslationService {
             op.containsKey('insert') &&
             op['insert'] is String) {
           String textToTranslate = op['insert'];
-          // Only translate non-empty text to avoid unnecessary API calls
+
+          // ✅ Solo traducir si hay texto real (no solo \n)
           if (textToTranslate.trim().isNotEmpty) {
-            final translation = await _translator.translate(
-              textToTranslate,
-              from: from,
-              to: to,
-            );
-            op['insert'] = translation.text;
+            // Contar saltos de línea al inicio y al final
+            final leadingNewlines =
+                RegExp(r'^\n+').firstMatch(textToTranslate)?.group(0) ?? '';
+            final trailingNewlines =
+                RegExp(r'\n+$').firstMatch(textToTranslate)?.group(0) ?? '';
+
+            // Extraer solo el texto sin los saltos de línea
+            final cleanText = textToTranslate.trim();
+
+            if (cleanText.isNotEmpty) {
+              // Traducir solo el texto limpio
+              final translation = await _translator.translate(
+                cleanText,
+                from: from,
+                to: to,
+              );
+
+              // ✅ Restaurar los saltos de línea en la misma posición
+              op['insert'] =
+                  '$leadingNewlines${translation.text}$trailingNewlines';
+            }
+            // Si solo hay saltos de línea, dejarlos sin traducir
           }
+          // Si solo hay \n, no tocar nada
+        }
+      }
+
+      // ✅ CRÍTICO: Asegurar que termina con \n sin atributos
+      if (delta.isNotEmpty) {
+        final lastOp = delta.last as Map<String, dynamic>;
+        final lastInsert = lastOp['insert'] as String?;
+
+        if (lastInsert == null ||
+            !lastInsert.endsWith('\n') ||
+            lastOp.containsKey('attributes')) {
+          delta.add({'insert': '\n'});
         }
       }
       return jsonEncode(delta);

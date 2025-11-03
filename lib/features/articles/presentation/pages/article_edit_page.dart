@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/scheduler.dart';
@@ -156,10 +155,12 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     });
   }
 
+  /// Sincroniza el contenido de los controladores de Quill con el estado del artículo.
+  /// Se llama desde el BlocListener para asegurar que solo se ejecute cuando los datos cambian.
   void _syncQuillControllers(ArticleEntity article) {
     // Prevenir la sincronización si el artículo no ha cambiado o si es el mismo que el último sincronizado
     if (_lastSyncedArticle == article) {
-      return;
+      return; // No hacer nada si el artículo no ha cambiado.
     }
 
     // Only update if the content has actually changed to avoid cursor issues
@@ -184,14 +185,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
       _abstractController.moveCursorToEnd(); // Keep cursor at end after update
     }
 
-    // Sync character counts on initial load
-    // Use addPostFrameCallback to avoid calling setState during build
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _updateTitleCharCount();
-      _updateAbstractCharCount();
-    });
-
-    _lastSyncedArticle = article; // Almacenar el último artículo sincronizado
+    _lastSyncedArticle = article;
   }
 
   @override
@@ -210,7 +204,6 @@ class _ArticleEditViewState extends State<ArticleEditView> {
           appBar: AppBar(
             title: Text(title),
             actions: [
-              // Preview Toggle Button
               IconButton(
                 icon: Icon(_isPreviewMode ? Icons.edit : Icons.visibility),
                 tooltip:
@@ -221,39 +214,43 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                   });
                 },
               ),
-              // Save Button
               if (state is ArticleEditLoaded)
                 IconButton(
-                    icon: const Icon(Icons.save),
-                    onPressed: () {
-                      // Ensure we are not in preview mode when saving
-                      if (_isPreviewMode) {
-                        setState(() {
-                          _isPreviewMode = false;
-                        });
-                      }
-
-                      // Ejecutar después de que se complete el frame actual
-                      SchedulerBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          context
-                              .read<ArticleEditBloc>()
-                              .add(SaveArticle(l10n));
+                  icon: const Icon(Icons.save),
+                  // El botón de guardar se habilita/deshabilita según el estado
+                  onPressed: state.isArticleValid
+                      ? () {
+                          if (_isPreviewMode) {
+                            setState(() {
+                              _isPreviewMode = false;
+                            });
+                          }
+                          SchedulerBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              context
+                                  .read<ArticleEditBloc>()
+                                  .add(const SaveArticle());
+                            }
+                          });
                         }
-                      });
-                    }),
+                      : null, // Se deshabilita si no es válido
+                ),
             ],
           ),
           body: BlocListener<ArticleEditBloc, ArticleEditState>(
             listener: (context, state) {
               if (state is ArticleEditSuccess) {
-                SnackBarService.showSnackBar(
-                    l10n.articleCreatedSuccess); // Or articleUpdatedSuccess
-                context.pop(); // Volver a la pantalla anterior
-              } else if (state is ArticleEditLoaded &&
-                  state.errorMessage != null) {
-                SnackBarService.showSnackBar(state.errorMessage!() ?? '',
-                    isError: true);
+                final message = state.isCreating
+                    ? l10n.articleCreatedSuccess
+                    : l10n.articleUpdatedSuccess;
+                SnackBarService.showSnackBar(message);
+                context.pop();
+              } else if (state is ArticleEditLoaded) {
+                _syncQuillControllers(state.article);
+                if (state.errorMessage != null) {
+                  SnackBarService.showSnackBar(state.errorMessage!() ?? '',
+                      isError: true);
+                }
               } else if (state is ArticleEditDraftFound) {
                 final bloc = context.read<ArticleEditBloc>();
                 showDialog(
@@ -297,11 +294,6 @@ class _ArticleEditViewState extends State<ArticleEditView> {
         state is ArticleEditDraftFound) {
       return const Center(child: CircularProgressIndicator());
     } else if (state is ArticleEditLoaded) {
-      // Use addPostFrameCallback to ensure controller sync happens after build.
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        _syncQuillControllers(state.article);
-      });
-
       return _isPreviewMode
           ? buildPreview(context, state, l10n)
           : buildForm(context, state, l10n);
@@ -313,6 +305,15 @@ class _ArticleEditViewState extends State<ArticleEditView> {
 
   Widget buildForm(
       BuildContext context, ArticleEditLoaded state, AppLocalizations l10n) {
+    // La edición está habilitada si estamos creando un nuevo artículo O si el estado es 'En redacción'.
+    final bool isEditingEnabled =
+        state.isCreating || state.status == ArticleStatus.redaccion;
+
+    _titleController.readOnly =
+        !isEditingEnabled; // Actualizar el modo de solo lectura
+    _abstractController.readOnly =
+        !isEditingEnabled; // Actualizar el modo de solo lectura
+
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
@@ -321,24 +322,53 @@ class _ArticleEditViewState extends State<ArticleEditView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _CoverImagePicker(
+              key: ValueKey(
+                  'cover_picker_$isEditingEnabled'), // Añadir una clave única
+              isEnabled: isEditingEnabled, // Pasamos el estado de habilitación
               currentCoverUrl: state.article.coverUrl,
               newImageBytes: state.newCoverImageBytes,
               onImageSelected: (bytes) {
                 context.read<ArticleEditBloc>().add(UpdateCoverImage(bytes));
               },
-              onImageCleared: () => context
-                  .read<ArticleEditBloc>()
-                  .add(const UpdateCoverImage(null)),
+              onImageCleared: () =>
+                  context // Al borrar, enviamos el marcador especial
+                      .read<ArticleEditBloc>()
+                      .add(const UpdateCoverImage(null)),
             ),
             const SizedBox(height: 24),
             Text(l10n.title, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             quill.QuillSimpleToolbar(
               controller: _titleController,
-              // Puedes añadir otras opciones en el parámetro de 'config'
-              config: quill.QuillSimpleToolbarConfig(
-                  // opciones adicionales aquí si hicieran falta
-                  ),
+              config: const quill.QuillSimpleToolbarConfig(
+                // Botones de alineación
+                showAlignmentButtons: true,
+                // showLeftAlignment: true,
+                // showCenterAlignment: true,
+                // showRightAlignment: true,
+                // showJustifyAlignment: true,
+
+                // Otros botones útiles (opcional)
+                showBoldButton: true,
+                showItalicButton: true,
+                showUnderLineButton: true,
+                showStrikeThrough: true,
+                showColorButton: true,
+                showBackgroundColorButton: true,
+                showListBullets: true,
+                showListNumbers: true,
+                showListCheck: true,
+                showCodeBlock: false,
+                showQuote: true,
+                showIndent: true,
+                showLink: true,
+                showUndo: true,
+                showRedo: true,
+                showFontSize: true,
+                showFontFamily: true,
+                showSearchButton:
+                    false, // Generalmente no es necesario en editores pequeños
+              ),
             ),
             Container(
               height: 100,
@@ -346,7 +376,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: quill.QuillEditor(
+              child: quill.QuillEditor.basic(
                 controller: _titleController,
                 focusNode: _titleFocusNode,
                 scrollController: _titleScrollController,
@@ -403,23 +433,30 @@ class _ArticleEditViewState extends State<ArticleEditView> {
               ),
             ),
             const SizedBox(height: 24),
-            buildCategorySelectors(context, state, l10n),
+            IgnorePointer(
+              ignoring: !isEditingEnabled,
+              child: buildCategorySelectors(context, state, l10n),
+            ),
             const SizedBox(height: 24),
             buildStatusDropdown(context, state, l10n),
             const SizedBox(height: 24),
-            buildDatePickers(context, state, l10n),
+            IgnorePointer(
+              ignoring: !isEditingEnabled,
+              child: buildDatePickers(context, state, l10n),
+            ),
             const SizedBox(height: 32),
             Text('--- ${l10n.sections.toUpperCase()} ---',
                 textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            _SectionList(state: state),
+            _SectionList(state: state, isEditingEnabled: isEditingEnabled),
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () =>
-                  context.read<ArticleEditBloc>().add(const AddSection()),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addSection),
-            ),
+            if (isEditingEnabled)
+              ElevatedButton.icon(
+                onPressed: () =>
+                    context.read<ArticleEditBloc>().add(const AddSection()),
+                icon: const Icon(Icons.add),
+                label: Text(l10n.addSection),
+              ),
           ],
         ),
       ),
@@ -482,8 +519,8 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                 ),
                 const Divider(height: 32),
                 // Sections
-                ...article.sections
-                    .map((section) => buildPreviewSection(context, section)),
+                ...article.sections.map(
+                    (section) => buildPreviewSection(context, state, section)),
               ],
             ),
           ),
@@ -492,7 +529,8 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     );
   }
 
-  Widget buildPreviewSection(BuildContext context, ArticleSection section) {
+  Widget buildPreviewSection(
+      BuildContext context, ArticleEditLoaded state, ArticleSection section) {
     final quill.QuillController? contentController =
         section.richTextContent != null && section.richTextContent!.isNotEmpty
             ? quill.QuillController(
@@ -504,18 +542,40 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     final FocusNode contentFocusNode = FocusNode();
     final ScrollController contentScrollController = ScrollController();
 
+    final imageBytes = state.newSectionImageBytes[section.id];
+    final imageUrl = section.imageUrl;
+    final isNetworkImage = imageUrl != null &&
+        (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (section.imageUrl != null && section.imageUrl!.isNotEmpty)
+          if (imageBytes != null || isNetworkImage)
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.file(File(section.imageUrl!),
-                    fit: BoxFit.cover, width: double.infinity),
+                child: imageBytes != null
+                    ? Image.memory(
+                        imageBytes,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 150,
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 150,
+                        placeholder: (context, url) => const SizedBox(
+                          height: 150,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                      ),
               ),
             ),
           if (contentController != null)
@@ -617,6 +677,10 @@ class _ArticleEditViewState extends State<ArticleEditView> {
         }
         return DropdownMenuItem(
           value: status,
+          // Deshabilitar opciones si el artículo no es válido y el estado no es 'redaccion'
+          enabled: state.isArticleValid ||
+              status == ArticleStatus.redaccion ||
+              status == ArticleStatus.anulado,
           child: Text(statusText),
         );
       }).toList(),
@@ -667,12 +731,15 @@ class _ArticleEditViewState extends State<ArticleEditView> {
 }
 
 class _CoverImagePicker extends StatelessWidget {
+  final bool isEnabled;
   final String currentCoverUrl;
   final Uint8List? newImageBytes;
   final Function(Uint8List) onImageSelected;
   final VoidCallback onImageCleared;
 
   const _CoverImagePicker({
+    super.key,
+    required this.isEnabled,
     required this.currentCoverUrl,
     this.newImageBytes,
     required this.onImageSelected,
@@ -686,63 +753,78 @@ class _CoverImagePicker extends StatelessWidget {
 
     ImageProvider? imageProvider;
     if (newImageBytes != null) {
-      // Prioritize newly selected image
       imageProvider = MemoryImage(newImageBytes!);
     } else if (currentCoverUrl.isNotEmpty) {
       imageProvider = CachedNetworkImageProvider(currentCoverUrl);
     }
 
-    return GestureDetector(
-      onTap: () async {
-        final bytes = await imagePickerService.pickImage(context);
-        // After an async gap, check if the widget is still in the tree.
-        if (!context.mounted) return;
-
-        if (bytes != null) {
-          onImageSelected(bytes);
-        }
-      },
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(12),
-            image: imageProvider != null
-                ? DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                  )
-                : null,
-          ),
-          child: Stack(
-            children: [
-              if (imageProvider != null)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: IconButton(
-                      icon: const Icon(Icons.clear, color: Colors.white),
-                      onPressed: onImageCleared),
-                ),
-              (imageProvider == null)
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.camera_alt,
-                              size: 40, color: Colors.grey[600]),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.selectCoverImage,
-                            style: TextStyle(color: Colors.grey[600]),
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(12),
+          image: imageProvider != null
+              ? DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: Stack(
+          children: [
+            // GestureDetector para seleccionar imagen (cubre todo el contenedor)
+            Positioned.fill(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: isEnabled
+                      ? () async {
+                          final bytes =
+                              await imagePickerService.pickImage(context);
+                          if (!context.mounted) return;
+                          if (bytes != null) {
+                            onImageSelected(bytes);
+                          }
+                        }
+                      : null,
+                  child: imageProvider == null
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.camera_alt,
+                                  size: 40, color: Colors.grey[600]),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.selectCoverImage,
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ],
-          ),
+                        )
+                      : null,
+                ),
+              ),
+            ),
+            // Botón de eliminar (solo visible si hay imagen)
+            if (imageProvider != null && isEnabled)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black54,
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.white),
+                    onPressed: onImageCleared,
+                    tooltip:
+                        "Eliminar imagen", // Añade tooltip si tienes la traducción
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -824,8 +906,9 @@ class _DatePickerField extends StatelessWidget {
 
 class _SectionList extends StatelessWidget {
   final ArticleEditLoaded state;
+  final bool isEditingEnabled;
 
-  const _SectionList({required this.state});
+  const _SectionList({required this.state, required this.isEditingEnabled});
 
   @override
   Widget build(BuildContext context) {
@@ -840,6 +923,7 @@ class _SectionList extends StatelessWidget {
           key: ValueKey(section.id), // Use ValueKey for ReorderableListView
           section: section,
           index: index,
+          isEditingEnabled: isEditingEnabled,
           onRemove: () =>
               context.read<ArticleEditBloc>().add(RemoveSection(section.id)),
         );
@@ -861,12 +945,14 @@ class _ArticleSectionEditor extends StatefulWidget {
   final ArticleSection section;
   final int index;
   final VoidCallback onRemove;
+  final bool isEditingEnabled;
 
   const _ArticleSectionEditor({
     super.key,
     required this.section,
     required this.index,
     required this.onRemove,
+    required this.isEditingEnabled,
   });
 
   @override
@@ -876,6 +962,7 @@ class _ArticleSectionEditor extends StatefulWidget {
 class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
   late quill.QuillController _quillController;
   late FocusNode _focusNode;
+  late ScrollController _scrollController;
   Timer? _debounceTimer;
   final ImagePickerService _imagePickerService = ImagePickerService();
 
@@ -884,7 +971,12 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
     super.initState();
     _quillController = quill.QuillController.basic();
     _focusNode = FocusNode();
+    _scrollController = ScrollController();
     _loadContent();
+
+    // Aplicar el estado de solo lectura inicial
+    _quillController.readOnly = !widget.isEditingEnabled;
+
     _quillController.addListener(_onContentChanged);
   }
 
@@ -893,6 +985,10 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.section.richTextContent != widget.section.richTextContent) {
       _loadContent();
+    }
+    // Actualizar el estado de solo lectura si cambia
+    if (oldWidget.isEditingEnabled != widget.isEditingEnabled) {
+      _quillController.readOnly = !widget.isEditingEnabled;
     }
   }
 
@@ -912,6 +1008,7 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
     _quillController.removeListener(_onContentChanged);
     _quillController.dispose();
     _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -969,6 +1066,12 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final state = context.watch<ArticleEditBloc>().state as ArticleEditLoaded;
+    final imageBytes = state.newSectionImageBytes[widget.section.id];
+    final imageUrl = widget.section.imageUrl;
+    final hasImage =
+        imageBytes != null || (imageUrl != null && imageUrl.isNotEmpty);
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
@@ -982,17 +1085,33 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
                 Text('${l10n.section} ${widget.index + 1}',
                     style: Theme.of(context).textTheme.titleMedium),
                 Row(
-                  children: [
-                    IconButton(
-                        onPressed: _pickImage, icon: const Icon(Icons.image)),
-                    IconButton(
-                        onPressed: _confirmRemoveSection,
-                        icon: const Icon(Icons.delete, color: Colors.red)),
-                    ReorderableDragStartListener(
-                      index: widget.index,
-                      child: const Icon(Icons.drag_handle),
-                    ),
-                  ],
+                  children: widget.isEditingEnabled
+                      ? [
+                          if (hasImage)
+                            IconButton(
+                              icon: const Icon(Icons.image_not_supported,
+                                  color: Colors.orange),
+                              onPressed: () => context
+                                  .read<ArticleEditBloc>()
+                                  .add(UpdateSectionImage(
+                                      widget.section.id, null)),
+                              tooltip: 'Eliminar imagen',
+                            ),
+                          IconButton(
+                              onPressed: _pickImage,
+                              icon: const Icon(Icons.image)),
+                          IconButton(
+                              onPressed: _confirmRemoveSection,
+                              icon:
+                                  const Icon(Icons.delete, color: Colors.red)),
+                          ReorderableDragStartListener(
+                            index: widget.index,
+                            child: const Icon(Icons.drag_handle),
+                          ),
+                        ]
+                      : [
+                          // No mostrar botones si la edición está deshabilitada
+                        ],
                 ),
               ],
             ),
@@ -1005,7 +1124,8 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
                 return const SizedBox.shrink();
               },
             ),
-            quill.QuillSimpleToolbar(controller: _quillController),
+            if (widget.isEditingEnabled)
+              quill.QuillSimpleToolbar(controller: _quillController),
             Container(
               height: 150,
               decoration: BoxDecoration(
@@ -1015,7 +1135,7 @@ class _ArticleSectionEditorState extends State<_ArticleSectionEditor> {
               child: quill.QuillEditor(
                   controller: _quillController,
                   focusNode: _focusNode,
-                  scrollController: ScrollController(),
+                  scrollController: _scrollController,
                   config: const quill.QuillEditorConfig(
                       padding: EdgeInsets.all(8))),
             ),

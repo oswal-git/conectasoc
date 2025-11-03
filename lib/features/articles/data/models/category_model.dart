@@ -17,6 +17,10 @@ class CategoryModel extends CategoryEntity {
       order: data['order'] ?? 0,
     );
   }
+
+  CategoryEntity toEntity() {
+    return CategoryEntity(id: id, name: name, order: order);
+  }
 }
 
 class SubcategoryModel extends SubcategoryEntity {
@@ -36,5 +40,10 @@ class SubcategoryModel extends SubcategoryEntity {
       order: data['order'] ?? 0,
       categoryId: data['categoryId'] ?? '',
     );
+  }
+
+  SubcategoryEntity toEntity() {
+    return SubcategoryEntity(
+        id: id, name: name, order: order, categoryId: categoryId);
   }
 }

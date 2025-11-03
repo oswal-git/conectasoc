@@ -1,30 +1,23 @@
 // lib/injection_container.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:conectasoc/features/associations/data/datasources/settings_remote_datasource.dart';
-import 'package:conectasoc/features/associations/data/repositories/settings_repository_impl.dart';
-import 'package:conectasoc/features/associations/domain/repositories/settings_repository.dart';
-import 'package:conectasoc/features/associations/presentation/bloc/settings/settings_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:conectasoc/core/services/translation_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Core
 import 'package:conectasoc/core/services/local_storage_service.dart';
-import 'package:conectasoc/services/cloudinary_service.dart';
 
 // Associations - Data
-import 'package:conectasoc/features/associations/data/datasources/association_remote_datasource.dart';
-import 'package:conectasoc/features/associations/data/repositories/association_repository_impl.dart';
+import 'package:conectasoc/features/associations/data/datasources/datasources.dart';
+import 'package:conectasoc/features/associations/data/repositories/repositories.dart';
 
 // Associations - Domain
-import 'package:conectasoc/features/associations/domain/repositories/association_repository.dart';
+import 'package:conectasoc/features/associations/domain/repositories/repositories.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 
 // Associations - Presentation
-import 'package:conectasoc/features/associations/presentation/bloc/association_bloc.dart';
-import 'package:conectasoc/features/associations/presentation/bloc/edit/association_edit_bloc.dart';
+import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
 
 // Home - Presentation
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
@@ -60,6 +53,10 @@ import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 
 // Articles - Presentation
 import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
+
+// Seervices
+import 'package:conectasoc/core/services/translation_service.dart';
+import 'package:conectasoc/services/cloudinary_service.dart';
 
 // Settings
 

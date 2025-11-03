@@ -248,5 +248,9 @@
     "draftFoundMessage": "We found an unsaved draft. Do you want to restore it?",
     "discard": "Discard",
     "restore": "Restore",
-    "configuration": "Configuration"
+    "configuration": "Configuration",
+    "start": "from",
+    "toThe": "to",
+    "from": "from",
+    "effectivePublishDate": "Effective date of publication"
 }

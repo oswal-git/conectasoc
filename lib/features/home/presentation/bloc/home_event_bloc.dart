@@ -12,11 +12,12 @@ abstract class HomeEvent extends Equatable {
 class LoadHomeData extends HomeEvent {
   final UserEntity? user;
   final MembershipEntity? membership;
+  final bool isEditMode;
 
-  const LoadHomeData({this.user, this.membership});
+  const LoadHomeData({this.user, this.membership, this.isEditMode = false});
 
   @override
-  List<Object?> get props => [user, membership];
+  List<Object?> get props => [user, membership, isEditMode];
 }
 
 class ToggleEditMode extends HomeEvent {}
