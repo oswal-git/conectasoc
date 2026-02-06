@@ -14,6 +14,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     required this.getUsersByAssociationUseCase,
   }) : super(UserListInitial()) {
     on<LoadUsers>(_onLoadUsers);
+    on<RefreshUsers>(_onRefreshUsers);
     on<SearchUsers>(_onSearchUsers,
         transformer: debounce(const Duration(milliseconds: 300)));
     on<SortUsers>(_onSortUsers);
@@ -24,11 +25,28 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     Emitter<UserListState> emit,
   ) async {
     emit(UserListLoading());
+    await _fetchUsers(event.associationId, emit);
+  }
 
+  Future<void> _onRefreshUsers(
+    RefreshUsers event,
+    Emitter<UserListState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is UserListLoaded) {
+      emit(currentState.copyWith(isLoading: true));
+    }
+    await _fetchUsers(event.associationId, emit);
+  }
+
+  Future<void> _fetchUsers(
+    String? associationId,
+    Emitter<UserListState> emit,
+  ) async {
     // Si se proporciona un associationId, cargamos solo los usuarios de esa asociación (para admins).
     // Si no, cargamos todos los usuarios (para superadmins).
-    final result = event.associationId != null
-        ? await getUsersByAssociationUseCase(event.associationId!)
+    final result = associationId != null
+        ? await getUsersByAssociationUseCase(associationId)
         : await getAllUsersUseCase();
 
     result.fold(

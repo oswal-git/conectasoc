@@ -40,7 +40,6 @@ class AuthAuthenticated extends AuthState {
 }
 
 // Sin autenticación (ni local ni Firebase)
-
 class AuthUnauthenticated extends AuthState {
   final String? message;
   const AuthUnauthenticated({this.message});
@@ -99,4 +98,19 @@ class AuthNeedsVerification extends AuthState {
 
   @override
   List<Object> get props => [email];
+}
+
+class RegisterInitial extends AuthState {}
+
+class RegisterLoading extends AuthState {}
+
+class RegisterDataLoaded extends AuthState {
+  final List<AssociationEntity> associations;
+  final bool isFirstUser;
+
+  const RegisterDataLoaded(
+      {required this.associations, required this.isFirstUser});
+
+  @override
+  List<Object> get props => [associations, isFirstUser];
 }

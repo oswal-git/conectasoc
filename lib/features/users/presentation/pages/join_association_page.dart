@@ -12,7 +12,7 @@ class JoinAssociationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return BlocProvider(
       create: (context) => sl<UserBloc>(
         param1: context.read<AuthBloc>(), // Pasamos el AuthBloc del contexto

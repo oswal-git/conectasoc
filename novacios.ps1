@@ -7,16 +7,28 @@ function Show-Tree {
     # Capturar la salida en una lista
     $output = @()
     
+    # Solo al nivel raíz listamos TODOS los ficheros en la raíz
+    if ($Level -eq 0) {
+        $rootFiles = Get-ChildItem -Path $Path -File
+        foreach ($file in $rootFiles) {
+            $prefix = if ($file.Length -le 3) { "* " } else { "" }
+            $output += "├── " + $prefix + $file.Name
+        }
+    }    
+
     # Obtener elementos, aplicando exclusión solo en el primer nivel
     if ($Level -eq 0) {
-        $items = Get-ChildItem -Path $Path -Exclude $ExcludeTopLevel -File | Where-Object { $_.Length -gt 3 }
+        $items = Get-ChildItem -Path $Path -Exclude $ExcludeTopLevel -File
     } else {
-        $items = Get-ChildItem -Path $Path -File | Where-Object { $_.Length -gt 3 }
+        $items = Get-ChildItem -Path $Path -File
     }
     
     foreach ($item in $items) {
-        $line = "  " + "  " * $Level + "├── " + $item.Name
-        $output += $line
+        if ($Level -ne 0) { # Evitar duplicar los ficheros del nivel raíz
+            $prefix = if ($item.Length -le 3) { "* " } else { "" }
+            $line = "  " + "  " * $Level + "├── " + $prefix + $item.Name
+            $output += $line
+        }
     }
     
     # Obtener subdirectorios para continuar la recursión
@@ -27,10 +39,10 @@ function Show-Tree {
     }
     
     foreach ($dir in $dirs) {
-        # Mostrar el directorio solo si tiene archivos no vacíos en algún nivel
+        # Mostrar el directorio siempre (ya no filtramos por archivos no vacíos)
         $subItems = Show-Tree -Path $dir.FullName -ExcludeTopLevel $ExcludeTopLevel -Level ($Level + 1)
+        $output += "  " * $Level + "├── " + $dir.Name
         if ($subItems) {
-            $output += "  " * $Level + "├── " + $dir.Name
             $output += $subItems
         }
     }
@@ -39,4 +51,4 @@ function Show-Tree {
 }
 
 # Ejecutar la función y mostrar la salida
-Show-Tree -Path . -ExcludeTopLevel "android","build","ios","linux","macos","web","windows"
+Show-Tree -Path . -ExcludeTopLevel "android","build","ios","linux","macos","web","windows",".dart_tool",".idea","tareas_gemini",".vscode",".git"

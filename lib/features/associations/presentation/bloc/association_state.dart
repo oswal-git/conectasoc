@@ -21,12 +21,14 @@ class AssociationsLoaded extends AssociationState {
   final List<AssociationEntity> filteredAssociations;
   final SortBy sortBy;
   final SortOrder sortOrder;
+  final bool isLoading;
 
   const AssociationsLoaded({
     required this.allAssociations,
     required this.filteredAssociations,
     this.sortBy = SortBy.name,
     this.sortOrder = SortOrder.asc,
+    this.isLoading = false,
   });
 
   AssociationsLoaded copyWith({
@@ -34,18 +36,20 @@ class AssociationsLoaded extends AssociationState {
     List<AssociationEntity>? filteredAssociations,
     SortBy? sortBy,
     SortOrder? sortOrder,
+    bool? isLoading,
   }) {
     return AssociationsLoaded(
       allAssociations: allAssociations ?? this.allAssociations,
       filteredAssociations: filteredAssociations ?? this.filteredAssociations,
       sortBy: sortBy ?? this.sortBy,
       sortOrder: sortOrder ?? this.sortOrder,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 
   @override
   List<Object> get props =>
-      [allAssociations, filteredAssociations, sortBy, sortOrder];
+      [allAssociations, filteredAssociations, sortBy, sortOrder, isLoading];
 }
 
 class AssociationsError extends AssociationState {

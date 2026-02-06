@@ -12,7 +12,7 @@ class ImagePickerService {
 
   Future<Uint8List?> pickImage(BuildContext context) async {
     // Extraer los datos del BuildContext ANTES del primer 'await'.
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     final source = await _showImageSourceActionSheet(context, l10n);

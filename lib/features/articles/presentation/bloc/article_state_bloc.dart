@@ -35,6 +35,5 @@ class ArticleError extends ArticleState {
   const ArticleError(this.message);
 
   @override
-  @override
   List<Object> get props => [message];
 }

@@ -1,40 +1,42 @@
-// firebase rules_version
-
 rules_version = '2';
 
 service cloud.firestore {
-match /databases/{database}/documents {
+  match /databases/{database}/documents {
     
-    // Helper function: verificar si el usuario está autenticado
+    // =========================================
+    // HELPER FUNCTIONS
+    // =========================================
+    
     function isSignedIn() {
       return request.auth != null;
     }
     
-    // Helper function: obtener datos del usuario
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
-    // Helper function: verificar si es superadmin
     function isSuperAdmin() {
       return isSignedIn() && 
-             'memberships' in getUserData() && // Asegurarse de que el campo exista
-             // Comprobación directa y eficiente del rol de superadmin en una asociación específica.
+             'memberships' in getUserData() &&
              getUserData().memberships.get('superadmin_access', '') == 'superadmin';
     }
     
-    // Helper function: verificar si es admin de la asociación
     function isAdmin(associationId) {
       return isSignedIn() && 
-             'memberships' in getUserData() && // Asegurarse de que el campo exista
-             getUserData().memberships[associationId] == 'admin'; // Acceso directo por clave
+             'memberships' in getUserData() &&
+             getUserData().memberships.get(associationId, '') == 'admin';
     }  
 
-    // Helper function: verificar si es editor
     function isEditor(associationId) {
       return isSignedIn() && 
-             'memberships' in getUserData() && // Asegurarse de que el campo exista
-             getUserData().memberships[associationId] == 'editor'; // Acceso directo por clave
+             'memberships' in getUserData() &&
+             getUserData().memberships.get(associationId, '') == 'editor';
+    }
+    
+    function isMemberOf(associationId) {
+      return isSignedIn() &&
+             'memberships' in getUserData() &&
+             associationId in getUserData().memberships;
     }
 
     // =========================================
@@ -42,59 +44,53 @@ match /databases/{database}/documents {
     // =========================================
     match /users/{userId} {
       
-      // NUEVA REGLA: Permite a CUALQUIER usuario (autenticado o no)
-      // realizar consultas sobre la colección. Esencial para "isFirstUser".
-      // NO permite leer el contenido de los documentos.
+      // IMPORTANTE: Permite contar usuarios para "isFirstUser"
+      // Considera mover esto a una Cloud Function por seguridad
       allow list: if true;
       
-      // Crear: cualquier usuario autenticado puede crear su propio documento
+      // Crear: usuario autenticado crea su propio documento
       allow create: if isSignedIn() && request.auth.uid == userId;
       
-      // Leer: El propio usuario, un superadmin, o un admin de una de las asociaciones del usuario.
+      // Leer: propio usuario, superadmin, o admin de asociación donde es miembro
       allow read: if isSignedIn() && (
         request.auth.uid == userId ||
-        isSuperAdmin() ||
-        resource.data.memberships.keys().exists(assocId == isAdmin(assocId))
+        isSuperAdmin()
+        // Admins pueden ver usuarios de su asociación - requiere query constraint
       );
       
       // Actualizar:
-      // 1. El propio usuario puede actualizar sus datos de perfil, pero no sus roles ni estado.
-      // 2. Un superadmin puede actualizar cualquier cosa.
-      // 3. Un admin puede actualizar usuarios de su asociación, pero no puede crear superadmins.
+      // 1. Usuario solo puede actualizar campos de perfil
+      // 2. Superadmin puede actualizar todo
+      // 3. Admins pueden actualizar usuarios de su asociación (sin crear superadmins)
       allow update: if isSignedIn() && (
         (request.auth.uid == userId && 
-         request.resource.data.keys().hasOnly(['firstName', 'lastName', 'phone', 'language', 'avatarUrl', 'dateUpdated'])) ||
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['firstName', 'lastName', 'phone', 'language', 'avatarUrl', 'dateUpdated'])) ||
         isSuperAdmin() ||
         (
-          resource.data.memberships.keys().exists(assocId == isAdmin(assocId)) &&
-          // Un admin no puede crear un superadmin
-          !('superadmin' in request.resource.data.memberships.values())
+          // Admin puede modificar si el usuario tiene membresía en su asociación
+          getUserData().memberships.keys().hasAny(resource.data.memberships.keys()) &&
+          getUserData().memberships.keys().exists(k, getUserData().memberships[k] == 'admin') &&
+          // No puede crear superadmins
+          !request.resource.data.memberships.keys().hasAny(['superadmin_access'])
         )
       );
       
-      // Eliminar: solo un superadmin puede borrar usuarios.
-      // NOTA: Esto no borra el usuario de Firebase Auth, solo de Firestore.
-      // La lógica de borrado completo debe manejarse en una Cloud Function.
       allow delete: if isSuperAdmin();
     }
     
     // =========================================
     // COLECCIÓN: associations
     // =========================================
-    // Asociaciones:
-    // Lectura pública para que los nuevos usuarios puedan ver la lista.
     match /associations/{associationId} {
-      // Leer y Listar: Cualquiera puede ver la lista de asociaciones para registrarse.
       allow read, list: if true;
       
-      // Crear: solo un usuario autenticado que se establece a sí mismo como creador.
-      // Esto asegura que solo se puedan crear asociaciones durante el proceso de registro.
-      allow create: if isSignedIn() && (request.resource.data.creatorId == request.auth.uid || isSuperAdmin());
+      allow create: if isSignedIn() && (
+        request.resource.data.creatorId == request.auth.uid || 
+        isSuperAdmin()
+      );
 
-      // Actualizar: superadmin o admin de esa asociación
-      allow update: if (isSuperAdmin() || isAdmin(associationId))
-
-      // Eliminar: solo superadmin
+      allow update: if isSuperAdmin() || isAdmin(associationId);
       allow delete: if isSuperAdmin();
     }
 
@@ -102,49 +98,40 @@ match /databases/{database}/documents {
     // COLECCIÓN: articles
     // =========================================
     match /articles/{articleId} {
-      // Función para verificar si un artículo es genérico (sin asociación)
-      function isGenericArticle() {
-        return resource.data.assocId == null || resource.data.assocId == '';
-      }
-
-      // Función para verificar si el usuario pertenece a la asociación del artículo
-      function isMemberOfArticleAssociation() {
-        return isSignedIn() &&
-               'memberships' in getUserData() &&
-               resource.data.assocId in getUserData().memberships;
+      
+      function isPublicArticle() {
+        return resource.data.status == 'publicado';
       }
 
       // Leer:
-      // 1. Superadmins pueden leer todo.
-      // 2. Usuarios autenticados pueden leer artículos genéricos.
-      // 3. Usuarios autenticados pueden leer artículos de sus asociaciones.
-      allow read, list: if isSuperAdmin() || (isSignedIn() && (isGenericArticle() || isMemberOfArticleAssociation()));
+      // 1. CUALQUIERA (autenticado o no) puede leer artículos públicos que sean genéricos (sin asociación).
+      // 2. Los usuarios autenticados pueden leer artículos públicos de sus asociaciones.
+      // 3. Los superadmins pueden leer todo.
+      allow read, list: if (isPublicArticle() && resource.data.assocId == '') ||
+                          (isSignedIn() && isPublicArticle() && isMemberOf(resource.data.assocId)) ||
+                          isSuperAdmin();
 
-      // Crear:
-      // El usuario debe ser superadmin, admin o editor de la asociación que se está asignando.
-      // Y los datos del artículo deben ser válidos.
-      allow create: if isSignedIn() && (
+      // Crear: debe tener rol apropiado Y pertenecer a la asociación
+      allow create: if isSignedIn() && 
+                      request.resource.data.userId == request.auth.uid && (
         isSuperAdmin() ||
-        isAdmin(request.resource.data.assocId) ||
-        isEditor(request.resource.data.assocId)
+        (
+          (isAdmin(request.resource.data.assocId) || 
+           isEditor(request.resource.data.assocId)) &&
+          isValidArticleData(request.resource.data)
+        )
       );
-        isSuperAdmin() || // Superadmin puede saltarse la validación de datos
-        ((isAdmin(request.resource.data.assocId) || isEditor(request.resource.data.assocId)) &&
-         isValidArticleData(request.resource.data))
-      ) && request.resource.data.userId == request.auth.uid;
 
-
-      // --- Validation Function for Article Data ---
       function isValidArticleData(data) {
         return 
-          // Required fields
+          // Campos requeridos
           data.keys().hasAll([
             'title', 'abstractContent', 'coverUrl', 'categoryId', 'subcategoryId', 
             'publishDate', 'effectiveDate', 'status', 'sections', 'userId', 
             'assocId', 'authorName', 'associationShortName', 'originalLanguage', 
             'createdAt', 'modifiedAt', 'searchText'
           ]) &&
-          // Type validation
+          // Validación de tipos
           data.title is string && data.title.size() > 0 &&
           data.abstractContent is string && data.abstractContent.size() > 0 &&
           data.coverUrl is string && data.coverUrl.size() > 0 &&
@@ -161,24 +148,25 @@ match /databases/{database}/documents {
           data.originalLanguage is string &&
           data.createdAt is timestamp &&
           data.modifiedAt is timestamp &&
-          // La fecha de efecto debe ser igual o posterior a la de publicación
-          //data.effectiveDate >= data.publishDate && // Movido a la lógica del cliente
-          // La fecha de expiración (si existe) debe ser igual o posterior a la de efecto
-          (data.expirationDate == null || data.expirationDate >= data.effectiveDate); // Movido a la lógica del cliente
+          data.searchText is string &&
+          // Usuario debe ser miembro de la asociación del artículo
+          (data.assocId == '' || data.assocId in getUserData().memberships) &&
+          // Validación de fechas (opcional - puede estar en cliente)
+          (data.expirationDate == null || data.expirationDate is timestamp);
       }
 
-      // Actualizar:
-      // 1. Superadmin puede actualizar todo.
-      // 2. Admin puede actualizar artículos de su asociación.
-      // 3. Editor puede actualizar artículos de su asociación SI es el autor.
+      // Actualizar: superadmin, admin de asociación, o editor-autor
       allow update: if isSignedIn() && (
-        isSuperAdmin() || // Superadmin
-        ((isAdmin(resource.data.assocId) || (isEditor(resource.data.assocId) && request.auth.uid == resource.data.userId)) && isValidArticleData(request.resource.data))
-        ((isAdmin(resource.data.assocId) || (isEditor(resource.data.assocId) && request.auth.uid == resource.data.userId)) && isValidArticleData(request.resource.data) && request.resource.data.userId == request.auth.uid)
+        isSuperAdmin() || 
+        (
+          (isAdmin(resource.data.assocId) || 
+           (isEditor(resource.data.assocId) && 
+            request.auth.uid == resource.data.userId)) &&
+          isValidArticleData(request.resource.data) &&
+          request.resource.data.userId == resource.data.userId // No cambiar autor
+        )
       );
 
-      // Eliminar:
-      // Superadmin o admin de la asociación del artículo.
       allow delete: if isSignedIn() && (
         isSuperAdmin() ||
         isAdmin(resource.data.assocId)
@@ -192,8 +180,7 @@ match /databases/{database}/documents {
       allow read: if isSignedIn();
       allow write: if isSignedIn() && (
         isSuperAdmin() ||
-        'admin' in getUserData().memberships.values() ||
-        'editor' in getUserData().memberships.values()
+        getUserData().memberships.values().hasAny(['admin', 'editor'])
       );
     }
     
@@ -201,16 +188,12 @@ match /databases/{database}/documents {
     // COLECCIÓN: categories & subcategories
     // =========================================
     match /categories/{categoryId} {
-      // Cualquiera puede leer las categorías para los filtros.
       allow read, list: if true;
-      // Solo los superadmins pueden crear, modificar o borrar categorías.
       allow write: if isSuperAdmin();
     }
 
     match /subcategories/{subcategoryId} {
-      // Cualquiera puede leer las subcategorías para los filtros.
       allow read, list: if true;
-      // Solo los superadmins pueden crear, modificar o borrar subcategorías.
       allow write: if isSuperAdmin();
     }
 
@@ -221,8 +204,7 @@ match /databases/{database}/documents {
       allow read: if isSignedIn();
       allow write: if isSignedIn() && (
         isSuperAdmin() ||
-        'admin' in getUserData().memberships.values() ||
-        'editor' in getUserData().memberships.values()
+        getUserData().memberships.values().hasAny(['admin', 'editor'])
       );
     }
     
@@ -233,30 +215,28 @@ match /databases/{database}/documents {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && (
         isSuperAdmin() ||
-        'admin' in getUserData().memberships.values() ||
-        'editor' in getUserData().memberships.values()
+        getUserData().memberships.values().hasAny(['admin', 'editor'])
       );
-      allow update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
+      allow update, delete: if isSuperAdmin();
     }
     
     // =========================================
     // COLECCIÓN: notificationUsers
     // =========================================
     match /notificationUsers/{notificationUserId} {
-      // Leer: el propio usuario o superadmin
       allow read: if isSignedIn() && (
         resource.data.userId == request.auth.uid ||
         isSuperAdmin()
       );
       
-      // Crear: sistema (notificaciones automáticas)
       allow create: if isSignedIn();
       
-      // Actualizar: el propio usuario (marcar como leída)
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Usuario puede marcar sus notificaciones como leídas
+      allow update: if isSignedIn() && 
+                      resource.data.userId == request.auth.uid &&
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['read', 'readAt']);
       
-      // Eliminar: solo superadmin
       allow delete: if isSuperAdmin();
     }
   }

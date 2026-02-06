@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 
@@ -41,16 +42,33 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadHomeData event,
     Emitter<HomeState> emit,
   ) async {
-    emit(HomeLoading());
+    final currentState = state;
+
+    // Use a background loading state if we are already loaded (e.g., for pull-to-refresh)
+    if (currentState is HomeLoaded) {
+      emit(currentState.copyWith(isLoading: true));
+    } else {
+      emit(HomeLoading()); // Full screen loader for initial load
+    }
 
     try {
-      // For a fresh load, we don't pass a lastDocument
+      // Carga de artículos y categorías siempre se hace al inicio.
       final articlesResult = await getArticlesUseCase(
           user: event.user, isEditMode: event.isEditMode, lastDocument: null);
       final categoriesResult = await getCategoriesUseCase();
-      final associationsResult = await getAllAssociationsUseCase();
 
-      // Extraer valores o lanzar error
+      // Lógica para recargar las asociaciones solo cuando es necesario.
+      final List<AssociationEntity> associations;
+      if (event.forceReload || currentState is! HomeLoaded) {
+        // Si se fuerza la recarga o no hay estado previo, se obtienen de la BD.
+        final associationsResult = await getAllAssociationsUseCase();
+        associations =
+            associationsResult.fold((failure) => throw failure, (data) => data);
+      } else {
+        // Si no, se reutilizan las asociaciones del estado anterior.
+        associations = currentState.associations;
+      }
+
       final articlesData =
           articlesResult.fold((failure) => throw failure, (data) => data);
       _originalArticles = articlesData.item1;
@@ -58,8 +76,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final categories =
           categoriesResult.fold((failure) => throw failure, (data) => data);
-      final associations =
-          associationsResult.fold((failure) => throw failure, (data) => data);
 
       List<ArticleEntity> articlesToDisplay = _originalArticles;
 

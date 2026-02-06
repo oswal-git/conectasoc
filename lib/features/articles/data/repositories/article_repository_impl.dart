@@ -35,32 +35,54 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
       // 1. Filtrado por permisos y visibilidad
       if (isEditMode && user != null && user.canEditContent) {
-        // isEditMode is now passed
-        // En modo edición, los usuarios con permisos ven todos los estados
+        // Modo Edición:
+        // - Superadmin: Ve todo (no se aplica filtro de assocId ni userId).
+        // - Admin: Ve todo de sus asociaciones.
+        // - Editor: Ve SOLO lo suyo de sus asociaciones.
+
         if (!user.isSuperAdmin) {
           // Admin/Editor ven solo los de su asociación.
           final userAssociationIds = user.associationIds;
           query = query.where('assocId', whereIn: userAssociationIds);
+
+          // Lógica adicional para EDITORES (no admins): Solo ven sus propios artículos.
+          // Comprobamos si tiene rol 'admin' en alguna asociación para saber si es "solo editor".
+          // Nota: Esto asume que si eres admin en UNA, eres admin "en general" para esta consulta simple.
+          // Si queremos más granularidad (editor en A, admin en B), la consulta se complica y debería hacerse en memoria o con múltiples queries.
+          // Por simplicidad y seguridad: Si NO eres Superadmin, y NO eres Admin en ninguna de tus asociaciones, entonces eres Editor puro.
+          if (user is UserEntity) {
+            final isAnyAdmin =
+                user.memberships.values.any((role) => role == 'admin');
+            if (!isAnyAdmin) {
+              query = query.where('userId', isEqualTo: user.uid);
+            }
+          }
         }
       } else {
-        // Modo lectura: solo artículos publicados y vigentes
-        query = query.where('status',
-            isEqualTo: ArticleStatus.publicado.value); // Use updated enum value
+        // Modo Lectura:
+        // - Superadmin: Ve todo (para verificar carga).
+        // - Autenticado: Ve lo de sus asociaciones + públicos (genéricos).
+        // - Anónimo: Ve públicos (genéricos).
 
-        // Filtrar por asociación según el tipo de usuario usando un switch
-        switch (user) {
-          case null: // No logueado
-            query = query.where('assocId', isEqualTo: '');
-            break;
-          case LocalUserEntity localUser: // Usuario local
-            final assocIds = ['', ...localUser.associationIds];
-            query = query.where('assocId', whereIn: assocIds);
-            break;
-          case UserEntity authUser: // Usuario autenticado
-            final userAssociationIds = authUser.associationIds;
-            final assocIds = ['', ...userAssociationIds];
-            query = query.where('assocId', whereIn: assocIds);
-            break;
+        query = query.where('status', isEqualTo: ArticleStatus.publicado.value);
+
+        // Filtrar por asociación
+        if (user != null && user.isSuperAdmin) {
+          // Superadmin en modo lectura ve todo, no aplicamos filtro de assocId.
+        } else {
+          switch (user) {
+            case null: // No logueado
+              query = query.where('assocId', isEqualTo: '');
+              break;
+            case LocalUserEntity _: // Usuario local (solo lectura)
+              query = query.where('assocId', isEqualTo: '');
+              break;
+            case UserEntity authUser: // Usuario autenticado normal
+              final userAssociationIds = authUser.associationIds;
+              final assocIds = ['', ...userAssociationIds];
+              query = query.where('assocId', whereIn: assocIds);
+              break;
+          }
         }
       }
 

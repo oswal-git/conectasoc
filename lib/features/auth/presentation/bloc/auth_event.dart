@@ -6,7 +6,7 @@ abstract class AuthEvent extends Equatable {
   const AuthEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class AuthStateChanged extends AuthEvent {
@@ -15,18 +15,18 @@ class AuthStateChanged extends AuthEvent {
   const AuthStateChanged(this.user);
 
   @override
-  List<Object> get props => [user ?? ''];
+  List<Object?> get props => [user];
 }
 
 class AuthLogoutRequested extends AuthEvent {}
 
 class AuthSwitchMembership extends AuthEvent {
-  final MembershipEntity newMembership;
+  final MembershipEntity? newMembership;
 
   const AuthSwitchMembership(this.newMembership);
 
   @override
-  List<Object> get props => [newMembership];
+  List<Object?> get props => [newMembership];
 }
 
 class AuthLeaveAssociation extends AuthEvent {
@@ -93,7 +93,14 @@ class AuthRegisterRequested extends AuthEvent {
   });
 
   @override
-  List<Object> get props => [email, password, firstName, lastName, phone ?? ''];
+  List<Object?> get props => [
+        email,
+        password,
+        firstName,
+        lastName,
+        phone,
+        createAssociation,
+      ];
 }
 
 class AuthSignOutRequested extends AuthEvent {
@@ -130,3 +137,14 @@ class AuthUserChanged extends AuthEvent {
 
 /// Requests to refresh the current user's data from the repository without triggering global navigation.
 class AuthUserRefreshRequested extends AuthEvent {}
+
+/// Evento que se dispara internamente después de un registro exitoso para
+/// indicar que se debe esperar la verificación del correo electrónico.
+class AuthRegistrationCompleted extends AuthEvent {
+  final String email;
+  const AuthRegistrationCompleted(this.email);
+  @override
+  List<Object> get props => [email];
+}
+
+class LoadRegisterData extends AuthEvent {}

@@ -1,13 +1,14 @@
 // lib/features/auth/presentation/widgets/login_form.dart
 
-import 'package:conectasoc/injection_container.dart';
 import 'package:flutter/material.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import 'auth_text_field_widget.dart';
 
 class LoginFormWidget extends StatefulWidget {
-  const LoginFormWidget({super.key});
+  final AuthBloc authBloc;
+
+  const LoginFormWidget({super.key, required this.authBloc});
 
   @override
   State<LoginFormWidget> createState() => _LoginFormWidgetState();
@@ -28,7 +29,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
 
   void _onLogin() {
     if (_formKey.currentState!.validate()) {
-      sl<AuthBloc>().add(
+      widget.authBloc.add(
         AuthSignInRequested(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -151,7 +152,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
           ElevatedButton(
             onPressed: () {
               if (emailController.text.isNotEmpty) {
-                sl<AuthBloc>().add(
+                widget.authBloc.add(
                   AuthPasswordResetRequested(
                     emailController.text.trim(),
                   ),

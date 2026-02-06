@@ -529,4 +529,64 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get effectivePublishDate => 'Data de vigència de la publicació';
+
+  @override
+  String get personalData => 'Dades Personals';
+
+  @override
+  String get emailHint => 'el-teu@email.com';
+
+  @override
+  String get passwordMinLength => 'Mínim 6 caràcters';
+
+  @override
+  String get confirmPassword => 'Confirmar Contrasenya *';
+
+  @override
+  String get passwordsDoNotMatch => 'Les contrasenyes no coincideixen';
+
+  @override
+  String get createNewAssociation => 'Crear nova associació';
+
+  @override
+  String get youWillBeAdmin => 'Seràs l\'administrador de l\'associació';
+
+  @override
+  String get createGeneralAssociation =>
+      'Crear Associació General (SuperAdmin)';
+
+  @override
+  String get newAssociationData => 'Dades de la Nova Associació';
+
+  @override
+  String get shortNameHint => 'Ex: ASSOC2024';
+
+  @override
+  String get longNameHint => 'Ex: Associació de Veïns 2024';
+
+  @override
+  String get contactEmail => 'Email de Contacte';
+
+  @override
+  String get optionalUseYourEmail => 'Opcional (s\'usarà el teu email)';
+
+  @override
+  String get optionalUseYourName => 'Opcional (s\'usarà el teu nom)';
+
+  @override
+  String get contactPhone => 'Telèfon de Contacte';
+
+  @override
+  String get optionalUseYourPhone => 'Opcional (s\'usarà el teu telèfon)';
+
+  @override
+  String get noAssociationsAvailableToJoin =>
+      'No hi ha associacions disponibles. N\'has de crear una de nova.';
+
+  @override
+  String get register => 'Registrar-se';
+
+  @override
+  String get registrationSuccessMessage =>
+      'Registre reeixit. Si us plau, verifica el teu correu electrònic.';
 }

@@ -29,7 +29,7 @@ class SplashPage extends StatelessWidget {
                 ],
               ),
               child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.5,
+                width: MediaQuery.of(context).size.width * 0.75,
                 child: Image.asset(
                   'assets/images/logo_conectasoc_t.png',
                   fit: BoxFit.contain,

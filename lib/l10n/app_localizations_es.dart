@@ -531,4 +531,64 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get effectivePublishDate => 'Fecha vigencia publicación';
+
+  @override
+  String get personalData => 'Datos Personales';
+
+  @override
+  String get emailHint => 'tu@email.com';
+
+  @override
+  String get passwordMinLength => 'Mínimo 6 caracteres';
+
+  @override
+  String get confirmPassword => 'Confirmar Contraseña *';
+
+  @override
+  String get passwordsDoNotMatch => 'Las contraseñas no coinciden';
+
+  @override
+  String get createNewAssociation => 'Crear nueva asociación';
+
+  @override
+  String get youWillBeAdmin => 'Serás administrador de la asociación';
+
+  @override
+  String get createGeneralAssociation =>
+      'Crear Asociación General (SuperAdmin)';
+
+  @override
+  String get newAssociationData => 'Datos de la Nueva Asociación';
+
+  @override
+  String get shortNameHint => 'Ej: ASOC2024';
+
+  @override
+  String get longNameHint => 'Ej: Asociación de Vecinos 2024';
+
+  @override
+  String get contactEmail => 'Email de Contacto';
+
+  @override
+  String get optionalUseYourEmail => 'Opcional (se usará tu email)';
+
+  @override
+  String get optionalUseYourName => 'Opcional (se usará tu nombre)';
+
+  @override
+  String get contactPhone => 'Teléfono de Contacto';
+
+  @override
+  String get optionalUseYourPhone => 'Opcional (se usará tu teléfono)';
+
+  @override
+  String get noAssociationsAvailableToJoin =>
+      'No hay asociaciones disponibles. Debes crear una nueva.';
+
+  @override
+  String get register => 'Registrarse';
+
+  @override
+  String get registrationSuccessMessage =>
+      'Registro exitoso. Por favor, verifica tu email.';
 }

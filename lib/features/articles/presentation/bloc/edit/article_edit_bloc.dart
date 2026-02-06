@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:conectasoc/core/utils/article_permissions.dart';
 import 'package:conectasoc/core/utils/quill_helpers.dart';
 import 'package:conectasoc/features/articles/data/models/models.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
@@ -82,7 +83,9 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     final user = authState.user;
     final currentMembership = authState.currentMembership;
 
-    if (currentMembership == null) {
+    // Solo fallamos si NO hay membresía Y el usuario NO es superadmin.
+    // El superadmin puede crear artículos generales (sin membresía).
+    if (currentMembership == null && !user.isSuperAdmin) {
       emit(const ArticleEditFailure('No se ha seleccionado una asociación.'));
       return;
     }
@@ -98,9 +101,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
             userId: user.uid,
             authorName: user.fullName,
             authorAvatarUrl: user.avatarUrl,
-            assocId: currentMembership
-                .associationId, // Use current membership's assocId
-            associationShortName: currentMembership.associationId,
+            assocId: currentMembership?.associationId ?? '',
+            associationShortName: currentMembership?.associationId ?? '',
             status: ArticleStatus.redaccion,
             sections: const [], // Empezar sin secciones
           );
@@ -158,9 +160,24 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       final articleResult = results[0];
       final categoriesResult = results[1];
 
-      final article = (articleResult as dynamic).fold((l) => throw l, (r) => r);
+      final article = (articleResult as dynamic)
+          .fold((l) => throw l, (r) => r as ArticleEntity);
       final categories =
           (categoriesResult as dynamic).fold((l) => throw l, (r) => r);
+
+      // --- Security Check: RBAC ---
+      final authState = _authBloc.state;
+      final user = authState is AuthAuthenticated ? authState.user : null;
+      final membership =
+          authState is AuthAuthenticated ? authState.currentMembership : null;
+
+      if (!ArticlePermissions.canEdit(
+          article: article, user: user, membership: membership)) {
+        emit(const ArticleEditFailure(
+            'No tienes permisos para editar este artículo.'));
+        return;
+      }
+      // ----------------------------
 
       final subcategoriesResult =
           await _getSubcategoriesUseCase(article.categoryId);
@@ -219,12 +236,19 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
             newCoverImageBytes == null &&
             article.coverUrl.isNotEmpty);
 
+    // Validación de fecha de publicación:
+    // Solo obligatoria en el futuro si estamos creando un artículo nuevo Y su estado es Publicado.
+    // Si estamos editando uno existente, o es un borrador (redaccion), permitimos fechas pasadas.
+    final isPublishDateAllowed = !isCreating ||
+        article.status != ArticleStatus.publicado ||
+        !publishDate.isBefore(now);
+
     return quillJsonToPlainText(article.title).length > 5 &&
         isCoverOk &&
         quillJsonToPlainText(article.abstractContent).length > 5 &&
         article.categoryId.isNotEmpty &&
         article.subcategoryId.isNotEmpty &&
-        !publishDate.isBefore(now) &&
+        isPublishDateAllowed &&
         !effectiveDate.isBefore(publishDate) &&
         isExpirationDateValid;
   }
@@ -243,6 +267,23 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     if (state is! ArticleEditLoaded) return;
 
     final currentState = state as ArticleEditLoaded;
+
+    // --- Security Check: RBAC ---
+    final authState = _authBloc.state;
+    final user = authState is AuthAuthenticated ? authState.user : null;
+    final membership =
+        authState is AuthAuthenticated ? authState.currentMembership : null;
+
+    if (!ArticlePermissions.canEdit(
+        article: currentState.article, user: user, membership: membership)) {
+      emit(currentState.copyWith(
+          isSaving: false,
+          errorMessage: () =>
+              'No tienes permisos para guardar este artículo.'));
+      return;
+    }
+    // ----------------------------
+
     emit(currentState.copyWith(isSaving: true));
 
     // Re-validar antes de guardar por si acaso.

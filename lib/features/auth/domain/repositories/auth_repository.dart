@@ -27,6 +27,9 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<Either<Failure, void>> signInWithEmailOnly(
+      {required String email, required String password});
+
   Future<Either<Failure, firebase.UserCredential>> createFirebaseAuthUser(
     String email,
     String password,

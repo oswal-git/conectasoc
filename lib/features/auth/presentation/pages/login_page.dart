@@ -73,7 +73,9 @@ class LoginPage extends StatelessWidget {
                         const SizedBox(height: 40),
 
                         // FORMULARIO DE LOGIN
-                        const LoginFormWidget(),
+                        LoginFormWidget(
+                          authBloc: context.read<AuthBloc>(),
+                        ),
 
                         const SizedBox(height: 24),
 

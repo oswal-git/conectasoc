@@ -39,7 +39,7 @@ class HomeDrawer extends StatelessWidget {
                   _buildDrawerItem(
                     context: context,
                     icon: Icons.people_outline,
-                    text: AppLocalizations.of(context)!.usersListTitle,
+                    text: AppLocalizations.of(context).usersListTitle,
                     onTap: () => GoRouter.of(context)
                         .push('${RouteNames.home}/${RouteNames.usersList}'),
                   ),
@@ -50,7 +50,7 @@ class HomeDrawer extends StatelessWidget {
                     _buildDrawerItem(
                       context: context,
                       icon: Icons.business_outlined,
-                      text: AppLocalizations.of(context)!.associationsListTitle,
+                      text: AppLocalizations.of(context).associationsListTitle,
                       onTap: () => GoRouter.of(context).go(
                           '${RouteNames.home}/${RouteNames.associationsList}'),
                     )
@@ -58,7 +58,7 @@ class HomeDrawer extends StatelessWidget {
                     _buildDrawerItem(
                         context: context,
                         icon: Icons.business_outlined,
-                        text: AppLocalizations.of(context)!.association,
+                        text: AppLocalizations.of(context).association,
                         onTap: () {
                           GoRouter.of(context).go(
                               '${RouteNames.home}/${RouteNames.associationEdit}/${state.currentMembership!.associationId}');
@@ -67,11 +67,10 @@ class HomeDrawer extends StatelessWidget {
                     _buildDrawerItem(
                         context: context,
                         icon: Icons.business_outlined,
-                        text: AppLocalizations.of(context)!.association,
+                        text: AppLocalizations.of(context).association,
                         onTap: () {
                           SnackBarService.showSnackBar(
-                            AppLocalizations.of(context)!
-                                .noAssociationAvailable,
+                            AppLocalizations.of(context).noAssociationAvailable,
                             isError: true,
                           );
                         }),
@@ -82,7 +81,7 @@ class HomeDrawer extends StatelessWidget {
                   _buildDrawerItem(
                     context: context,
                     icon: Icons.settings_outlined,
-                    text: AppLocalizations.of(context)!.configuration,
+                    text: AppLocalizations.of(context).configuration,
                     onTap: () => GoRouter.of(context)
                         .push('${RouteNames.home}/${RouteNames.settings}'),
                   ),
@@ -91,7 +90,7 @@ class HomeDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context: context,
                   icon: Icons.person_outline,
-                  text: AppLocalizations.of(context)!.myProfile,
+                  text: AppLocalizations.of(context).myProfile,
                   onTap: () {
                     GoRouter.of(context)
                         .push('${RouteNames.home}/${RouteNames.profile}');
@@ -101,7 +100,7 @@ class HomeDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context: context,
                   icon: Icons.add_business_outlined,
-                  text: AppLocalizations.of(context)!.joinAssociation,
+                  text: AppLocalizations.of(context).joinAssociation,
                   onTap: () {
                     GoRouter.of(context).push(
                         '${RouteNames.home}/${RouteNames.joinAssociation}');
@@ -193,7 +192,7 @@ class HomeDrawer extends StatelessWidget {
   }
 
   Widget _buildLoginLogoutButton(BuildContext context, AuthState state) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
 
     if (state is AuthAuthenticated) {
       return _buildDrawerItem(

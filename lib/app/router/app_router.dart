@@ -6,7 +6,6 @@ import 'package:conectasoc/features/articles/presentation/pages/pages.dart';
 import 'package:conectasoc/features/associations/presentation/pages/pages.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/pages/pages.dart';
-import 'package:conectasoc/features/auth/presentation/pages/verification_page.dart';
 import 'package:conectasoc/features/home/presentation/pages/pages.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/presentation/pages/pages.dart';
@@ -16,10 +15,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:conectasoc/injection_container.dart';
+import 'package:logger/logger.dart';
 import 'route_names.dart';
 
 class AppRouter {
   final AuthBloc authBloc;
+
+  final logger = Logger();
 
   AppRouter({required this.authBloc});
 
@@ -50,8 +52,19 @@ class AppRouter {
       ),
       GoRoute(
         path: RouteNames.verification,
-        builder: (context, state) =>
-            VerificationPage(email: state.extra as String),
+        builder: (context, state) {
+          // Obtener el email del estado de AuthBloc
+          final authState = context.read<AuthBloc>().state;
+          String email = '';
+
+          if (authState is AuthNeedsVerification) {
+            email = authState.email;
+          } else if (state.extra != null && state.extra is String) {
+            email = state.extra as String;
+          }
+
+          return EmailVerificationPage(email: email);
+        },
       ),
       GoRoute(
         path: RouteNames.home,
@@ -127,43 +140,96 @@ class AppRouter {
     redirect: (BuildContext context, GoRouterState state) async {
       final authState = authBloc.state;
       final location = state.uri.toString();
+      logger.t("➡️ AppRouter-redirect: authState = ${authState.runtimeType}");
+      logger.t("➡️ AppRouter-redirect: location = $location");
 
+      // Esperar a que el estado se resuelva
+      // /*********************************************************
+      // /************  AuthInitial  AuthLoading *********
+      // /*********************************************************
       if (authState is AuthInitial || authState is AuthLoading) {
+        logger.t(
+            "1 ➡️ AppRouter-redirect: authState is AuthInitial || authState is AuthLoading -> null");
         return null; // Wait for authState to be resolved
       }
 
-      if (location == RouteNames.splash) {
-        if (authState is AuthAuthenticated || authState is AuthLocalUser) {
-          return RouteNames.home;
-        } else if (authState is AuthUnauthenticated) {
-          return RouteNames.welcome;
-        } else if (authState is AuthNeedsVerification) {
+      // /*********************************************************
+      // /************  AuthNeedsVerification *********
+      // /*********************************************************
+      // CRÍTICO: Manejar AuthNeedsVerification PRIMERO
+      if (authState is AuthNeedsVerification) {
+        logger.t("2 ➡️ AppRouter-redirect: authState is AuthNeedsVerification");
+        if (location != RouteNames.verification) {
+          logger.t(
+              "2.1 ➡️ AppRouter-redirect: authState is AuthNeedsVerification -> $location != ${RouteNames.verification} -> ${RouteNames.verification}");
           return RouteNames.verification;
         }
+        logger.t(
+            "2.2 ➡️ AppRouter-redirect: authState is AuthNeedsVerification -> $location == ${RouteNames.verification} -> null");
+        return null;
       }
 
-      if (authState is AuthAuthenticated || authState is AuthLocalUser) {
-        if (location == RouteNames.welcome ||
-            location == RouteNames.login ||
-            location == RouteNames.register) {
+      // /****************************************************************************
+      // /************  AuthAuthenticated  AuthLocalUser AuthUnauthenticated *********
+      // /****************************************************************************
+      // Desde splash, redirigir según el estado
+      if (location == RouteNames.splash) {
+        logger.t("3 ➡️ AppRouter-redirect: $location == ${RouteNames.splash}");
+        if (authState is AuthAuthenticated || authState is AuthLocalUser) {
+          logger.t(
+              "3.1 ➡️ AppRouter-redirect: authState is AuthAuthenticated || authState is AuthLocalUser -> ${RouteNames.home}");
           return RouteNames.home;
-        }
-      }
-
-      if (authState is AuthUnauthenticated) {
-        if (location != RouteNames.welcome &&
-            location != RouteNames.login &&
-            location != RouteNames.register &&
-            location != RouteNames.localUserSetup &&
-            location != RouteNames.splash) {
+        } else if (authState is AuthUnauthenticated) {
+          logger.t(
+              "3.2 ➡️ AppRouter-redirect: authState is AuthUnauthenticated -> ${RouteNames.welcome}");
           return RouteNames.welcome;
         }
       }
 
-      if (authState is AuthNeedsVerification) {
-        return RouteNames.verification;
+      // /****************************************************************************
+      // /************  AuthAuthenticated  AuthLocalUser *********
+      // /****************************************************************************
+      // Usuario autenticado no puede acceder a páginas de auth
+      if (authState is AuthAuthenticated || authState is AuthLocalUser) {
+        logger.t(
+            "4 ➡️ AppRouter-redirect: authState is AuthAuthenticated || authState is AuthLocalUser");
+        final authRoutes = [
+          RouteNames.welcome,
+          RouteNames.login,
+          RouteNames.register,
+          RouteNames.verification,
+        ];
+        if (authRoutes.contains(location)) {
+          logger.t(
+              "4.1 ➡️ AppRouter-redirect: authState is AuthAuthenticated || authState is AuthLocalUser -> !authRoutes.contains(location) = ${!authRoutes.contains(location)}");
+          return RouteNames.home;
+        }
       }
 
+      // /****************************************************************************
+      // /************   AuthUnauthenticated *********
+      // /****************************************************************************
+      // Usuario no autenticado solo puede acceder a páginas públicas
+      if (authState is AuthUnauthenticated) {
+        logger.t("5 ➡️ AppRouter-redirect: authState is AuthUnauthenticated");
+        final publicRoutes = [
+          RouteNames.welcome,
+          RouteNames.login,
+          RouteNames.register,
+          RouteNames.localUserSetup,
+          RouteNames.splash,
+        ];
+
+        if (!publicRoutes.contains(location)) {
+          logger.t(
+              "5.1 ➡️ AppRouter-redirect: !publicRoutes.contains(location) = ${!publicRoutes.contains(location)}");
+          logger.t(
+              "5.2 ➡️ AppRouter-redirect: !publicRoutes.contains(location) = ${!publicRoutes.contains(location)} -> ${RouteNames.welcome}");
+          return RouteNames.welcome;
+        }
+      }
+
+      logger.t("6 ➡️ AppRouter-redirect: final -> null");
       return null; // No redirection needed
     },
   );

@@ -21,25 +21,29 @@ class UserListLoaded extends UserListState {
   final List<UserEntity> allUsers;
   final List<UserEntity> filteredUsers;
   final UserSortOption sortOption;
+  final bool isLoading;
 
   const UserListLoaded({
     required this.allUsers,
     required this.filteredUsers,
     this.sortOption = UserSortOption.name,
+    this.isLoading = false,
   });
 
   @override
-  List<Object> get props => [allUsers, filteredUsers, sortOption];
+  List<Object> get props => [allUsers, filteredUsers, sortOption, isLoading];
 
   UserListLoaded copyWith({
     List<UserEntity>? allUsers,
     List<UserEntity>? filteredUsers,
     UserSortOption? sortOption,
+    bool? isLoading,
   }) {
     return UserListLoaded(
       allUsers: allUsers ?? this.allUsers,
       filteredUsers: filteredUsers ?? this.filteredUsers,
       sortOption: sortOption ?? this.sortOption,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }

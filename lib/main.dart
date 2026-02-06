@@ -51,7 +51,7 @@ class ConectaSocApp extends StatelessWidget {
               // Clave para que el SnackBarService funcione globalmente.
               scaffoldMessengerKey: SnackBarService.scaffoldMessengerKey,
               onGenerateTitle: (context) =>
-                  AppLocalizations.of(context)!.appTitle,
+                  AppLocalizations.of(context).appTitle,
               debugShowCheckedModeBanner: false,
               localizationsDelegates: [
                 ...AppLocalizations.localizationsDelegates,

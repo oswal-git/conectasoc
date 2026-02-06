@@ -1,5 +1,7 @@
 // lib/features/auth/data/repositories/auth_repository_impl.dart
 
+// ignore_for_file: avoid_print
+
 import 'package:conectasoc/features/auth/data/models/models.dart';
 import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
 import 'package:dartz/dartz.dart';
@@ -110,15 +112,34 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, firebase.UserCredential>> createFirebaseAuthUser(
-      String email, String password) async {
+  Future<Either<Failure, void>> signInWithEmailOnly({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final credential =
-          await remoteDataSource.createFirebaseAuthUser(email, password);
-      return Right(credential);
+      await remoteDataSource.signInWithEmailOnly(email, password);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
+      return Left(ServerFailure('Error en login: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, firebase.UserCredential>> createFirebaseAuthUser(
+      String email, String password) async {
+    print('Inicio createFirebaseAuthUser');
+    try {
+      final credential =
+          await remoteDataSource.createFirebaseAuthUser(email, password);
+      print('createFirebaseAuthUser: credential');
+      return Right(credential);
+    } on ServerException catch (e) {
+      print('createFirebaseAuthUser: ServerException -> ${e.message}');
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      print('createFirebaseAuthUser: GenericException -> $e');
       return Left(ServerFailure('Error creando usuario en Auth: $e'));
     }
   }

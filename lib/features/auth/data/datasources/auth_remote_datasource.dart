@@ -1,5 +1,7 @@
 // lib/features/auth/data/datasources/auth_remote_datasource.dart
 
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/core/errors/errors.dart';
 import 'package:conectasoc/features/auth/data/models/models.dart';
@@ -10,6 +12,7 @@ abstract class AuthRemoteDataSource {
 
   Future<UserModel?> getCurrentUser();
   Future<UserModel> signInWithEmail(String email, String password);
+  Future<void> signInWithEmailOnly(String email, String password);
   Future<firebase.UserCredential> createFirebaseAuthUser(
       String email, String password);
   Future<void> signOut();
@@ -27,8 +30,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   });
 
   @override
-  Stream<firebase.User?> get authStateChanges =>
-      firebaseAuth.authStateChanges();
+  Stream<firebase.User?> get authStateChanges {
+    print('📡 authStateChanges getter called');
+    return firebaseAuth.authStateChanges();
+  }
 
   @override
   Future<UserModel?> getCurrentUser() async {
@@ -79,24 +84,77 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<firebase.UserCredential> createFirebaseAuthUser(
-      String email, String password) async {
+  Future<void> signInWithEmailOnly(String email, String password) async {
     try {
-      return await firebaseAuth.createUserWithEmailAndPassword(
+      final credential = await firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      final uid = credential.user?.uid;
+
+      if (uid == null) {
+        throw ServerException('No se pudo obtener el UID del usuario');
+      }
+
+      // Actualizar último login en Firestore
+      await firestore.collection('users').doc(uid).update({
+        'lastLoginDate': FieldValue.serverTimestamp(),
+      });
     } on firebase.FirebaseAuthException catch (e) {
       throw ServerException(_getAuthErrorMessage(e.code));
+    } catch (e) {
+      throw ServerException('Error en login: $e');
+    }
+  }
+
+  @override
+  Future<firebase.UserCredential> createFirebaseAuthUser(
+      String email, String password) async {
+    print('🔵 DataSource: Inicio createFirebaseAuthUser');
+    print('🔵 DataSource: Email: $email');
+    print('🔵 DataSource: FirebaseAuth instance: ${firebaseAuth.hashCode}');
+    try {
+      print('🔵 DataSource: Llamando a createUserWithEmailAndPassword...');
+      final credential = await firebaseAuth
+          .createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      )
+          .timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          print('⏰ DataSource: TIMEOUT en createUserWithEmailAndPassword');
+          throw ServerException('Timeout al crear usuario en Firebase Auth');
+        },
+      );
+
+      print('🔵 DataSource: Credential obtenido');
+      print('🔵 DataSource: User UID: ${credential.user?.uid}');
+      print('🔵 DataSource: Retornando credential...');
+
+      return credential;
+    } on firebase.FirebaseAuthException catch (e) {
+      print('❌ DataSource: FirebaseAuthException - ${e.code}: ${e.message}');
+      throw ServerException(_getAuthErrorMessage(e.code));
+    } catch (e) {
+      print('❌ DataSource: Exception genérica - $e');
+      throw ServerException('Error inesperado al crear usuario: $e');
     }
   }
 
   @override
   Future<void> createUserDocument(UserModel user) async {
+    print('🔵 DataSource: Inicio createUserDocument para UID: ${user.uid}');
     try {
+      final userMap = user.toFirestore();
+      print('🔵 DataSource: User map generado: ${userMap.keys}');
+
       // Convertir el modelo a un mapa de Firestore y guardarlo.
-      await firestore.collection('users').doc(user.uid).set(user.toFirestore());
+      await firestore.collection('users').doc(user.uid).set(userMap);
+      print('🔵 DataSource: Documento creado exitosamente');
     } catch (e) {
+      print('❌ DataSource: Error creando documento - $e');
       throw ServerException('Error en registro: $e');
     }
   }
@@ -137,6 +195,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return 'Usuario deshabilitado';
       case 'too-many-requests':
         return 'Demasiados intentos. Intente más tarde';
+      case 'network-request-failed':
+        return 'Error de conexión. Verifica tu internet';
       default:
         return 'Error de autenticación: $code';
     }

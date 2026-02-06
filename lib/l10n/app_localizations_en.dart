@@ -529,4 +529,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get effectivePublishDate => 'Effective date of publication';
+
+  @override
+  String get personalData => 'Personal Data';
+
+  @override
+  String get emailHint => 'you@email.com';
+
+  @override
+  String get passwordMinLength => 'Minimum 6 characters';
+
+  @override
+  String get confirmPassword => 'Confirm Password *';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get createNewAssociation => 'Create new association';
+
+  @override
+  String get youWillBeAdmin =>
+      'You will be the administrator of the association';
+
+  @override
+  String get createGeneralAssociation =>
+      'Create General Association (SuperAdmin)';
+
+  @override
+  String get newAssociationData => 'New Association Data';
+
+  @override
+  String get shortNameHint => 'Ex: ASSOC2024';
+
+  @override
+  String get longNameHint => 'Ex: Neighbors Association 2024';
+
+  @override
+  String get contactEmail => 'Contact Email';
+
+  @override
+  String get optionalUseYourEmail => 'Optional (your email will be used)';
+
+  @override
+  String get optionalUseYourName => 'Optional (your name will be used)';
+
+  @override
+  String get contactPhone => 'Contact Phone';
+
+  @override
+  String get optionalUseYourPhone => 'Optional (your phone will be used)';
+
+  @override
+  String get noAssociationsAvailableToJoin =>
+      'No associations available. You must create a new one.';
+
+  @override
+  String get register => 'Register';
+
+  @override
+  String get registrationSuccessMessage =>
+      'Registration successful. Please check your email to verify your account.';
 }

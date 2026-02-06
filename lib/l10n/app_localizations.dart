@@ -68,8 +68,8 @@ abstract class AppLocalizations {
 
   final String localeName;
 
-  static AppLocalizations? of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
   static const LocalizationsDelegate<AppLocalizations> delegate =
@@ -1083,6 +1083,120 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Fecha vigencia publicación'**
   String get effectivePublishDate;
+
+  /// No description provided for @personalData.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos Personales'**
+  String get personalData;
+
+  /// No description provided for @emailHint.
+  ///
+  /// In es, this message translates to:
+  /// **'tu@email.com'**
+  String get emailHint;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 6 caracteres'**
+  String get passwordMinLength;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar Contraseña *'**
+  String get confirmPassword;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Las contraseñas no coinciden'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @createNewAssociation.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear nueva asociación'**
+  String get createNewAssociation;
+
+  /// No description provided for @youWillBeAdmin.
+  ///
+  /// In es, this message translates to:
+  /// **'Serás administrador de la asociación'**
+  String get youWillBeAdmin;
+
+  /// No description provided for @createGeneralAssociation.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear Asociación General (SuperAdmin)'**
+  String get createGeneralAssociation;
+
+  /// No description provided for @newAssociationData.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de la Nueva Asociación'**
+  String get newAssociationData;
+
+  /// No description provided for @shortNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: ASOC2024'**
+  String get shortNameHint;
+
+  /// No description provided for @longNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: Asociación de Vecinos 2024'**
+  String get longNameHint;
+
+  /// No description provided for @contactEmail.
+  ///
+  /// In es, this message translates to:
+  /// **'Email de Contacto'**
+  String get contactEmail;
+
+  /// No description provided for @optionalUseYourEmail.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional (se usará tu email)'**
+  String get optionalUseYourEmail;
+
+  /// No description provided for @optionalUseYourName.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional (se usará tu nombre)'**
+  String get optionalUseYourName;
+
+  /// No description provided for @contactPhone.
+  ///
+  /// In es, this message translates to:
+  /// **'Teléfono de Contacto'**
+  String get contactPhone;
+
+  /// No description provided for @optionalUseYourPhone.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional (se usará tu teléfono)'**
+  String get optionalUseYourPhone;
+
+  /// No description provided for @noAssociationsAvailableToJoin.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay asociaciones disponibles. Debes crear una nueva.'**
+  String get noAssociationsAvailableToJoin;
+
+  /// No description provided for @register.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrarse'**
+  String get register;
+
+  /// No description provided for @registrationSuccessMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro exitoso. Por favor, verifica tu email.'**
+  String get registrationSuccessMessage;
 }
 
 class _AppLocalizationsDelegate

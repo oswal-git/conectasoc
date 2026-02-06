@@ -32,7 +32,7 @@ class ArticleDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.articleTitle),
@@ -72,7 +72,7 @@ class _WebLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat("dd 'de' MMMM 'de' yyyy", l10n.localeName);
 
     return SingleChildScrollView(
@@ -218,7 +218,7 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat("d 'de' MMMM 'de' yyyy", l10n.localeName);
 
     return SingleChildScrollView(
@@ -297,7 +297,7 @@ class _MobileLayout extends StatelessWidget {
 
 Widget _buildFooter(
     BuildContext context, ArticleEntity article, DateFormat dateFormat) {
-  final l10n = AppLocalizations.of(context)!;
+  final l10n = AppLocalizations.of(context);
   String vigenciaText =
       '${l10n.effectivePublishDate} ${l10n.start} ${dateFormat.format(article.effectiveDate)}';
   if (article.expirationDate != null) {

@@ -13,11 +13,17 @@ class LoadHomeData extends HomeEvent {
   final UserEntity? user;
   final MembershipEntity? membership;
   final bool isEditMode;
+  final bool forceReload;
 
-  const LoadHomeData({this.user, this.membership, this.isEditMode = false});
+  const LoadHomeData({
+    this.user,
+    this.membership,
+    this.isEditMode = false,
+    this.forceReload = false,
+  });
 
   @override
-  List<Object?> get props => [user, membership, isEditMode];
+  List<Object?> get props => [user, membership, isEditMode, forceReload];
 }
 
 class ToggleEditMode extends HomeEvent {}

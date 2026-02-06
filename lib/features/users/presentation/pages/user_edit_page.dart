@@ -68,7 +68,7 @@ class _UserEditViewState extends State<_UserEditView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isCreating ? l10n.createUser : l10n.editUser),
@@ -267,7 +267,7 @@ class _UserEditViewState extends State<_UserEditView> {
   }
 
   void _showDeleteConfirmation(BuildContext context, String userName) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     if (!context.mounted) return;
 
     showDialog(
@@ -304,7 +304,7 @@ class _MembershipSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final currentUser =
         (context.read<AuthBloc>().state as AuthAuthenticated).user;
     final userMemberships = user.memberships;
@@ -394,7 +394,7 @@ class _MembershipSection extends StatelessWidget {
   }
 
   void _showAddMembershipDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final availableAssociations = allAssociations
         .where((assoc) => !user.memberships.containsKey(assoc.id))
         .toList();

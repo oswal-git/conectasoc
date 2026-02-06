@@ -73,12 +73,6 @@ Future<void> init() async {
       repository: sl(),
       registerUseCase: sl(),
       saveLocalUserUseCase: sl(),
-    ),
-  );
-
-  // Register Bloc
-  sl.registerFactory(
-    () => RegisterBloc(
       getAllAssociationsUseCase: sl(),
     ),
   );
@@ -96,6 +90,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => RegisterUseCase(
         repository: sl(),
         createAssociationUseCase: sl(),
+        deleteAssociationUseCase: sl(),
       ));
   sl.registerLazySingleton(() => SaveLocalUserUseCase(sl()));
 

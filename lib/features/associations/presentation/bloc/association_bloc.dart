@@ -17,6 +17,7 @@ class AssociationBloc extends Bloc<AssociationEvent, AssociationState> {
       required this.undoDeleteAssociationUseCase})
       : super(AssociationsInitial()) {
     on<LoadAssociations>(_onLoadAssociations);
+    on<RefreshAssociations>(_onRefreshAssociations);
     on<SearchAssociations>(_onSearchAssociations,
         transformer: debounce(const Duration(milliseconds: 300)));
     on<SortAssociations>(_onSortAssociations);
@@ -28,13 +29,34 @@ class AssociationBloc extends Bloc<AssociationEvent, AssociationState> {
     LoadAssociations event,
     Emitter<AssociationState> emit,
   ) async {
-    emit(AssociationsLoading());
+    final currentState = state;
+    if (currentState is AssociationsLoaded) {
+      emit(currentState.copyWith(isLoading: true));
+    } else {
+      emit(AssociationsLoading());
+    }
+    await _fetchAssociations(emit);
+  }
+
+  Future<void> _onRefreshAssociations(
+    RefreshAssociations event,
+    Emitter<AssociationState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is AssociationsLoaded) {
+      emit(currentState.copyWith(isLoading: true));
+    }
+    await _fetchAssociations(emit);
+  }
+
+  Future<void> _fetchAssociations(Emitter<AssociationState> emit) async {
     final result = await getAllAssociationsUseCase();
     result.fold(
       (failure) => emit(AssociationsError(failure.message)),
       (associations) => emit(AssociationsLoaded(
         allAssociations: associations,
         filteredAssociations: associations,
+        isLoading: false,
       )),
     );
   }

@@ -38,7 +38,7 @@ class _UserListPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.users),
@@ -86,12 +86,32 @@ class _UserListPageView extends StatelessWidget {
                   if (state.filteredUsers.isEmpty) {
                     return Center(child: Text(l10n.noResultsFound));
                   }
-                  return ListView.builder(
-                    itemCount: state.filteredUsers.length,
-                    itemBuilder: (context, index) {
-                      final user = state.filteredUsers[index];
-                      return _UserListItem(user: user);
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      final authState = context.read<AuthBloc>().state;
+                      String? associationId;
+                      if (authState is AuthAuthenticated) {
+                        if (authState.currentMembership?.role != 'superadmin') {
+                          associationId =
+                              authState.currentMembership?.associationId;
+                        }
+                      }
+                      final userListBloc = context.read<UserListBloc>();
+                      userListBloc
+                          .add(RefreshUsers(associationId: associationId));
+
+                      // Wait for the next state that is not loading or error
+                      await userListBloc.stream.firstWhere((state) =>
+                          state is! UserListLoaded || !state.isLoading);
                     },
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: state.filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = state.filteredUsers[index];
+                        return _UserListItem(user: user);
+                      },
+                    ),
                   );
                 }
                 if (state is UserListError) {

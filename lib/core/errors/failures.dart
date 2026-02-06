@@ -28,7 +28,9 @@ class ValidationFailure extends Failure {
 
 // Errores de red
 class NetworkFailure extends Failure {
-  const NetworkFailure() : super('Sin conexión a internet');
+  const NetworkFailure()
+      : super(
+            'No hay conexión a internet. Por favor, verifica tu conexión y vuelve a intentarlo.');
 }
 
 // Errores de autenticación

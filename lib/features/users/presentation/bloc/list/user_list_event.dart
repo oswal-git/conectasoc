@@ -5,7 +5,7 @@ abstract class UserListEvent extends Equatable {
   const UserListEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class LoadUsers extends UserListEvent {
@@ -13,7 +13,15 @@ class LoadUsers extends UserListEvent {
   const LoadUsers({this.associationId});
 
   @override
-  List<Object> get props => [associationId!];
+  List<Object?> get props => [associationId];
+}
+
+class RefreshUsers extends UserListEvent {
+  final String? associationId;
+  const RefreshUsers({this.associationId});
+
+  @override
+  List<Object?> get props => [associationId];
 }
 
 class SearchUsers extends UserListEvent {
@@ -21,7 +29,7 @@ class SearchUsers extends UserListEvent {
   const SearchUsers(this.query);
 
   @override
-  List<Object> get props => [query];
+  List<Object?> get props => [query];
 }
 
 class SortUsers extends UserListEvent {
@@ -30,5 +38,5 @@ class SortUsers extends UserListEvent {
   const SortUsers(this.sortOption);
 
   @override
-  List<Object> get props => [sortOption];
+  List<Object?> get props => [sortOption];
 }

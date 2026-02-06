@@ -24,7 +24,7 @@ class AssociationEditPage extends StatelessWidget {
           sl<AssociationEditBloc>()..add(LoadAssociationDetails(associationId)),
       child: Scaffold(
         appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.association),
+          title: Text(AppLocalizations.of(context).association),
         ),
         body: const AssociationEditView(),
       ),
@@ -70,7 +70,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return BlocListener<AssociationEditBloc, AssociationEditState>(
       listener: (context, state) {
         if (state is AssociationEditSuccess) {

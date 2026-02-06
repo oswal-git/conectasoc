@@ -26,7 +26,7 @@ class _AssociationListPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.associationsListTitle),
@@ -50,7 +50,7 @@ class AssociationListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<AssociationBloc, AssociationState>(
       listener: (context, state) {
         if (state is AssociationDeletionSuccess) {
@@ -70,12 +70,21 @@ class AssociationListView extends StatelessWidget {
           if (state.filteredAssociations.isEmpty) {
             return Center(child: Text(l10n.noResultsFound));
           }
-          return ListView.builder(
-            itemCount: state.filteredAssociations.length,
-            itemBuilder: (context, index) {
-              final association = state.filteredAssociations[index];
-              return _AssociationListItem(association: association);
+          return RefreshIndicator(
+            onRefresh: () async {
+              final bloc = context.read<AssociationBloc>();
+              bloc.add(RefreshAssociations());
+              await bloc.stream.firstWhere(
+                  (state) => state is! AssociationsLoaded || !state.isLoading);
             },
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: state.filteredAssociations.length,
+              itemBuilder: (context, index) {
+                final association = state.filteredAssociations[index];
+                return _AssociationListItem(association: association);
+              },
+            ),
           );
         }
         if (state is AssociationsError) {
@@ -101,7 +110,7 @@ class _AssociationListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Dismissible(

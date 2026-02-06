@@ -10,6 +10,8 @@ abstract class AssociationEvent extends Equatable {
 
 class LoadAssociations extends AssociationEvent {}
 
+class RefreshAssociations extends AssociationEvent {}
+
 class SearchAssociations extends AssociationEvent {
   final String query;
   const SearchAssociations(this.query);

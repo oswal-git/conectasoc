@@ -12,7 +12,7 @@ class SnackBarService {
       SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red : Colors.green,
-        duration: duration ?? const Duration(seconds: 4), // Valor por defecto
+        duration: duration ?? const Duration(seconds: 4),
       ),
     );
   }
