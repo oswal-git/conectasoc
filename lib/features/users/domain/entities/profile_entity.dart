@@ -10,6 +10,7 @@ class ProfileEntity extends Equatable {
   final String email; // Generalmente no editable, pero se muestra.
   final String? phone;
   final String language;
+  final String notificationFrequency;
   final String? photoUrl;
 
   const ProfileEntity({
@@ -19,6 +20,7 @@ class ProfileEntity extends Equatable {
     required this.email,
     this.phone,
     required this.language,
+    this.notificationFrequency = 'none',
     this.photoUrl,
   });
 
@@ -29,6 +31,7 @@ class ProfileEntity extends Equatable {
     String? email,
     String? phone,
     String? language,
+    String? notificationFrequency,
     String? photoUrl,
   }) {
     return ProfileEntity(
@@ -38,6 +41,8 @@ class ProfileEntity extends Equatable {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       language: language ?? this.language,
+      notificationFrequency:
+          notificationFrequency ?? this.notificationFrequency,
       photoUrl: photoUrl ?? this.photoUrl,
     );
   }
@@ -52,6 +57,7 @@ class ProfileEntity extends Equatable {
       lastName: lastname,
       phone: phone,
       language: language,
+      notificationFrequency: notificationFrequency,
       avatarUrl: photoUrl, // Asegurarse de que la nueva URL se propaga
       // Se mantiene el resto de la información del usuario original.
       // uid, email, status, memberships, etc. no se modifican aquí.
@@ -59,6 +65,14 @@ class ProfileEntity extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [uid, name, lastname, email, phone, language, photoUrl];
+  List<Object?> get props => [
+        uid,
+        name,
+        lastname,
+        email,
+        phone,
+        language,
+        notificationFrequency,
+        photoUrl
+      ];
 }

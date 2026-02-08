@@ -100,7 +100,6 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
           newArticle = ArticleEntity.empty().copyWith(
             userId: user.uid,
             authorName: user.fullName,
-            authorAvatarUrl: user.avatarUrl,
             assocId: currentMembership?.associationId ?? '',
             associationShortName: currentMembership?.associationId ?? '',
             status: ArticleStatus.redaccion,
@@ -188,7 +187,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
 
       final initialState = ArticleEditLoaded(
           article: article,
-          status: article.status, // Initialize status in state
+          status: ArticleStatus
+              .redaccion, // Se establece automáticamente en redacción al editar
           categories: categories,
           subcategories: subcategories,
           titleCharCount: titleCharCount,
@@ -225,16 +225,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     final isExpirationDateValid =
         expirationDate == null || !expirationDate.isBefore(effectiveDate);
 
-    // La portada es válida si:
-    // 1. Se está creando y se ha seleccionado una imagen (que no sea el marcador de borrado).
-    // 2. Se está editando y:
-    //    a) Hay una nueva imagen seleccionada (que no sea el marcador de borrado).
-    //    b) O no se ha tocado la imagen (newCoverImageBytes es null) y ya existía una URL de portada.
-    final isCoverOk = (newCoverImageBytes != null &&
-            newCoverImageBytes != kClearImageBytes) ||
-        (!isCreating &&
-            newCoverImageBytes == null &&
-            article.coverUrl.isNotEmpty);
+    // La portada es opcional.
+    const isCoverOk = true;
 
     // Validación de fecha de publicación:
     // Solo obligatoria en el futuro si estamos creando un artículo nuevo Y su estado es Publicado.
@@ -313,14 +305,24 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       //return; // Comentado para permitir guardar secciones vacías si se desea
     }
 
+    // Lógica para el estado especial 'notificar'
+    ArticleStatus finalStatus = currentState.status;
+    DateTime? fechaNotificacion = currentState.article.fechaNotificacion;
+
+    if (finalStatus == ArticleStatus.notificar) {
+      finalStatus = ArticleStatus.publicado;
+      fechaNotificacion = DateTime.now();
+    }
+
     final articleToSave = currentState.article.copyWith(
       modifiedAt: DateTime.now(),
-      status: currentState.status, // Use status from state
+      status: finalStatus,
+      fechaNotificacion: fechaNotificacion,
     );
 
     if (currentState.isCreating) {
       final result = await _createArticleUseCase(articleToSave,
-          currentState.newCoverImageBytes!, currentState.newSectionImageBytes);
+          currentState.newCoverImageBytes, currentState.newSectionImageBytes);
       result.fold(
         (failure) => emit(currentState.copyWith(
             isSaving: false, errorMessage: () => failure.message)),

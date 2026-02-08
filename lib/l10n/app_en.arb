@@ -271,5 +271,6 @@
     "optionalUseYourPhone": "Optional (your phone will be used)",
     "noAssociationsAvailableToJoin": "No associations available. You must create a new one.",
     "register": "Register",
-    "registrationSuccessMessage": "Registration successful. Please check your email to verify your account."
+    "registrationSuccessMessage": "Registration successful. Please check your email to verify your account.",
+    "genericError": "A problem occurred while loading the data."
 }

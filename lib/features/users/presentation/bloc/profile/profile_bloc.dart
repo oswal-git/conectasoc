@@ -16,7 +16,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfilePhoneChanged>(_onProfilePhoneChanged);
     on<ProfileLanguageChanged>(_onProfileLanguageChanged);
     on<ProfileImageChanged>(_onProfileImageChanged);
+    on<ProfileNotificationFrequencyChanged>(
+        _onProfileNotificationFrequencyChanged);
     on<SaveProfileChanges>(_onSaveProfileChanges);
+  }
+
+  void _onProfileNotificationFrequencyChanged(
+      ProfileNotificationFrequencyChanged event, Emitter<ProfileState> emit) {
+    if (state is ProfileLoaded) {
+      final currentState = state as ProfileLoaded;
+      final updatedUser =
+          currentState.user.copyWith(notificationFrequency: event.frequency);
+      emit(currentState.copyWith(user: updatedUser));
+    }
   }
 
   void _onLoadUserProfile(LoadUserProfile event, Emitter<ProfileState> emit) {

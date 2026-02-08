@@ -26,7 +26,7 @@ class HomeLoaded extends HomeState {
   final String searchTerm;
   final bool isEditMode;
   final bool hasMore;
-  final DocumentSnapshot? lastDocument; // Firestore-specific cursor
+  final DocumentSnapshot<Object?>? lastDocument; // Firestore-specific cursor
   final bool isLoading;
 
   const HomeLoaded({
@@ -55,7 +55,7 @@ class HomeLoaded extends HomeState {
     String? searchTerm,
     bool? isEditMode,
     bool? hasMore,
-    DocumentSnapshot? lastDocument,
+    DocumentSnapshot<Object?>? lastDocument,
     bool? isLoading,
   }) {
     return HomeLoaded(

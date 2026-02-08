@@ -401,6 +401,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get statusAnulado => 'Anulado';
 
   @override
+  String get statusNotificar => 'Publicar y Notificar';
+
+  @override
+  String get statusNotificarShort => 'Notificar';
+
+  @override
+  String get notificationFreqNone => 'No recibir notificaciones';
+
+  @override
+  String get notificationFreqOnce => 'Una vez al día (12:00)';
+
+  @override
+  String get notificationFreqTwice => 'Dos veces (10:00 y 20:00)';
+
+  @override
+  String get notificationFreqThrice => 'Tres veces (10:00, 15:00, 20:00)';
+
+  @override
   String get categoryInformacion => 'Información';
 
   @override
@@ -591,4 +609,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get registrationSuccessMessage =>
       'Registro exitoso. Por favor, verifica tu email.';
+
+  @override
+  String get genericError => 'Ha ocurrido un problema al cargar los datos.';
 }

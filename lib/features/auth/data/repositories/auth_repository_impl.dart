@@ -195,4 +195,30 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure('Error al abandonar la asociación: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, UserEntity?>> getSavedUser() async {
+    try {
+      final userModel = await remoteDataSource.getSavedUser();
+      return Right(userModel);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Error al obtener el usuario guardado: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateUserFechaNotificada(
+      String uid, DateTime fecha) async {
+    try {
+      await remoteDataSource.updateUserFechaNotificada(uid, fecha);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(
+          ServerFailure('Error al actualizar fecha de notificación: $e'));
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import 'package:conectasoc/features/articles/domain/entities/entities.dart';
+import 'category_entity.dart';
 
 class SubcategoryEntity extends CategoryEntity {
   final String categoryId;

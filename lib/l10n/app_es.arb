@@ -212,6 +212,12 @@
     "statusRevision": "En Revisión",
     "statusExpirado": "Expirado",
     "statusAnulado": "Anulado",
+    "statusNotificar": "Publicar y Notificar",
+    "statusNotificarShort": "Notificar",
+    "notificationFreqNone": "No recibir notificaciones",
+    "notificationFreqOnce": "Una vez al día (12:00)",
+    "notificationFreqTwice": "Dos veces (10:00 y 20:00)",
+    "notificationFreqThrice": "Tres veces (10:00, 15:00, 20:00)",
     "categoryInformacion": "Información",
     "categoryNoticias": "Noticias",
     "categoryActas": "Actas",
@@ -271,5 +277,6 @@
     "optionalUseYourPhone": "Opcional (se usará tu teléfono)",
     "noAssociationsAvailableToJoin": "No hay asociaciones disponibles. Debes crear una nueva.",
     "register": "Registrarse",
-    "registrationSuccessMessage": "Registro exitoso. Por favor, verifica tu email."
+    "registrationSuccessMessage": "Registro exitoso. Por favor, verifica tu email.",
+    "genericError": "Ha ocurrido un problema al cargar los datos."
 }

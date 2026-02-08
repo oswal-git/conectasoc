@@ -1,3 +1,4 @@
+import 'package:conectasoc/core/widgets/user_friendly_error_widget.dart';
 import 'package:conectasoc/features/home/presentation/widgets/article_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,6 +17,27 @@ class ArticleListWidget extends StatefulWidget {
 
 class ArticleListWidgetState extends State<ArticleListWidget> {
   final _scrollController = ScrollController();
+
+  Future<void> _refreshHomeData(bool isEditMode) async {
+    final authState = context.read<AuthBloc>().state;
+    UserEntity? user;
+    MembershipEntity? membership;
+    if (authState is AuthAuthenticated) {
+      user = authState.user;
+      membership = authState.currentMembership;
+    }
+
+    final homeBloc = context.read<HomeBloc>();
+    homeBloc.add(LoadHomeData(
+      user: user,
+      membership: membership,
+      isEditMode: isEditMode,
+      forceReload: true,
+    ));
+
+    await homeBloc.stream
+        .firstWhere((state) => state is! HomeLoaded || !state.isLoading);
+  }
 
   @override
   void initState() {
@@ -58,20 +80,9 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
           return const Center(child: CircularProgressIndicator());
         }
         if (state is HomeError) {
-          return Center(child: Text(state.message));
-        }
-        if (state is HomeLoaded) {
-          if (state.filteredArticles.isEmpty) {
-            return Center(
-                child: Text(
-              state.searchTerm.isNotEmpty
-                  ? AppLocalizations.of(context).noResultsFound
-                  : AppLocalizations.of(context).noArticlesYet,
-              textAlign: TextAlign.center,
-            ));
-          }
-          return RefreshIndicator(
-            onRefresh: () async {
+          return UserFriendlyErrorWidget(
+            errorMessage: state.message,
+            onRetry: () {
               final authState = context.read<AuthBloc>().state;
               UserEntity? user;
               MembershipEntity? membership;
@@ -79,19 +90,42 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
                 user = authState.user;
                 membership = authState.currentMembership;
               }
-
-              final homeBloc = context.read<HomeBloc>();
-              homeBloc.add(LoadHomeData(
-                user: user,
-                membership: membership,
-                isEditMode: state.isEditMode,
-                forceReload: true,
-              ));
-
-              // We wait until the state is no longer loading
-              await homeBloc.stream.firstWhere(
-                  (state) => state is! HomeLoaded || !state.isLoading);
+              context.read<HomeBloc>().add(LoadHomeData(
+                    user: user,
+                    membership: membership,
+                    forceReload: true,
+                  ));
             },
+          );
+        }
+        if (state is HomeLoaded) {
+          if (state.filteredArticles.isEmpty) {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return RefreshIndicator(
+                  onRefresh: () => _refreshHomeData(state.isEditMode),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Center(
+                        child: Text(
+                          state.searchTerm.isNotEmpty
+                              ? AppLocalizations.of(context).noResultsFound
+                              : AppLocalizations.of(context).noArticlesYet,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: () => _refreshHomeData(state.isEditMode),
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.only(bottom: 80), // For FAB

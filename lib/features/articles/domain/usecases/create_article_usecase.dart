@@ -12,7 +12,7 @@ class CreateArticleUseCase {
 
   Future<Either<Failure, ArticleEntity>> call(
       ArticleEntity article,
-      Uint8List coverImageBytes,
+      Uint8List? coverImageBytes,
       Map<String, Uint8List> sectionImageBytes) async {
     return await repository.createArticle(
       article,

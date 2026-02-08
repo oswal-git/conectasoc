@@ -26,7 +26,14 @@ class LoadHomeData extends HomeEvent {
   List<Object?> get props => [user, membership, isEditMode, forceReload];
 }
 
-class ToggleEditMode extends HomeEvent {}
+class ToggleEditMode extends HomeEvent {
+  final UserEntity? user;
+
+  const ToggleEditMode({this.user});
+
+  @override
+  List<Object?> get props => [user];
+}
 
 class SearchQueryChanged extends HomeEvent {
   final String query;

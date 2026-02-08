@@ -189,21 +189,27 @@ class _UserEditViewState extends State<_UserEditView> {
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
-                  initialValue: user.notificationTime,
+                DropdownButtonFormField<String>(
+                  initialValue: user.notificationFrequency,
                   decoration: InputDecoration(labelText: l10n.notifications),
                   items: [
-                    DropdownMenuItem(value: 0, child: Text(l10n.never)),
-                    DropdownMenuItem(value: 1, child: Text(l10n.morning)),
-                    DropdownMenuItem(value: 2, child: Text(l10n.afternoon)),
                     DropdownMenuItem(
-                        value: 12, child: Text(l10n.morningAndAfternoon)),
+                        value: 'none', child: Text(l10n.notificationFreqNone)),
+                    DropdownMenuItem(
+                        value: 'once_day',
+                        child: Text(l10n.notificationFreqOnce)),
+                    DropdownMenuItem(
+                        value: 'twice_day',
+                        child: Text(l10n.notificationFreqTwice)),
+                    DropdownMenuItem(
+                        value: 'thrice_day',
+                        child: Text(l10n.notificationFreqThrice)),
                   ],
                   onChanged: (value) {
                     if (value != null) {
                       context
                           .read<UserEditBloc>()
-                          .add(UserNotificationTimeChanged(value));
+                          .add(UserNotificationFrequencyChanged(value));
                     }
                   },
                 ),

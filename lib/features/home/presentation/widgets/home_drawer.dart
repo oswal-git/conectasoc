@@ -33,9 +33,9 @@ class HomeDrawer extends StatelessWidget {
               // Menú de Administración
               if (state is AuthAuthenticated) ...[
                 // Las opciones de administración aparecen si el rol en la membresía
-                // actual es 'admin' o 'superadmin'.
-                if (state.currentMembership?.role == 'admin' ||
-                    state.currentMembership?.role == 'superadmin') ...[
+                // actual es 'admin' o si el usuario es 'superadmin'.
+                if (state.user.isSuperAdmin ||
+                    state.currentMembership?.role == 'admin') ...[
                   _buildDrawerItem(
                     context: context,
                     icon: Icons.people_outline,
@@ -45,8 +45,7 @@ class HomeDrawer extends StatelessWidget {
                   ),
                   // Si el usuario es superadmin global, puede ver todas las asociaciones.
                   // Si es solo admin, puede editar la suya.
-                  if (state.user.isSuperAdmin &&
-                      state.currentMembership?.role == 'superadmin')
+                  if (state.user.isSuperAdmin)
                     _buildDrawerItem(
                       context: context,
                       icon: Icons.business_outlined,
@@ -76,8 +75,7 @@ class HomeDrawer extends StatelessWidget {
                         }),
                 ],
                 // Opción de Configuración solo para superadmin
-                if (state.user.isSuperAdmin &&
-                    state.currentMembership?.role == 'superadmin')
+                if (state.user.isSuperAdmin)
                   _buildDrawerItem(
                     context: context,
                     icon: Icons.settings_outlined,

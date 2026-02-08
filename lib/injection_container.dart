@@ -57,6 +57,7 @@ import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
 // Seervices
 import 'package:conectasoc/core/services/translation_service.dart';
 import 'package:conectasoc/services/cloudinary_service.dart';
+import 'package:conectasoc/services/notification_service.dart';
 
 // Settings
 
@@ -294,6 +295,7 @@ Future<void> init() async {
   );
   sl.registerLazySingleton(() => CloudinaryService());
   sl.registerLazySingleton(() => TranslationService());
+  sl.registerLazySingleton(() => NotificationService());
 
   // ============================================
   // EXTERNAL
@@ -306,4 +308,52 @@ Future<void> init() async {
   // SharedPreferences
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
+}
+
+/// Inicialización mínima necesaria para tareas en segundo plano.
+Future<void> initMinimal() async {
+  if (sl.isRegistered<FirebaseFirestore>()) return;
+
+  sl.registerLazySingleton(() => FirebaseFirestore.instance);
+  sl.registerLazySingleton(() => FirebaseAuth.instance);
+
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
+
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(
+      firebaseAuth: sl(),
+      firestore: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(
+      localStorage: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<LocalStorageService>(
+    () => LocalStorageService(sl()),
+  );
+
+  sl.registerLazySingleton<UserRepository>(
+      () => UserRepositoryImpl(remoteDataSource: sl()));
+
+  sl.registerLazySingleton<UserRemoteDataSource>(
+      () => UserRemoteDataSourceImpl(firestore: sl()));
+
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+      userRepository: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<ArticleRepository>(
+    () => ArticleRepositoryImpl(firestore: sl()),
+  );
+
+  sl.registerLazySingleton(() => NotificationService());
 }

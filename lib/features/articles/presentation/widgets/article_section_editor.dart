@@ -176,7 +176,48 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
                   imageUrl: widget.section.imageUrl,
                 ),
                 if (widget.isEditingEnabled)
-                  quill.QuillSimpleToolbar(controller: _quillController),
+                  quill.QuillSimpleToolbar(
+                    controller: _quillController,
+                    config: quill.QuillSimpleToolbarConfig(
+                      showAlignmentButtons: true,
+                      multiRowsDisplay: false,
+                      showBoldButton: true,
+                      showItalicButton: true,
+                      showUnderLineButton: true,
+                      showStrikeThrough: true,
+                      showColorButton: true,
+                      showBackgroundColorButton: true,
+                      showListBullets: true,
+                      showListNumbers: true,
+                      showListCheck: true,
+                      showCodeBlock: true,
+                      showQuote: true,
+                      showIndent: true,
+                      showLink: true,
+                      showUndo: true,
+                      showRedo: true,
+                      showFontSize: true,
+                      showFontFamily: true,
+                      showClearFormat: true,
+                      showHeaderStyle: true,
+                      showSearchButton: true,
+                      buttonOptions: quill.QuillSimpleToolbarButtonOptions(
+                        base: quill.QuillToolbarBaseButtonOptions(
+                          iconButtonFactor: 1.0,
+                        ),
+                        fontSize: quill.QuillToolbarFontSizeButtonOptions(
+                          items: {
+                            'Small': '12',
+                            'Medium': '16',
+                            'Large': '20',
+                            'Clear': '0'
+                          },
+                        ),
+                      ),
+                      toolbarRunSpacing: 0,
+                      toolbarSectionSpacing: 0,
+                    ),
+                  ),
                 Container(
                   height: 150,
                   decoration: BoxDecoration(

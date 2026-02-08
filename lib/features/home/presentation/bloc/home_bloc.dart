@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 
@@ -156,8 +157,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(currentState.copyWith(isLoading: true));
 
     final authState = authBloc.state;
-    final user = authState is AuthAuthenticated ? authState.user : null;
+    final user =
+        event.user ?? (authState is AuthAuthenticated ? authState.user : null);
 
+    debugPrint(
+        'DEBUG: ToggleEditMode - Calling getArticlesUseCase for newEditMode=$newEditMode with user=${user?.uid}');
     // Volvemos a cargar los artículos desde el principio con el nuevo modo de edición
     final articlesResult =
         await getArticlesUseCase(user: user, isEditMode: newEditMode);
@@ -177,13 +181,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               .toList());
         }
 
+        debugPrint(
+            'DEBUG: ToggleEditMode success. Articles fetched: ${articlesData.item1.length}');
+
         final newState = currentState.copyWith(
             isEditMode: newEditMode,
             allArticles: articlesToDisplay,
+            filteredArticles: articlesToDisplay, // Sincronizamos inmediatamente
             lastDocument: lastDocument,
             hasMore: articlesData.item1.length == 20,
-            isLoading: false);
+            isLoading: false,
+            // Al cambiar de modo, limpiamos los filtros para asegurar visibilidad
+            searchTerm: '',
+            selectedCategory: null,
+            selectedSubcategory: null);
 
+        // Volvemos a aplicar filtros por si acaso (aunque los acabamos de limpiar)
         _applyFilters(emit, newState);
       },
     );

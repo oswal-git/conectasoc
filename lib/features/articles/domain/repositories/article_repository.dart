@@ -8,14 +8,16 @@ import 'package:conectasoc/core/errors/errors.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 
 abstract class ArticleRepository {
-  Future<Either<Failure, Tuple2<List<ArticleEntity>, DocumentSnapshot?>>>
+  Future<
+          Either<Failure,
+              Tuple2<List<ArticleEntity>, DocumentSnapshot<Object?>?>>>
       getArticles({
     IUser? user,
     bool isEditMode = false,
     String? categoryId,
     String? subcategoryId,
     String? searchTerm,
-    DocumentSnapshot? lastDocument,
+    DocumentSnapshot<Object?>? lastDocument,
     int limit = 20,
   });
 
@@ -26,8 +28,8 @@ abstract class ArticleRepository {
 
   Future<Either<Failure, ArticleEntity>> createArticle(
     ArticleEntity article,
-    Uint8List coverImageBytes, {
-    Map<String, Uint8List> sectionImageBytes,
+    Uint8List? coverImageBytes, {
+    Map<String, Uint8List> sectionImageBytes = const {},
   });
 
   Future<Either<Failure, void>> deleteArticle(
@@ -41,7 +43,12 @@ abstract class ArticleRepository {
   Future<Either<Failure, ArticleEntity>> updateArticle(
     ArticleEntity article, {
     Uint8List? newCoverImageBytes,
-    Map<String, Uint8List> newSectionImageBytes,
+    Map<String, Uint8List> newSectionImageBytes = const {},
     List<String> imagesToDelete = const [],
+  });
+
+  Future<Either<Failure, List<ArticleEntity>>> getArticlesForNotification({
+    required DateTime lastNotified,
+    required List<String> associationIds,
   });
 }

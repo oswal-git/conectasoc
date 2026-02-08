@@ -51,6 +51,14 @@ class ProfileLanguageChanged extends ProfileEvent {
   List<Object> get props => [language];
 }
 
+class ProfileNotificationFrequencyChanged extends ProfileEvent {
+  const ProfileNotificationFrequencyChanged(this.frequency);
+  final String frequency;
+
+  @override
+  List<Object> get props => [frequency];
+}
+
 class SaveProfileChanges extends ProfileEvent {
   final AuthBloc authBloc;
   const SaveProfileChanges(this.authBloc);

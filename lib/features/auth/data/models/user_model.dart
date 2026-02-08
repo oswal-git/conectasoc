@@ -15,7 +15,8 @@ class UserModel extends UserEntity {
     required super.dateUpdated,
     required super.isEmailVerified,
     super.phone,
-    super.notificationTime,
+    super.notificationFrequency,
+    super.fechaNotificada,
     super.configVersion,
     super.avatarUrl,
     super.lastLoginDate,
@@ -52,7 +53,8 @@ class UserModel extends UserEntity {
       dateUpdated:
           (data['dateUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastLoginDate: (data['lastLoginDate'] as Timestamp?)?.toDate(),
-      notificationTime: data['notificationTime'] ?? 0,
+      notificationFrequency: data['notificationFrequency'] ?? 'none',
+      fechaNotificada: (data['fechaNotificada'] as Timestamp?)?.toDate(),
       configVersion: data['configVersion'] ?? 1,
       isEmailVerified: isEmailVerified, // Set from parameter
     );
@@ -72,7 +74,8 @@ class UserModel extends UserEntity {
       dateUpdated: entity.dateUpdated,
       isEmailVerified: entity.isEmailVerified,
       language: entity.language,
-      notificationTime: entity.notificationTime,
+      notificationFrequency: entity.notificationFrequency,
+      fechaNotificada: entity.fechaNotificada,
       configVersion: entity.configVersion,
       // La contraseña no se incluye en el modelo de datos, solo se usa en la entidad para la creación.
     );
@@ -88,9 +91,12 @@ class UserModel extends UserEntity {
       'memberships': memberships,
       'status': status.value,
       'language': language,
-      'dateCreated': FieldValue.serverTimestamp(),
+      'dateCreated':
+          dateCreated, // Use existing dateCreated instead of total reset
       'dateUpdated': FieldValue.serverTimestamp(),
-      'notificationTime': notificationTime,
+      'notificationFrequency': notificationFrequency,
+      'fechaNotificada':
+          fechaNotificada != null ? Timestamp.fromDate(fechaNotificada!) : null,
       'configVersion': configVersion,
       'lastLoginDate':
           lastLoginDate != null ? Timestamp.fromDate(lastLoginDate!) : null,

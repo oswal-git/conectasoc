@@ -271,5 +271,6 @@
     "optionalUseYourPhone": "Opcional (s'usarà el teu telèfon)",
     "noAssociationsAvailableToJoin": "No hi ha associacions disponibles. N'has de crear una de nova.",
     "register": "Registrar-se",
-    "registrationSuccessMessage": "Registre reeixit. Si us plau, verifica el teu correu electrònic."
+    "registrationSuccessMessage": "Registre reeixit. Si us plau, verifica el teu correu electrònic.",
+    "genericError": "Ha hagut un problema en carregar les dades."
 }

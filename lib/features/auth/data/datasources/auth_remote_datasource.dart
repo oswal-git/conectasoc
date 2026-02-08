@@ -18,6 +18,8 @@ abstract class AuthRemoteDataSource {
   Future<void> signOut();
   Future<void> resetPasswordWithEmail(String email);
   Future<void> createUserDocument(UserModel user);
+  Future<UserModel?> getSavedUser();
+  Future<void> updateUserFechaNotificada(String uid, DateTime fecha);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -182,23 +184,49 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   String _getAuthErrorMessage(String code) {
     switch (code) {
       case 'user-not-found':
-        return 'Usuario no encontrado';
+        return 'No se ha encontrado ningún usuario con este email.';
       case 'wrong-password':
-        return 'Contraseña incorrecta';
-      case 'email-already-in-use':
-        return 'El email ya está registrado';
-      case 'invalid-email':
-        return 'Email inválido';
-      case 'weak-password':
-        return 'Contraseña demasiado débil';
-      case 'user-disabled':
-        return 'Usuario deshabilitado';
-      case 'too-many-requests':
-        return 'Demasiados intentos. Intente más tarde';
+        return 'Contraseña incorrecta.';
       case 'network-request-failed':
-        return 'Error de conexión. Verifica tu internet';
+        return 'Error de red. Comprueba tu conexión.';
+      case 'email-already-in-use':
+        return 'El email ya está en uso por otra cuenta.';
+      case 'invalid-email':
+        return 'El formato del email no es válido.';
+      case 'weak-password':
+        return 'La contraseña es demasiado débil.';
+      case 'user-disabled':
+        return 'Esta cuenta de usuario ha sido deshabilitada.';
+      case 'too-many-requests':
+        return 'Demasiados intentos. Inténtalo de nuevo más tarde.';
+      case 'operation-not-allowed':
+        return 'El inicio de sesión con email y contraseña no está habilitado.';
       default:
-        return 'Error de autenticación: $code';
+        return 'Ha ocurrido un error inesperado de autenticación ($code).';
+    }
+  }
+
+  @override
+  Future<UserModel?> getSavedUser() async {
+    try {
+      final user = firebaseAuth.currentUser;
+      if (user == null) return null;
+      final doc = await firestore.collection('users').doc(user.uid).get();
+      if (!doc.exists) return null;
+      return UserModel.fromFirestore(doc, isEmailVerified: user.emailVerified);
+    } catch (e) {
+      throw ServerException('Error al obtener usuario guardado: $e');
+    }
+  }
+
+  @override
+  Future<void> updateUserFechaNotificada(String uid, DateTime fecha) async {
+    try {
+      await firestore.collection('users').doc(uid).update({
+        'fechaNotificada': Timestamp.fromDate(fecha),
+      });
+    } catch (e) {
+      throw ServerException('Error al actualizar fechaNotificada: $e');
     }
   }
 }

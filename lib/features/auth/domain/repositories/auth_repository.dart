@@ -39,4 +39,7 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> resetPasswordWithEmail(String email);
   Future<Either<Failure, void>> leaveAssociation(MembershipEntity membership);
   Future<Either<Failure, void>> createUserDocumentFromEntity(UserEntity user);
+  Future<Either<Failure, UserEntity?>> getSavedUser();
+  Future<Either<Failure, void>> updateUserFechaNotificada(
+      String uid, DateTime fecha);
 }

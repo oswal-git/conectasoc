@@ -27,7 +27,9 @@ class UserEntity extends Equatable implements IUser {
   final DateTime dateCreated;
   final DateTime dateUpdated;
   final DateTime? lastLoginDate;
-  final int notificationTime;
+  final String
+      notificationFrequency; // 'none', 'once_day', 'twice_day', 'thrice_day'
+  final DateTime? fechaNotificada; // Última vez que se enviaron noticias
   final int configVersion;
   final bool isEmailVerified;
   final String password;
@@ -45,7 +47,8 @@ class UserEntity extends Equatable implements IUser {
     required this.dateCreated,
     required this.dateUpdated,
     this.lastLoginDate,
-    this.notificationTime = 0, // 0 = none
+    this.notificationFrequency = 'none',
+    this.fechaNotificada,
     this.configVersion = 1,
     this.isEmailVerified = false,
     this.password = '',
@@ -67,7 +70,8 @@ class UserEntity extends Equatable implements IUser {
       dateCreated: now,
       dateUpdated: now,
       lastLoginDate: now,
-      notificationTime: 0,
+      notificationFrequency: 'none',
+      fechaNotificada: null,
       configVersion: 1,
       isEmailVerified: false,
       password: '',
@@ -87,7 +91,8 @@ class UserEntity extends Equatable implements IUser {
     DateTime? dateCreated,
     DateTime? dateUpdated,
     DateTime? lastLoginDate,
-    int? notificationTime,
+    String? notificationFrequency,
+    DateTime? fechaNotificada,
     int? configVersion,
     bool? isEmailVerified,
     String? password,
@@ -105,7 +110,9 @@ class UserEntity extends Equatable implements IUser {
       dateCreated: dateCreated ?? this.dateCreated,
       dateUpdated: dateUpdated ?? this.dateUpdated,
       lastLoginDate: lastLoginDate ?? this.lastLoginDate,
-      notificationTime: notificationTime ?? this.notificationTime,
+      notificationFrequency:
+          notificationFrequency ?? this.notificationFrequency,
+      fechaNotificada: fechaNotificada ?? this.fechaNotificada,
       configVersion: configVersion ?? this.configVersion,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       password: password ?? this.password,
@@ -120,6 +127,7 @@ class UserEntity extends Equatable implements IUser {
       email: email,
       phone: phone,
       language: language,
+      notificationFrequency: notificationFrequency,
       photoUrl: avatarUrl,
     );
   }
@@ -173,7 +181,8 @@ class UserEntity extends Equatable implements IUser {
         dateCreated,
         dateUpdated,
         lastLoginDate,
-        notificationTime,
+        notificationFrequency,
+        fechaNotificada,
         configVersion,
         isEmailVerified,
       ];

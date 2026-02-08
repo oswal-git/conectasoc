@@ -18,6 +18,7 @@ import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 // Router
 import 'package:conectasoc/app/router/router.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
+import 'package:conectasoc/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,9 @@ void main() async {
 
   // Inicializar dependencias (Clean Architecture)
   await init();
+
+  // Inicializar servicio de notificaciones
+  await sl<NotificationService>().init();
 
   runApp(const ConectaSocApp());
 }

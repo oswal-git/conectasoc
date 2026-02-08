@@ -50,111 +50,148 @@ class ArticleCardWidget extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: _getBackgroundColor(article.status),
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade800, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.grey.withValues(alpha: 0.2),
+          width: 1,
         ),
       ),
-      child: InkWell(
-        onTap: () => context.goNamed(RouteNames.articleDetail,
-            pathParameters: {'articleId': article.id}),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Imagen principal a la izquierda
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: 100,
-                height: 100,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: CachedNetworkImage(
-                    imageUrl: article.coverUrl,
-                    fit: BoxFit.scaleDown,
-                    placeholder: (context, url) =>
-                        const Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => const Icon(
-                        Icons.image_not_supported,
-                        color: Colors.grey),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Columna de contenido a la derecha
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Título
-                  Text(
-                    titleText.toUpperCase(),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: isLongTitle ? 12.0 : 16.0,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => context.pushNamed(RouteNames.articleDetail,
+              pathParameters: {'articleId': article.id}),
+          child: Padding(
+            padding: const EdgeInsets.all(6.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Imagen principal a la izquierda
+                if (article.coverUrl.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6.0),
+                    child: Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.grey.shade300, // Color del borde
+                          width: 1.5, // Grosor del borde
+                        ),
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12.0),
+                        child: CachedNetworkImage(
+                          imageUrl: article.coverUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) => const Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  // Subtítulo (Resumen)
-                  Text(
-                    quillJsonToPlainText(article.abstractContent),
-                    textAlign: TextAlign.justify,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14.0),
-                  ),
-                  const SizedBox(height: 4),
-                  // Fila de categoría/subcategoría
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 4.0,
+                // Columna de contenido a la derecha
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ClickableCategoryWidget(
-                          name: article.categoryName,
-                          onTap: () {
-                            // Lógica para filtrar por categoría
-                          }),
-                      const Text('/', style: TextStyle(fontSize: 10.0)),
-                      ClickableCategoryWidget(
-                          name: article.subcategoryName,
-                          onTap: () {
-                            // Lógica para filtrar por subcategoría
-                          }),
+                      // Título
+                      Text(
+                        titleText.toUpperCase(),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: isLongTitle ? 12.0 : 16.0,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      // Subtítulo (Resumen)
+                      Text(
+                        quillJsonToPlainText(article.abstractContent),
+                        textAlign: TextAlign.left,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13.0,
+                          color: Colors.grey.shade700,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Fila de categoría/subcategoría
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 4.0,
+                        children: [
+                          ClickableCategoryWidget(
+                              name: article.categoryName,
+                              onTap: () {
+                                // Lógica para filtrar por categoría
+                              }),
+                          const Text('/',
+                              style: TextStyle(
+                                  fontSize: 10.0, color: Colors.grey)),
+                          ClickableCategoryWidget(
+                              name: article.subcategoryName,
+                              onTap: () {
+                                // Lógica para filtrar por subcategoría
+                              }),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                // Botón de editar (si está en modo edición y tiene permisos)
+                if (canEdit &&
+                    context.watch<HomeBloc>().state is HomeLoaded &&
+                    (context.watch<HomeBloc>().state as HomeLoaded).isEditMode)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: IconButton(
+                      icon: const Icon(Icons.edit_note,
+                          size: 24, color: Colors.blue),
+                      onPressed: () async {
+                        await context.pushNamed(RouteNames.articleEdit,
+                            pathParameters: {'id': article.id});
+                        if (context.mounted) {
+                          final authState = context.read<AuthBloc>().state;
+                          final homeState = context.read<HomeBloc>().state;
+                          final user = authState is AuthAuthenticated
+                              ? authState.user
+                              : null;
+                          final isEditMode = homeState is HomeLoaded
+                              ? homeState.isEditMode
+                              : false;
+                          context.read<HomeBloc>().add(LoadHomeData(
+                                user: user,
+                                isEditMode: isEditMode,
+                                forceReload: true,
+                              ));
+                        }
+                      },
+                    ),
+                  ),
+              ],
             ),
-            // Botón de editar (si está en modo edición y tiene permisos)
-            if (canEdit &&
-                context.watch<HomeBloc>().state is HomeLoaded &&
-                (context.watch<HomeBloc>().state as HomeLoaded).isEditMode)
-              IconButton(
-                icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
-                onPressed: () async {
-                  await context.pushNamed(RouteNames.articleEdit,
-                      pathParameters: {'id': article.id});
-                  if (context.mounted) {
-                    final authState = context.read<AuthBloc>().state;
-                    final homeState = context.read<HomeBloc>().state;
-                    final user =
-                        authState is AuthAuthenticated ? authState.user : null;
-                    final isEditMode =
-                        homeState is HomeLoaded ? homeState.isEditMode : false;
-                    context
-                        .read<HomeBloc>()
-                        .add(LoadHomeData(user: user, isEditMode: isEditMode));
-                  }
-                },
-              ),
-          ],
+          ),
         ),
       ),
     );

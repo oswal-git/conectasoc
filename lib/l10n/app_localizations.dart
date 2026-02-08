@@ -838,6 +838,42 @@ abstract class AppLocalizations {
   /// **'Anulado'**
   String get statusAnulado;
 
+  /// No description provided for @statusNotificar.
+  ///
+  /// In es, this message translates to:
+  /// **'Publicar y Notificar'**
+  String get statusNotificar;
+
+  /// No description provided for @statusNotificarShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificar'**
+  String get statusNotificarShort;
+
+  /// No description provided for @notificationFreqNone.
+  ///
+  /// In es, this message translates to:
+  /// **'No recibir notificaciones'**
+  String get notificationFreqNone;
+
+  /// No description provided for @notificationFreqOnce.
+  ///
+  /// In es, this message translates to:
+  /// **'Una vez al día (12:00)'**
+  String get notificationFreqOnce;
+
+  /// No description provided for @notificationFreqTwice.
+  ///
+  /// In es, this message translates to:
+  /// **'Dos veces (10:00 y 20:00)'**
+  String get notificationFreqTwice;
+
+  /// No description provided for @notificationFreqThrice.
+  ///
+  /// In es, this message translates to:
+  /// **'Tres veces (10:00, 15:00, 20:00)'**
+  String get notificationFreqThrice;
+
   /// No description provided for @categoryInformacion.
   ///
   /// In es, this message translates to:
@@ -1197,6 +1233,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Registro exitoso. Por favor, verifica tu email.'**
   String get registrationSuccessMessage;
+
+  /// No description provided for @genericError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ha ocurrido un problema al cargar los datos.'**
+  String get genericError;
 }
 
 class _AppLocalizationsDelegate

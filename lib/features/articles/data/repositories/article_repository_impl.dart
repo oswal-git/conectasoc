@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_bloc.dart'; // Importamos la constante
+import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/core/constants/cloudinary_config.dart';
@@ -20,20 +21,24 @@ class ArticleRepositoryImpl implements ArticleRepository {
   ArticleRepositoryImpl({required this.firestore});
 
   @override
-  Future<Either<Failure, Tuple2<List<ArticleEntity>, DocumentSnapshot?>>>
+  Future<
+          Either<Failure,
+              Tuple2<List<ArticleEntity>, DocumentSnapshot<Object?>?>>>
       getArticles({
     IUser? user,
     bool isEditMode = false,
     String? categoryId,
     String? subcategoryId,
     String? searchTerm,
-    DocumentSnapshot? lastDocument,
+    DocumentSnapshot<Object?>? lastDocument,
     int limit = 20,
   }) async {
     try {
       Query query = firestore.collection('articles');
 
       // 1. Filtrado por permisos y visibilidad
+      debugPrint(
+          'DEBUG: ArticleRepo.getArticles - isEditMode: $isEditMode, userLoggedIn: ${user != null}, isSuper: ${user?.isSuperAdmin}, canEdit: ${user?.canEditContent}');
       if (isEditMode && user != null && user.canEditContent) {
         // Modo Edición:
         // - Superadmin: Ve todo (no se aplica filtro de assocId ni userId).
@@ -43,20 +48,22 @@ class ArticleRepositoryImpl implements ArticleRepository {
         if (!user.isSuperAdmin) {
           // Admin/Editor ven solo los de su asociación.
           final userAssociationIds = user.associationIds;
+          debugPrint(
+              'DEBUG: ArticleRepo - Admin/Editor filtering by Assocs: $userAssociationIds');
           query = query.where('assocId', whereIn: userAssociationIds);
 
-          // Lógica adicional para EDITORES (no admins): Solo ven sus propios artículos.
-          // Comprobamos si tiene rol 'admin' en alguna asociación para saber si es "solo editor".
-          // Nota: Esto asume que si eres admin en UNA, eres admin "en general" para esta consulta simple.
-          // Si queremos más granularidad (editor en A, admin en B), la consulta se complica y debería hacerse en memoria o con múltiples queries.
-          // Por simplicidad y seguridad: Si NO eres Superadmin, y NO eres Admin en ninguna de tus asociaciones, entonces eres Editor puro.
           if (user is UserEntity) {
             final isAnyAdmin =
                 user.memberships.values.any((role) => role == 'admin');
             if (!isAnyAdmin) {
+              debugPrint(
+                  'DEBUG: ArticleRepo - Editor filtering by userId: ${user.uid}');
               query = query.where('userId', isEqualTo: user.uid);
             }
           }
+        } else {
+          debugPrint(
+              'DEBUG: ArticleRepo - Superadmin in Edit Mode. FETCHING EVERYTHING.');
         }
       } else {
         // Modo Lectura:
@@ -102,9 +109,10 @@ class ArticleRepositoryImpl implements ArticleRepository {
       }
 
       query = query
-          // En modo edición, ordenamos por fecha de modificación para ver los más recientes primero.
-          // En modo lectura, por fecha de publicación.
-          .orderBy(isEditMode ? 'modifiedAt' : 'publishDate', descending: true)
+          // TODO: Una vez que todos los documentos tengan 'modifiedAt',
+          // volver a usar 'isEditMode ? "modifiedAt" : "publishDate"'.
+          // Por ahora usamos 'createdAt' para asegurar que nada quede oculto por falta de campo.
+          .orderBy('createdAt', descending: true)
           .limit(limit);
 
       if (lastDocument != null) {
@@ -112,6 +120,8 @@ class ArticleRepositoryImpl implements ArticleRepository {
       }
 
       final snapshot = await query.get();
+      debugPrint(
+          'DEBUG: ArticleRepo - QUERY EXECUTED. Documents found: ${snapshot.docs.length}');
 
       final articles = snapshot.docs
           .map((doc) => ArticleModel.fromFirestore(doc))
@@ -132,7 +142,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
       }).toList();
 
       // Get the last document for the next page's cursor
-      final newLastDocument =
+      final DocumentSnapshot<Object?>? newLastDocument =
           snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
 
       return Right(Tuple2(articles, newLastDocument));
@@ -144,26 +154,32 @@ class ArticleRepositoryImpl implements ArticleRepository {
   @override
   Future<Either<Failure, ArticleEntity>> createArticle(
     ArticleEntity article,
-    Uint8List coverImageBytes, {
+    Uint8List? coverImageBytes, {
     Map<String, Uint8List> sectionImageBytes = const {},
   }) async {
     String? uploadedCoverUrl;
     final List<String> uploadedSectionImageUrls = [];
     const uuid = Uuid();
+    final bool hasCoverImage =
+        coverImageBytes != null && coverImageBytes != kClearImageBytes;
 
     try {
-      // 1. Subir imagen de portada a Cloudinary
-      final uploadResult = await CloudinaryService.uploadImageBytes(
-        imageBytes: coverImageBytes,
-        filename: uuid.v4(), // Generate a unique filename
-        imageType: CloudinaryImageType.articleCover,
-      );
+      // 1. Subir imagen de portada a Cloudinary si existe
+      if (hasCoverImage) {
+        final uploadResult = await CloudinaryService.uploadImageBytes(
+          imageBytes: coverImageBytes,
+          filename: uuid.v4(), // Generate a unique filename
+          imageType: CloudinaryImageType.articleCover,
+        );
 
-      if (!uploadResult.success) {
-        return Left(ServerFailure(
-            uploadResult.error ?? 'Error al subir la imagen de portada.'));
+        if (!uploadResult.success) {
+          return Left(ServerFailure(
+              uploadResult.error ?? 'Error al subir la imagen de portada.'));
+        }
+        uploadedCoverUrl = uploadResult.secureUrl;
+      } else {
+        uploadedCoverUrl = ''; // Set to empty string if no cover image
       }
-      uploadedCoverUrl = uploadResult.secureUrl;
 
       // 2. Subir imágenes de las secciones
       final List<ArticleSection> sectionsWithUploadedImages = [];
@@ -190,7 +206,8 @@ class ArticleRepositoryImpl implements ArticleRepository {
       }
 
       final articleWithCoverAndSections = article.copyWith(
-          coverUrl: uploadedCoverUrl, sections: sectionsWithUploadedImages);
+          coverUrl: uploadedCoverUrl ?? '',
+          sections: sectionsWithUploadedImages);
       final articleModel = ArticleModel.fromEntity(articleWithCoverAndSections);
 
       // 3. Escribir en Firestore
@@ -396,6 +413,39 @@ class ArticleRepositoryImpl implements ArticleRepository {
       return Right(subcategories);
     } catch (e) {
       return Left(ServerFailure('Error al obtener las subcategorías: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ArticleEntity>>> getArticlesForNotification({
+    required DateTime lastNotified,
+    required List<String> associationIds,
+  }) async {
+    try {
+      // 1. Filtrar artículos publicados
+      Query query = firestore
+          .collection('articles')
+          .where('status', isEqualTo: ArticleStatus.publicado.value);
+
+      // 2. Filtrar por asociaciones del usuario
+      final assocIds = ['', ...associationIds];
+      query = query.where('assocId', whereIn: assocIds);
+
+      // 3. Filtrar artículos cuya fechaNotificacion sea posterior a la última vez que el usuario fue notificado
+      query = query
+          .where('fechaNotificacion',
+              isGreaterThan: Timestamp.fromDate(lastNotified))
+          .orderBy('fechaNotificacion', descending: true);
+
+      final snapshot = await query.get();
+
+      final articles =
+          snapshot.docs.map((doc) => ArticleModel.fromFirestore(doc)).toList();
+
+      return Right(articles);
+    } catch (e) {
+      return Left(
+          ServerFailure('Error al obtener artículos para notificación: $e'));
     }
   }
 }

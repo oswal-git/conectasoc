@@ -26,7 +26,7 @@ class UserEditBloc extends Bloc<UserEditEvent, UserEditState> {
     on<UserPasswordChanged>(_onUserPasswordChanged);
     on<UserEmailChanged>(_onUserEmailChanged);
     on<UserLanguageChanged>(_onUserLanguageChanged);
-    on<UserNotificationTimeChanged>(_onUserNotificationTimeChanged);
+    on<UserNotificationFrequencyChanged>(_onUserNotificationFrequencyChanged);
     on<UserRoleChanged>(_onUserRoleChanged);
     on<AddMembership>(_onAddMembership);
     on<RemoveMembership>(_onRemoveMembership);
@@ -121,12 +121,13 @@ class UserEditBloc extends Bloc<UserEditEvent, UserEditState> {
     }
   }
 
-  void _onUserNotificationTimeChanged(
-      UserNotificationTimeChanged event, Emitter<UserEditState> emit) {
+  void _onUserNotificationFrequencyChanged(
+      UserNotificationFrequencyChanged event, Emitter<UserEditState> emit) {
     if (state is UserEditLoaded) {
       final currentState = state as UserEditLoaded;
       emit(currentState.copyWith(
-          user: currentState.user.copyWith(notificationTime: event.time)));
+          user: currentState.user
+              .copyWith(notificationFrequency: event.frequency)));
     }
   }
 

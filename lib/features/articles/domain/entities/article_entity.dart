@@ -7,6 +7,7 @@ enum ArticleStatus {
   revision, // review
   expirado, // expired
   anulado, // cancelled
+  notificar, // marked for notification
 }
 
 extension ArticleStatusExtension on ArticleStatus {
@@ -37,13 +38,13 @@ class ArticleEntity extends Equatable {
   final DateTime effectiveDate;
   final DateTime? expirationDate; // Puede ser nulo
   final ArticleStatus status;
+  final DateTime? fechaNotificacion; // Fecha en que se marcó para notificar
   final List<ArticleSection> sections; // List of sections
 
   // Metadata
   final String userId; // Creator's UID
   final String assocId; // Usar '' para artículos genéricos, no null.
   final String authorName;
-  final String? authorAvatarUrl;
   final String associationShortName;
   final String originalLanguage;
   final DateTime createdAt;
@@ -53,7 +54,7 @@ class ArticleEntity extends Equatable {
     required this.id,
     required this.title,
     required this.abstractContent,
-    required this.coverUrl,
+    this.coverUrl = '',
     required this.categoryName,
     required this.categoryId,
     required this.subcategoryId,
@@ -61,12 +62,12 @@ class ArticleEntity extends Equatable {
     required this.publishDate,
     required this.effectiveDate,
     this.expirationDate,
-    required this.status,
+    this.status = ArticleStatus.redaccion,
+    this.fechaNotificacion,
     this.sections = const [],
     required this.userId, // ID del creador
     required this.assocId,
     required this.authorName,
-    this.authorAvatarUrl,
     required this.associationShortName,
     required this.originalLanguage,
     required this.createdAt,
@@ -86,11 +87,12 @@ class ArticleEntity extends Equatable {
         publishDate,
         effectiveDate,
         expirationDate,
+        status,
+        fechaNotificacion,
         sections,
         userId,
         assocId,
         authorName,
-        authorAvatarUrl,
         associationShortName,
         originalLanguage,
         createdAt,
@@ -113,11 +115,11 @@ class ArticleEntity extends Equatable {
       effectiveDate: now,
       status: ArticleStatus.redaccion,
       expirationDate: null,
+      fechaNotificacion: null,
       sections: const [],
       userId: '',
       assocId: '', // Por defecto es un artículo genérico
       authorName: '',
-      authorAvatarUrl: null,
       associationShortName: '',
       originalLanguage: 'es',
       createdAt: now,
@@ -141,6 +143,9 @@ class ArticleEntity extends Equatable {
           ? DateTime.parse(json['expirationDate'])
           : null,
       status: ArticleStatusExtension.fromValue(json['status'] ?? 'redaccion'),
+      fechaNotificacion: json['fechaNotificacion'] != null
+          ? DateTime.parse(json['fechaNotificacion'])
+          : null,
       sections: (json['sections'] as List<dynamic>?)
               ?.map((s) => ArticleSection.fromJson(s))
               .toList() ??
@@ -148,7 +153,6 @@ class ArticleEntity extends Equatable {
       userId: json['userId'] ?? '',
       assocId: json['assocId'] ?? '',
       authorName: json['authorName'] ?? '',
-      authorAvatarUrl: json['authorAvatarUrl'],
       associationShortName: json['associationShortName'] ?? '',
       originalLanguage: json['originalLanguage'] ?? 'es',
       createdAt: DateTime.parse(json['createdAt']),
@@ -169,11 +173,11 @@ class ArticleEntity extends Equatable {
     DateTime? effectiveDate,
     DateTime? expirationDate,
     ArticleStatus? status,
+    DateTime? fechaNotificacion,
     List<ArticleSection>? sections,
     String? userId,
     String? assocId,
     String? authorName,
-    String? authorAvatarUrl,
     String? associationShortName,
     String? originalLanguage,
     DateTime? createdAt,
@@ -192,11 +196,11 @@ class ArticleEntity extends Equatable {
       effectiveDate: effectiveDate ?? this.effectiveDate,
       expirationDate: expirationDate,
       status: status ?? this.status,
+      fechaNotificacion: fechaNotificacion ?? this.fechaNotificacion,
       sections: sections ?? this.sections,
       userId: userId ?? this.userId,
       assocId: assocId ?? this.assocId,
       authorName: authorName ?? this.authorName,
-      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
       associationShortName: associationShortName ?? this.associationShortName,
       originalLanguage: originalLanguage ?? this.originalLanguage,
       createdAt: createdAt ?? this.createdAt,

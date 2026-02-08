@@ -11,6 +11,7 @@ import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/core/utils/quill_helpers.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
+import 'package:conectasoc/features/users/presentation/widgets/user_avatar_widget.dart';
 
 class ArticleDetailPage extends StatelessWidget {
   final String articleId;
@@ -106,19 +107,20 @@ class _WebLayout extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Fila 4: Cover
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: CachedNetworkImage(
-                        imageUrl: article.coverUrl,
-                        fit: BoxFit.contain,
+                if (article.coverUrl.isNotEmpty)
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: article.coverUrl,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                if (article.coverUrl.isNotEmpty) const SizedBox(height: 24),
 
                 // Fila 5: Contenido (Abstract o Secciones)
                 // if (article.sections.isEmpty)
@@ -247,15 +249,18 @@ class _MobileLayout extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Fila 4: Cover
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-              imageUrl: article.coverUrl,
-              fit: BoxFit.cover,
-              width: double.infinity,
+          if (article.coverUrl.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedNetworkImage(
+                  imageUrl: article.coverUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
 
           // Fila 5: Contenido (Abstract o Secciones)
           if (article.sections.isEmpty)
@@ -325,14 +330,9 @@ class _AuthorInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        CircleAvatar(
+        UserAvatarWidget(
+          userId: article.userId,
           radius: 20,
-          backgroundImage: article.authorAvatarUrl != null
-              ? CachedNetworkImageProvider(article.authorAvatarUrl!)
-              : null,
-          child: article.authorAvatarUrl == null
-              ? const Icon(Icons.person, size: 20)
-              : null,
         ),
         const SizedBox(width: 8),
         Text(

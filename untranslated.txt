@@ -1,1 +1,19 @@
-{}
+{
+  "ca": [
+    "statusNotificar",
+    "statusNotificarShort",
+    "notificationFreqNone",
+    "notificationFreqOnce",
+    "notificationFreqTwice",
+    "notificationFreqThrice"
+  ],
+
+  "en": [
+    "statusNotificar",
+    "statusNotificarShort",
+    "notificationFreqNone",
+    "notificationFreqOnce",
+    "notificationFreqTwice",
+    "notificationFreqThrice"
+  ]
+}

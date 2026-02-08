@@ -14,6 +14,8 @@ import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/repositories/repositories.dart';
 import 'package:conectasoc/features/auth/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:conectasoc/services/notification_service.dart';
+import 'package:conectasoc/injection_container.dart';
 import 'package:logger/logger.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
@@ -77,6 +79,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       logger.t("➡️ AuthBloc-_onUserUpdated: emit(AuthAuthenticated)");
       emit(AuthAuthenticated(event.user, updatedMembership));
+      // Programar notificaciones
+      sl<NotificationService>().scheduleNotifications(event.user);
     }
   }
 
@@ -131,6 +135,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
                 ?.toMembershipEntity(userId: user.uid);
             logger.t("➡️ AuthBloc-_onAuthUserChanged: emit(AuthAuthenticated)");
             emit(AuthAuthenticated(user, currentMembership));
+            // Programar notificaciones
+            sl<NotificationService>().scheduleNotifications(user);
 
             if (!_isLoggingOut) {
               logger.t("AuthBloc-_onAuthUserChanged: _startUserDocListener");
@@ -235,6 +241,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           realMemberships.firstOrNull?.toMembershipEntity(userId: user.uid);
       logger.t("➡️ AuthBloc-_onAuthCheckRequested: emit(AuthAuthenticated)");
       emit(AuthAuthenticated(user, currentMembership));
+      // Programar notificaciones
+      sl<NotificationService>().scheduleNotifications(user);
 
       // Iniciar listener del documento del usuario
       if (!_isLoggingOut && !_isRegistering) {

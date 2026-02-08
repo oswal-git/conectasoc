@@ -39,6 +39,9 @@ class StatusDropdownSection extends StatelessWidget {
           case ArticleStatus.anulado:
             statusText = l10n.statusAnulado;
             break;
+          case ArticleStatus.notificar:
+            statusText = l10n.statusNotificar;
+            break;
         }
         return DropdownMenuItem(
           value: statusItem,

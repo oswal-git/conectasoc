@@ -400,6 +400,24 @@ class AppLocalizationsCa extends AppLocalizations {
   String get statusAnulado => 'Anul·lat';
 
   @override
+  String get statusNotificar => 'Publicar y Notificar';
+
+  @override
+  String get statusNotificarShort => 'Notificar';
+
+  @override
+  String get notificationFreqNone => 'No recibir notificaciones';
+
+  @override
+  String get notificationFreqOnce => 'Una vez al día (12:00)';
+
+  @override
+  String get notificationFreqTwice => 'Dos veces (10:00 y 20:00)';
+
+  @override
+  String get notificationFreqThrice => 'Tres veces (10:00, 15:00, 20:00)';
+
+  @override
   String get categoryInformacion => 'Informació';
 
   @override
@@ -589,4 +607,7 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String get registrationSuccessMessage =>
       'Registre reeixit. Si us plau, verifica el teu correu electrònic.';
+
+  @override
+  String get genericError => 'Ha hagut un problema en carregar les dades.';
 }

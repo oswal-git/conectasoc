@@ -15,12 +15,12 @@ class ArticleModel extends ArticleEntity {
     required super.publishDate,
     required super.effectiveDate,
     super.expirationDate,
-    required super.status,
+    super.status,
+    super.fechaNotificacion,
     required super.sections,
     required super.userId,
     required super.assocId,
     required super.authorName,
-    super.authorAvatarUrl,
     required super.associationShortName,
     required super.originalLanguage,
     required super.createdAt,
@@ -56,10 +56,12 @@ class ArticleModel extends ArticleEntity {
       userId: data['userId'] ?? '',
       assocId: data['assocId'] ?? '', // Asegura que nunca sea nulo
       authorName: data['authorName'] ?? '',
-      authorAvatarUrl: data['authorAvatarUrl'],
       associationShortName: data['associationShortName'] ?? '',
       originalLanguage: data['originalLanguage'] ?? 'es',
       status: ArticleStatusExtension.fromValue(data['status'] ?? 'redaccion'),
+      fechaNotificacion: data['fechaNotificacion'] != null
+          ? (data['fechaNotificacion'] as Timestamp).toDate()
+          : null,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       modifiedAt: (data['modifiedAt'] as Timestamp).toDate(),
     );
@@ -83,10 +85,10 @@ class ArticleModel extends ArticleEntity {
       userId: entity.userId,
       assocId: entity.assocId,
       authorName: entity.authorName,
-      authorAvatarUrl: entity.authorAvatarUrl,
       associationShortName: entity.associationShortName,
       originalLanguage: entity.originalLanguage,
       status: entity.status,
+      fechaNotificacion: entity.fechaNotificacion,
       createdAt: entity.createdAt,
       modifiedAt: entity.modifiedAt,
     );
@@ -117,10 +119,12 @@ class ArticleModel extends ArticleEntity {
       'userId': userId,
       'assocId': assocId,
       'authorName': authorName,
-      'authorAvatarUrl': authorAvatarUrl,
       'associationShortName': associationShortName,
       'originalLanguage': originalLanguage,
       'status': status.value,
+      'fechaNotificacion': fechaNotificacion != null
+          ? Timestamp.fromDate(fechaNotificacion!)
+          : null,
       'createdAt': Timestamp.fromDate(createdAt),
       'modifiedAt': Timestamp.fromDate(modifiedAt),
       // Campo para búsquedas de texto. Se convierte el título y el resumen
@@ -149,20 +153,7 @@ class ArticleModel extends ArticleEntity {
       'effectiveDate': effectiveDate.toIso8601String(),
       'expirationDate': expirationDate?.toIso8601String(),
       'status': status.value,
-      'sections': sections
-          .map((s) => {
-                'id': s.id,
-                'imageUrl': s.imageUrl,
-                'richTextContent': s.richTextContent,
-                'order': s.order,
-              })
-          .toList(),
-      'userId': userId,
-      'assocId': assocId,
-      'authorName': authorName,
-      'authorAvatarUrl': authorAvatarUrl,
-      'associationShortName': associationShortName,
-      'originalLanguage': originalLanguage,
+      'fechaNotificacion': fechaNotificacion?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'modifiedAt': modifiedAt.toIso8601String(),
     };

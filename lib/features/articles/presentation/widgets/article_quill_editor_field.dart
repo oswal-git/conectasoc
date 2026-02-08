@@ -66,6 +66,14 @@ class ArticleQuillEditorField extends StatelessWidget {
               base: quill.QuillToolbarBaseButtonOptions(
                 iconButtonFactor: iconButtonFactor,
               ),
+              fontSize: quill.QuillToolbarFontSizeButtonOptions(
+                items: {
+                  'Small': '18',
+                  'Medium': '20',
+                  'Large': '24',
+                  'Clear': '0'
+                },
+              ),
             ),
             toolbarRunSpacing: 0,
             toolbarSectionSpacing: 0,

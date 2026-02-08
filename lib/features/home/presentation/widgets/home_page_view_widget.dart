@@ -10,7 +10,6 @@ import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
-import 'package:conectasoc/features/home/presentation/widgets/home_view_widget.dart';
 import 'package:conectasoc/features/home/presentation/widgets/widgets.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 
@@ -58,8 +57,12 @@ class HomePageViewWidget extends StatelessWidget {
                         color: isEditMode ? Colors.green : null,
                       ),
                     ),
-                    onPressed: () =>
-                        context.read<HomeBloc>().add(ToggleEditMode()),
+                    onPressed: () {
+                      final user = authState is AuthAuthenticated
+                          ? authState.user
+                          : null;
+                      context.read<HomeBloc>().add(ToggleEditMode(user: user));
+                    },
                     tooltip: isEditMode
                         ? AppLocalizations.of(context).saveChanges
                         : AppLocalizations.of(context).editMode,
@@ -82,8 +85,21 @@ class HomePageViewWidget extends StatelessWidget {
 
             if (canCreate) {
               return FloatingActionButton(
-                onPressed: () {
-                  context.goNamed(RouteNames.articleCreate);
+                onPressed: () async {
+                  await context.pushNamed(RouteNames.articleCreate);
+                  if (context.mounted) {
+                    final authState = context.read<AuthBloc>().state;
+                    final homeState = context.read<HomeBloc>().state;
+                    final user =
+                        authState is AuthAuthenticated ? authState.user : null;
+                    final isEditMode =
+                        homeState is HomeLoaded ? homeState.isEditMode : false;
+                    context.read<HomeBloc>().add(LoadHomeData(
+                          user: user,
+                          isEditMode: isEditMode,
+                          forceReload: true,
+                        ));
+                  }
                 },
                 tooltip: AppLocalizations.of(context).createArticle,
                 child: const Icon(Icons.add),

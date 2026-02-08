@@ -11,13 +11,15 @@ class GetArticlesUseCase {
 
   GetArticlesUseCase(this.repository);
 
-  Future<Either<Failure, Tuple2<List<ArticleEntity>, DocumentSnapshot?>>> call({
+  Future<
+      Either<Failure,
+          Tuple2<List<ArticleEntity>, DocumentSnapshot<Object?>?>>> call({
     IUser? user,
     bool isEditMode = false,
     String? categoryId,
     String? subcategoryId,
     String? searchTerm,
-    DocumentSnapshot? lastDocument,
+    DocumentSnapshot<Object?>? lastDocument,
     int limit = 20,
   }) async {
     return await repository.getArticles(

@@ -98,6 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
               'email': state.user.email,
               'phone': state.user.phone,
               'language': state.user.language,
+              'notificationFrequency': state.user.notificationFrequency,
             },
             child: Column(
               children: [
@@ -147,6 +148,28 @@ class _ProfilePageState extends State<ProfilePage> {
                   onChanged: (value) => context
                       .read<ProfileBloc>()
                       .add(ProfileLanguageChanged(value ?? 'es')),
+                ),
+                const SizedBox(height: 16),
+                FormBuilderDropdown<String>(
+                  name: 'notificationFrequency',
+                  decoration: InputDecoration(labelText: l10n.notifications),
+                  items: [
+                    DropdownMenuItem(
+                        value: 'none', child: Text(l10n.notificationFreqNone)),
+                    DropdownMenuItem(
+                        value: 'once_day',
+                        child: Text(l10n.notificationFreqOnce)),
+                    DropdownMenuItem(
+                        value: 'twice_day',
+                        child: Text(l10n.notificationFreqTwice)),
+                    DropdownMenuItem(
+                        value: 'thrice_day',
+                        child: Text(l10n.notificationFreqThrice)),
+                  ],
+                  onChanged: (value) {
+                    context.read<ProfileBloc>().add(
+                        ProfileNotificationFrequencyChanged(value ?? 'none'));
+                  },
                 ),
               ],
             ),
