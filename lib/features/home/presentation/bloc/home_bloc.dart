@@ -172,6 +172,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final articlesResult =
         await getArticlesUseCase(user: user, isEditMode: newEditMode);
 
+    // Obtenemos las categorías actuales (sin traducir)
+    final categoriesResult = await getCategoriesUseCase();
+
     await articlesResult.fold(
       (failure) async => emit(HomeError(failure.message)),
       (articlesData) async {
@@ -179,12 +182,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final lastDocument = articlesData.item2;
         List<ArticleEntity> articlesToDisplay = _originalArticles;
 
+        final categoriesOriginal = categoriesResult.fold(
+          (failure) => throw failure,
+          (data) => data,
+        );
+        List<CategoryEntity> categoriesToDisplay = categoriesOriginal;
+
         // Si salimos del modo edición, traducimos los artículos
         if (!newEditMode && user != null) {
           articlesToDisplay = await Future.wait(_originalArticles
               .map((article) =>
                   translationService.translateArticle(article, user.language))
               .toList());
+
+          categoriesToDisplay = await translationService.translateCategories(
+              categoriesOriginal, user.language);
         }
 
         debugPrint(
@@ -194,6 +206,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           isEditMode: newEditMode,
           allArticles: articlesToDisplay,
           filteredArticles: articlesToDisplay, // Sincronizamos inmediatamente
+          categories: categoriesToDisplay,
           lastDocument: lastDocument,
           hasMore: articlesData.item1.length == 20,
           isLoading: false,
@@ -223,16 +236,48 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (state is! HomeLoaded) return;
     final currentState = state as HomeLoaded;
 
+    debugPrint(
+        'DEBUG: CategorySelected - category.id=${event.category.id}, category.name=${event.category.name}');
+    debugPrint(
+        'DEBUG: CategorySelected - isEditMode=${currentState.isEditMode}');
+
     final result = await getSubcategoriesUseCase(event.category.id);
 
-    result.fold(
-      (failure) => emit(HomeError(failure.message)),
-      (subcategories) {
+    await result.fold(
+      (failure) async {
+        debugPrint(
+            'DEBUG: CategorySelected - Failed to load subcategories: ${failure.message}');
+        emit(HomeError(failure.message));
+      },
+      (subcategories) async {
+        debugPrint(
+            'DEBUG: CategorySelected - Loaded ${subcategories.length} subcategories');
+        List<SubcategoryEntity> subcategoriesToDisplay = subcategories;
+
+        // Si no estamos en modo edición, traducir las subcategorías
+        if (!currentState.isEditMode) {
+          final authState = authBloc.state;
+          String targetLang = 'es'; // Idioma por defecto
+          if (authState is AuthAuthenticated) {
+            targetLang = authState.user.language;
+          }
+
+          debugPrint(
+              'DEBUG: CategorySelected - Translating subcategories to $targetLang');
+          subcategoriesToDisplay = await translationService
+              .translateSubcategories(subcategories, targetLang);
+          debugPrint(
+              'DEBUG: CategorySelected - Translation complete. First subcategory: ${subcategoriesToDisplay.isNotEmpty ? subcategoriesToDisplay.first.name : "none"}');
+        }
+
         final newState = currentState.copyWith(
           selectedCategory: event.category,
-          subcategories: subcategories,
+          subcategories: subcategoriesToDisplay,
           clearSelectedSubcategory: true, // Limpiar subcategoría explícitamente
         );
+
+        debugPrint(
+            'DEBUG: CategorySelected - Emitting new state with ${newState.subcategories.length} subcategories');
         _applyFilters(emit, newState);
       },
     );

@@ -30,10 +30,17 @@ class CategoryFilterBarWidget extends StatelessWidget {
       },
       builder: (context, state) {
         if (state is! HomeLoaded) {
-          return const SizedBox(height: 50);
+          return const SizedBox(height: 30);
         }
 
         final loadedState = state;
+
+        debugPrint(
+            'DEBUG Widget: selectedCategory=${loadedState.selectedCategory?.name}, subcategories=${loadedState.subcategories.length}');
+        if (loadedState.subcategories.isNotEmpty) {
+          debugPrint(
+              'DEBUG Widget: First subcategory name=${loadedState.subcategories.first.name}');
+        }
 
         // Si hay una categoría seleccionada, mostramos las subcategorías
         if (loadedState.selectedCategory != null) {
@@ -84,7 +91,7 @@ class CategoryFilterBarWidget extends StatelessWidget {
     CategoryEntity? selectedItem,
   }) {
     return SizedBox(
-      height: 50,
+      height: 30,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -111,7 +118,7 @@ class CategoryFilterBarWidget extends StatelessWidget {
     SubcategoryEntity? selectedItem,
   }) {
     return SizedBox(
-      height: 50,
+      height: 30,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),

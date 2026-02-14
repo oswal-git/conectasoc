@@ -8,3 +8,4 @@ export 'home_page_view_widget.dart';
 export 'home_view_widget.dart';
 export 'image_picker_widget.dart';
 export 'rich_text_editor_widget.dart';
+export 'search_field_widget.dart';

@@ -1,11 +1,8 @@
-import 'dart:async';
-import 'package:conectasoc/features/home/presentation/widgets/article_list_widget.dart';
-import 'package:conectasoc/features/home/presentation/widgets/category_filter_bar_widget.dart';
+import 'package:conectasoc/features/home/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
-import 'package:conectasoc/l10n/app_localizations.dart';
 
 class HomeViewWidget extends StatefulWidget {
   const HomeViewWidget({super.key});
@@ -14,9 +11,6 @@ class HomeViewWidget extends StatefulWidget {
 }
 
 class HomeViewWidgetState extends State<HomeViewWidget> {
-  // Debounce timer for search input
-  static Timer? _searchDebounce;
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeBloc, HomeState>(
@@ -30,34 +24,21 @@ class HomeViewWidgetState extends State<HomeViewWidget> {
               const LinearProgressIndicator(
                 minHeight: 2,
               ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: 4.0, bottom: 0.0, left: 8.0, right: 8.0),
-              child: TextField(
-                controller: TextEditingController(
-                    text: (context.watch<HomeBloc>().state is HomeLoaded)
-                        ? (context.watch<HomeBloc>().state as HomeLoaded)
-                            .searchTerm
-                        : ''),
-                decoration: InputDecoration(
-                  hintText: AppLocalizations.of(context).search,
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                ),
-                onChanged: (query) {
-                  _searchDebounce?.cancel();
-                  _searchDebounce =
-                      Timer(const Duration(milliseconds: 300), () {
-                    context.read<HomeBloc>().add(SearchQueryChanged(query));
-                  });
-                },
+            SearchFieldWidget(
+              height: 40.0, // Altura total del campo
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 12, // Padding vertical interior
+                horizontal: 20, // Padding horizontal interior
               ),
+              fillColor:
+                  const Color.fromARGB(255, 221, 235, 212), // Color de fondo
+              textStyle: TextStyle(
+                // O estilo completo de texto
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+              borderRadius: 8.0, // Radio de borde
             ),
             const CategoryFilterBarWidget(),
             Expanded(
