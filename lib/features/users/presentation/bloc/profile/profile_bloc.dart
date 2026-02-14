@@ -31,15 +31,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
-  void _onLoadUserProfile(LoadUserProfile event, Emitter<ProfileState> emit) {
+  void _onLoadUserProfile(
+      LoadUserProfile event, Emitter<ProfileState> emit) async {
     final authState = event.authBloc.state;
     if (authState is AuthAuthenticated) {
-      // El UserEntity del AuthBloc ya tiene toda la información necesaria.
-      // En una app más compleja, aquí podrías llamar a _userRepository.getUserDetails(authState.user.uid)
-      // si necesitaras más datos que los que ya están en el estado de autenticación.
-      emit(ProfileLoaded(user: authState.user.toProfileEntity()));
+      emit(ProfileLoading());
+      final result = await _userRepository.getUserById(authState.user.uid);
+
+      result.fold(
+        (failure) => emit(ProfileUpdateFailure(failure.message)),
+        (user) => emit(ProfileLoaded(user: user.toProfileEntity())),
+      );
     } else {
-      // Esto no debería ocurrir si la página de perfil está protegida.
       emit(const ProfileUpdateFailure('Usuario no autenticado.'));
     }
   }
@@ -99,6 +102,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final result = await _userRepository.updateUser(
         user: currentState.user,
         newImageBytes: currentState.localImageBytes,
+        expectedDateUpdated: currentState.user.dateUpdated,
       );
 
       result.fold(

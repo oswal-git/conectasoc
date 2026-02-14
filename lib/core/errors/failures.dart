@@ -42,3 +42,10 @@ class AuthFailure extends Failure {
 class PermissionFailure extends Failure {
   const PermissionFailure(super.message);
 }
+
+// Errores de concurrencia (Optimistic Concurrency Control)
+class ConcurrencyFailure extends Failure {
+  const ConcurrencyFailure(
+      [super.message =
+          'El registro ha sido modificado por otro usuario. Por favor, refresca los datos e inténtalo de nuevo.']);
+}

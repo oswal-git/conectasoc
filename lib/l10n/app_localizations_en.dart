@@ -401,22 +401,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusAnulado => 'Cancelled';
 
   @override
-  String get statusNotificar => 'Publicar y Notificar';
+  String get statusNotificar => 'Publish and Notify';
 
   @override
-  String get statusNotificarShort => 'Notificar';
+  String get statusNotificarShort => 'Notify';
 
   @override
-  String get notificationFreqNone => 'No recibir notificaciones';
+  String get notificationFreqNone => 'No notifications';
 
   @override
-  String get notificationFreqOnce => 'Una vez al día (12:00)';
+  String get notificationFreqOnce => 'Once a day (12:00)';
 
   @override
-  String get notificationFreqTwice => 'Dos veces (10:00 y 20:00)';
+  String get notificationFreqTwice => 'Twice a day (10:00 and 20:00)';
 
   @override
-  String get notificationFreqThrice => 'Tres veces (10:00, 15:00, 20:00)';
+  String get notificationFreqThrice =>
+      'Three times a day (10:00, 15:00, 20:00)';
 
   @override
   String get categoryInformacion => 'Information';
@@ -611,4 +612,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get genericError => 'A problem occurred while loading the data.';
+
+  @override
+  String get unsavedChangesTitle => 'Unsaved Changes';
+
+  @override
+  String get unsavedChangesMessage =>
+      'You have unsaved changes. Do you want to leave without saving?';
+
+  @override
+  String get stay => 'Stay';
+
+  @override
+  String get leaveWithoutSaving => 'Leave Without Saving';
 }

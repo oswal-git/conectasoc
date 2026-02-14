@@ -22,9 +22,11 @@ abstract class UserRepository {
   Future<Either<Failure, ProfileEntity>> updateUser({
     required ProfileEntity user,
     Uint8List? newImageBytes,
+    DateTime? expectedDateUpdated,
   });
 
-  Future<Either<Failure, void>> updateUserDetails(UserEntity user);
+  Future<Either<Failure, void>> updateUserDetails(UserEntity user,
+      {DateTime? expectedDateUpdated});
 
   Future<Either<Failure, void>> deleteUser(String userId);
 

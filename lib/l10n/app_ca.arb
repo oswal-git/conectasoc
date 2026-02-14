@@ -212,6 +212,12 @@
     "statusRevision": "En Revisió",
     "statusExpirado": "Expirat",
     "statusAnulado": "Anul·lat",
+    "statusNotificar": "Publicar i Notificar",
+    "statusNotificarShort": "Notificar",
+    "notificationFreqNone": "No rebre notificacions",
+    "notificationFreqOnce": "Una vegada al dia (12:00)",
+    "notificationFreqTwice": "Dues vegades (10:00 i 20:00)",
+    "notificationFreqThrice": "Tres vegades (10:00, 15:00, 20:00)",
     "categoryInformacion": "Informació",
     "categoryNoticias": "Notícies",
     "categoryActas": "Actes",
@@ -272,5 +278,9 @@
     "noAssociationsAvailableToJoin": "No hi ha associacions disponibles. N'has de crear una de nova.",
     "register": "Registrar-se",
     "registrationSuccessMessage": "Registre reeixit. Si us plau, verifica el teu correu electrònic.",
-    "genericError": "Ha hagut un problema en carregar les dades."
+    "genericError": "Ha hagut un problema en carregar les dades.",
+    "unsavedChangesTitle": "Canvis sense desar",
+    "unsavedChangesMessage": "Tens canvis sense desar. Vols sortir sense desar-los?",
+    "stay": "Quedar-se",
+    "leaveWithoutSaving": "Sortir sense desar"
 }

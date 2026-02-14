@@ -67,6 +67,7 @@ class UserRepositoryImpl implements UserRepository {
   Future<Either<Failure, ProfileEntity>> updateUser({
     required ProfileEntity user,
     Uint8List? newImageBytes,
+    DateTime? expectedDateUpdated,
   }) async {
     try {
       String? newImageUrl;
@@ -91,7 +92,8 @@ class UserRepositoryImpl implements UserRepository {
         }
       }
 
-      final updatedUser = await remoteDataSource.updateUser(user, newImageUrl);
+      final updatedUser = await remoteDataSource.updateUser(
+          user, newImageUrl, expectedDateUpdated);
 
       // Si la actualización fue exitosa y tenemos un oldPublicId, lo borramos.
       // Lo hacemos después para no borrar la imagen vieja si la actualización falla.
@@ -99,16 +101,21 @@ class UserRepositoryImpl implements UserRepository {
         await CloudinaryService.deleteImage(oldPublicId);
       }
       return Right(updatedUser);
+    } on ConcurrencyException {
+      return Left(ConcurrencyFailure());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     }
   }
 
   @override
-  Future<Either<Failure, void>> updateUserDetails(UserEntity user) async {
+  Future<Either<Failure, void>> updateUserDetails(UserEntity user,
+      {DateTime? expectedDateUpdated}) async {
     try {
-      await remoteDataSource.updateUserDetails(user);
+      await remoteDataSource.updateUserDetails(user, expectedDateUpdated);
       return const Right(null);
+    } on ConcurrencyException {
+      return Left(ConcurrencyFailure());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     }

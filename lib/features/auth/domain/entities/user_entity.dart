@@ -129,6 +129,7 @@ class UserEntity extends Equatable implements IUser {
       language: language,
       notificationFrequency: notificationFrequency,
       photoUrl: avatarUrl,
+      dateUpdated: dateUpdated,
     );
   }
 

@@ -212,6 +212,12 @@
     "statusRevision": "In Review",
     "statusExpirado": "Expired",
     "statusAnulado": "Cancelled",
+    "statusNotificar": "Publish and Notify",
+    "statusNotificarShort": "Notify",
+    "notificationFreqNone": "No notifications",
+    "notificationFreqOnce": "Once a day (12:00)",
+    "notificationFreqTwice": "Twice a day (10:00 and 20:00)",
+    "notificationFreqThrice": "Three times a day (10:00, 15:00, 20:00)",
     "categoryInformacion": "Information",
     "categoryNoticias": "News",
     "categoryActas": "Minutes",
@@ -272,5 +278,9 @@
     "noAssociationsAvailableToJoin": "No associations available. You must create a new one.",
     "register": "Register",
     "registrationSuccessMessage": "Registration successful. Please check your email to verify your account.",
-    "genericError": "A problem occurred while loading the data."
+    "genericError": "A problem occurred while loading the data.",
+    "unsavedChangesTitle": "Unsaved Changes",
+    "unsavedChangesMessage": "You have unsaved changes. Do you want to leave without saving?",
+    "stay": "Stay",
+    "leaveWithoutSaving": "Leave Without Saving"
 }

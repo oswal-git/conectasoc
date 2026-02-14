@@ -31,6 +31,8 @@ class ArticlePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final article = state.article;
+    final dateFormat = DateFormat.yMMMd(l10n.localeName);
+
     ImageProvider? imageProvider;
     if (state.newCoverImageBytes != null) {
       imageProvider = MemoryImage(state.newCoverImageBytes!);
@@ -54,7 +56,7 @@ class ArticlePreview extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
+                // Title (read-only)
                 quill.QuillEditor(
                   controller: titleController,
                   focusNode: titleFocusNode,
@@ -63,7 +65,35 @@ class ArticlePreview extends StatelessWidget {
                     padding: EdgeInsets.only(bottom: 8),
                   ),
                 ),
-                // Abstract
+                const SizedBox(height: 8),
+                // Author and association info
+                Row(
+                  children: [
+                    if (article.authorName.isNotEmpty)
+                      Text(
+                        'Por ${article.authorName}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    if (article.authorName.isNotEmpty &&
+                        article.associationShortName.isNotEmpty)
+                      Text(' • ', style: Theme.of(context).textTheme.bodySmall),
+                    if (article.associationShortName.isNotEmpty)
+                      Text(
+                        article.associationShortName,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // Publish date
+                Text(
+                  '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const Divider(height: 24),
+                // Abstract (read-only)
                 quill.QuillEditor(
                   controller: abstractController,
                   focusNode: abstractFocusNode,
@@ -72,14 +102,9 @@ class ArticlePreview extends StatelessWidget {
                     padding: EdgeInsets.only(bottom: 16),
                   ),
                 ),
-                // Metadata
+                // Category metadata
                 Text(
-                  '${l10n.category}: ${article.categoryId} > ${l10n.subcategory}: ${article.subcategoryId}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${l10n.publishDateLabel}: ${DateFormat.yMMMd(l10n.localeName).format(article.publishDate)}',
+                  '${l10n.category}: ${article.categoryName} > ${l10n.subcategory}: ${article.subcategoryName}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const Divider(height: 32),
@@ -88,6 +113,19 @@ class ArticlePreview extends StatelessWidget {
                       state: state,
                       section: section,
                     )),
+                const Divider(height: 48),
+                // Footer with effective dates
+                Center(
+                  child: Text(
+                    article.expirationDate != null
+                        ? '${l10n.effectivePublishDate} ${l10n.from} ${dateFormat.format(article.effectiveDate)} ${l10n.toThe} ${dateFormat.format(article.expirationDate!)}'
+                        : '${l10n.effectivePublishDate} ${l10n.start} ${dateFormat.format(article.effectiveDate)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontStyle: FontStyle.italic,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ],
             ),
           ),

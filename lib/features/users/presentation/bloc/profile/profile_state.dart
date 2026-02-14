@@ -1,5 +1,3 @@
-// lib/features/users/presentation/bloc/profile/profile_state.dart
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
@@ -24,11 +22,11 @@ class ProfileLoaded extends ProfileState {
   const ProfileLoaded(
       {required this.user, this.localImageBytes, this.isSaving = false});
 
-  ProfileLoaded copyWith(
-      {ProfileEntity? user,
-      bool? isSaving,
-      Uint8List? localImageBytes,
-      File? localImageFile}) {
+  ProfileLoaded copyWith({
+    ProfileEntity? user,
+    bool? isSaving,
+    Uint8List? localImageBytes,
+  }) {
     return ProfileLoaded(
       user: user ?? this.user,
       isSaving: isSaving ?? this.isSaving,

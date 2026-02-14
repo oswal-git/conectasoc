@@ -157,6 +157,7 @@ class AssociationEditBloc
       final result = await updateAssociation(
         association: currentState.association,
         logoBytes: currentState.newImageBytes,
+        expectedDateUpdated: currentState.association.dateUpdated,
       );
 
       result.fold(

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:conectasoc/services/cloudinary_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -436,34 +435,18 @@ class _TestCloudinaryPageState extends State<TestCloudinaryPage> {
 
       CloudinaryResponse response;
 
-      if (kIsWeb) {
-        // En web, usar bytes directamente
-        final imageBytes = await image.readAsBytes();
-        response = await CloudinaryService.uploadImageBytes(
-          imageBytes: imageBytes,
-          filename: image.name,
-          imageType: CloudinaryImageType.general,
-          tags: {
-            'test': 'true',
-            'platform': 'web',
-            'app': 'conectasoc',
-            'uploaded_at': DateTime.now().toIso8601String(),
-          },
-        );
-      } else {
-        // En móvil, usar File
-        final imageFile = File(image.path);
-        response = await CloudinaryService.uploadImage(
-          imageFile: imageFile,
-          imageType: CloudinaryImageType.general,
-          tags: {
-            'test': 'true',
-            'platform': 'mobile',
-            'app': 'conectasoc',
-            'uploaded_at': DateTime.now().toIso8601String(),
-          },
-        );
-      }
+      final imageBytes = await image.readAsBytes();
+      response = await CloudinaryService.uploadImage(
+        imageBytes: imageBytes,
+        filename: image.name,
+        imageType: CloudinaryImageType.general,
+        tags: {
+          'test': 'true',
+          'platform': kIsWeb ? 'web' : 'mobile',
+          'app': 'conectasoc',
+          'uploaded_at': DateTime.now().toIso8601String(),
+        },
+      );
 
       setState(() {
         _isUploading = false;

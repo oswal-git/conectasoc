@@ -5,8 +5,8 @@ import 'package:conectasoc/features/associations/data/models/association_model.d
 abstract class AssociationRemoteDataSource {
   Future<List<AssociationModel>> getAllAssociations();
   Future<AssociationModel> getAssociationById(String id);
-  Future<AssociationModel> updateAssociation(
-      AssociationModel association, String? newLogoUrl);
+  Future<AssociationModel> updateAssociation(AssociationModel association,
+      String? newLogoUrl, DateTime? expectedDateUpdated);
   Future<AssociationModel> createAssociation({
     required String shortName,
     required String longName,
@@ -59,26 +59,47 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
   }
 
   @override
-  Future<AssociationModel> updateAssociation(
-      AssociationModel association, String? newLogoUrl) async {
+  Future<AssociationModel> updateAssociation(AssociationModel association,
+      String? newLogoUrl, DateTime? expectedDateUpdated) async {
     try {
-      final updatedAssociation = association.copyWith(
-        logoUrl: newLogoUrl ?? association.logoUrl,
-      );
-      final dataToUpdate = updatedAssociation.toFirestore();
-      // Usar el timestamp del servidor para la actualización
-      dataToUpdate['dateUpdated'] = FieldValue.serverTimestamp();
+      await firestore.runTransaction((transaction) async {
+        final docRef = firestore.collection('associations').doc(association.id);
+        final snapshot = await transaction.get(docRef);
 
-      await firestore
-          .collection('associations')
-          .doc(association.id)
-          .update(dataToUpdate);
+        if (!snapshot.exists) {
+          throw ServerException('Asociación no encontrada.');
+        }
 
-      // After updating, we fetch the document again to get the most recent data,
-      // including the server-generated 'dateUpdated'.
+        if (expectedDateUpdated != null) {
+          final currentData = snapshot.data() as Map<String, dynamic>;
+          final currentUpdated =
+              (currentData['dateUpdated'] as Timestamp).toDate();
+
+          if (currentUpdated
+                  .difference(expectedDateUpdated)
+                  .inMilliseconds
+                  .abs() >
+              100) {
+            throw ConcurrencyException();
+          }
+        }
+
+        final updatedAssociation = association.copyWith(
+          logoUrl: newLogoUrl ?? association.logoUrl,
+        );
+        final dataToUpdate = updatedAssociation.toFirestore();
+        dataToUpdate['dateUpdated'] = FieldValue.serverTimestamp();
+
+        transaction.update(docRef, dataToUpdate);
+        return updatedAssociation;
+      });
+
+      // Recargamos el modelo final para devolver el dateUpdated real del servidor
       final updatedDoc =
           await firestore.collection('associations').doc(association.id).get();
       return AssociationModel.fromFirestore(updatedDoc);
+    } on ConcurrencyException {
+      rethrow;
     } catch (e) {
       throw ServerException(
           'Error al actualizar la asociación: ${e.toString()}');

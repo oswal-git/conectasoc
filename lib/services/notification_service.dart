@@ -6,9 +6,13 @@ import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 import 'package:conectasoc/features/articles/domain/repositories/article_repository.dart';
 import 'package:conectasoc/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:conectasoc/core/utils/quill_helpers.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
+  if (kIsWeb) return;
   Workmanager().executeTask((task, inputData) async {
     // Inicializar dependencias mínimas necesarias
     await initMinimal();
@@ -35,11 +39,16 @@ void callbackDispatcher() {
           (failure) => false,
           (articles) async {
             if (articles.isNotEmpty) {
-              // Mostrar notificación local
-              await NotificationService().showLocalNotification(
-                title: 'Nuevas noticias',
-                body: 'Tienes ${articles.length} nuevas noticias en ConectAsoc',
-              );
+              final notificationService = NotificationService();
+              for (final article in articles) {
+                // Mostrar una notificación por cada artículo
+                await notificationService.showLocalNotification(
+                  id: article.id.hashCode,
+                  title: quillJsonToPlainText(article.title),
+                  body: 'Nueva noticia de ${article.associationShortName}',
+                  payload: article.id,
+                );
+              }
 
               // Actualizar fechaNotificada del usuario
               await authRepository.updateUserFechaNotificada(
@@ -61,24 +70,62 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Stream para que la UI escuche los clics en las notificaciones
+  final BehaviorSubject<String?> _onNotificationClick =
+      BehaviorSubject<String?>();
+  Stream<String?> get onNotificationClick => _onNotificationClick.stream;
+
   Future<void> init() async {
+    if (kIsWeb) return;
+
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
     await _notificationsPlugin.initialize(
       settings: initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        if (response.payload != null) {
+          _onNotificationClick.add(response.payload);
+        }
+      },
     );
 
     await Workmanager().initialize(
       callbackDispatcher,
     );
+
+    // Manejar el caso en que la app se abre desde una notificación (app cerrada)
+    final NotificationAppLaunchDetails? launchDetails =
+        await _notificationsPlugin.getNotificationAppLaunchDetails();
+    if (launchDetails != null && launchDetails.didNotificationLaunchApp) {
+      if (launchDetails.notificationResponse?.payload != null) {
+        // Retrasar un poco para que la UI esté lista
+        Future.delayed(const Duration(seconds: 1), () {
+          _onNotificationClick.add(launchDetails.notificationResponse!.payload);
+        });
+      }
+    }
+  }
+
+  Future<void> requestPermissions() async {
+    if (kIsWeb) return;
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        _notificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidImplementation != null) {
+      await androidImplementation.requestNotificationsPermission();
+    }
   }
 
   Future<void> showLocalNotification({
+    int id = 0,
     required String title,
     required String body,
+    String? payload,
   }) async {
+    if (kIsWeb) return;
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'news_channel',
@@ -89,15 +136,17 @@ class NotificationService {
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
     await _notificationsPlugin.show(
-      id: 0,
+      id: id,
       title: title,
       body: body,
       notificationDetails: platformChannelSpecifics,
+      payload: payload,
     );
   }
 
   /// Programa las tareas según la frecuencia del usuario
   Future<void> scheduleNotifications(UserEntity user) async {
+    if (kIsWeb) return;
     await Workmanager().cancelAll();
 
     if (user.notificationFrequency == 'none') return;

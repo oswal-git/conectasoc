@@ -7,6 +7,7 @@ import 'package:tuple/tuple.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/core/constants/cloudinary_config.dart';
 import 'package:conectasoc/core/errors/failures.dart';
+import 'package:conectasoc/core/errors/exceptions.dart';
 import 'package:conectasoc/features/articles/data/models/models.dart';
 import 'package:conectasoc/features/articles/domain/repositories/article_repository.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
@@ -254,6 +255,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
     Uint8List? newCoverImageBytes,
     Map<String, Uint8List> newSectionImageBytes = const {},
     List<String> imagesToDelete = const [],
+    DateTime? expectedModifiedAt,
   }) async {
     try {
       ArticleEntity articleToUpdate = article;
@@ -338,14 +340,44 @@ class ArticleRepositoryImpl implements ArticleRepository {
         articleToUpdate = articleToUpdate.copyWith(sections: updatedSections);
       }
 
-      // 3. Update the article in Firestore
-      final articleModel = ArticleModel.fromEntity(articleToUpdate);
-      await firestore
-          .collection('articles')
-          .doc(article.id)
-          .update(articleModel.toFirestore());
+      // 3. Update the article in Firestore using a transaction for concurrency control
+      await firestore.runTransaction((transaction) async {
+        final docRef = firestore.collection('articles').doc(article.id);
+        final snapshot = await transaction.get(docRef);
 
-      return Right(articleToUpdate);
+        if (!snapshot.exists) {
+          throw ServerException('El artículo no existe.');
+        }
+
+        if (expectedModifiedAt != null) {
+          final currentData = snapshot.data() as Map<String, dynamic>;
+          final currentModifiedAt =
+              (currentData['modifiedAt'] as Timestamp).toDate();
+
+          // Comparamos permitiendo una pequeña diferencia por la precisión de Firestore
+          if (currentModifiedAt
+                  .difference(expectedModifiedAt)
+                  .inMilliseconds
+                  .abs() >
+              100) {
+            throw ConcurrencyException();
+          }
+        }
+
+        final articleModel = ArticleModel.fromEntity(articleToUpdate);
+        final dataToUpdate = articleModel.toFirestore();
+        // Forzamos el timestamp del servidor para la nueva modificación
+        dataToUpdate['modifiedAt'] = FieldValue.serverTimestamp();
+
+        transaction.update(docRef, dataToUpdate);
+      });
+
+      // Recargamos para devolver la entidad con el timestamp real del servidor
+      final updatedDoc =
+          await firestore.collection('articles').doc(article.id).get();
+      return Right(ArticleModel.fromFirestore(updatedDoc));
+    } on ConcurrencyException catch (_) {
+      return Left(ConcurrencyFailure());
     } catch (e) {
       return Left(ServerFailure('Error al actualizar el artículo: $e'));
     }

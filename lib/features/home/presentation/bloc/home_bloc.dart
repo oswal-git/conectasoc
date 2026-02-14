@@ -75,22 +75,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       _originalArticles = articlesData.item1;
       final lastDocument = articlesData.item2;
 
-      final categories =
+      final categoriesOriginal =
           categoriesResult.fold((failure) => throw failure, (data) => data);
 
       List<ArticleEntity> articlesToDisplay = _originalArticles;
+      List<CategoryEntity> categoriesToDisplay = categoriesOriginal;
+
+      // Obtener el idioma del usuario
+      final authState = authBloc.state;
+      String targetLang = 'es'; // Idioma por defecto
+      if (authState is AuthAuthenticated) {
+        targetLang = authState.user.language;
+      }
 
       // Si no estamos en modo edición, traducir los artículos
       if (!event.isEditMode) {
-        final authState = authBloc.state;
-        String targetLang = 'es'; // Idioma por defecto
-        if (authState is AuthAuthenticated) {
-          targetLang = authState.user.language;
-        }
-
         // Usamos Future.wait para traducir todos los artículos en paralelo
         articlesToDisplay = await Future.wait(_originalArticles.map((article) =>
             translationService.translateArticle(article, targetLang)));
+
+        // Traducir categorías en paralelo
+        categoriesToDisplay = await translationService.translateCategories(
+            categoriesOriginal, targetLang);
       }
 
       emit(HomeLoaded(
@@ -98,7 +104,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         allArticles: articlesToDisplay,
         // 'filteredArticles' se inicializa con la misma lista
         filteredArticles: articlesToDisplay,
-        categories: categories,
+        categories: categoriesToDisplay,
         searchTerm: '', // Initialize search term
         isEditMode: event.isEditMode,
         associations: associations,
@@ -185,16 +191,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             'DEBUG: ToggleEditMode success. Articles fetched: ${articlesData.item1.length}');
 
         final newState = currentState.copyWith(
-            isEditMode: newEditMode,
-            allArticles: articlesToDisplay,
-            filteredArticles: articlesToDisplay, // Sincronizamos inmediatamente
-            lastDocument: lastDocument,
-            hasMore: articlesData.item1.length == 20,
-            isLoading: false,
-            // Al cambiar de modo, limpiamos los filtros para asegurar visibilidad
-            searchTerm: '',
-            selectedCategory: null,
-            selectedSubcategory: null);
+          isEditMode: newEditMode,
+          allArticles: articlesToDisplay,
+          filteredArticles: articlesToDisplay, // Sincronizamos inmediatamente
+          lastDocument: lastDocument,
+          hasMore: articlesData.item1.length == 20,
+          isLoading: false,
+          // Al cambiar de modo, limpiamos los filtros para asegurar visibilidad
+          searchTerm: '',
+          clearSelectedCategory: true,
+          clearSelectedSubcategory: true,
+        );
 
         // Volvemos a aplicar filtros por si acaso (aunque los acabamos de limpiar)
         _applyFilters(emit, newState);
@@ -224,7 +231,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final newState = currentState.copyWith(
           selectedCategory: event.category,
           subcategories: subcategories,
-          selectedSubcategory: null, // Limpiar subcategoría
+          clearSelectedSubcategory: true, // Limpiar subcategoría explícitamente
         );
         _applyFilters(emit, newState);
       },
@@ -249,8 +256,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           state as HomeLoaded; // Clear all category/subcategory filters
       final newState = currentState.copyWith(
         subcategories: [], // Clear subcategories
-        selectedCategory: null,
-        selectedSubcategory: null,
+        clearSelectedCategory: true,
+        clearSelectedSubcategory: true,
       );
       _applyFilters(emit, newState);
     }

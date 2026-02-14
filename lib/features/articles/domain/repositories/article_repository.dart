@@ -45,6 +45,7 @@ abstract class ArticleRepository {
     Uint8List? newCoverImageBytes,
     Map<String, Uint8List> newSectionImageBytes = const {},
     List<String> imagesToDelete = const [],
+    DateTime? expectedModifiedAt,
   });
 
   Future<Either<Failure, List<ArticleEntity>>> getArticlesForNotification({

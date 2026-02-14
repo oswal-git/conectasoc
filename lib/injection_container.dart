@@ -69,7 +69,7 @@ Future<void> init() async {
   // ============================================
 
   // Bloc
-  sl.registerFactory(
+  sl.registerLazySingleton(
     () => AuthBloc(
       repository: sl(),
       registerUseCase: sl(),
@@ -147,7 +147,7 @@ Future<void> init() async {
       () => UserRemoteDataSourceImpl(firestore: sl()));
   sl.registerLazySingleton(() => GetAllUsersUseCase(sl()));
 
-  sl.registerFactory(
+  sl.registerLazySingleton(
     () => ProfileBloc(
       userRepository: sl(),
     ),
@@ -206,7 +206,7 @@ Future<void> init() async {
   // ============================================
 
   // Bloc
-  sl.registerFactory(
+  sl.registerLazySingleton(
     () => HomeBloc(
         getArticlesUseCase: sl(),
         getCategoriesUseCase: sl(),

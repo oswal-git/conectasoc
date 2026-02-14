@@ -12,6 +12,7 @@ class ProfileEntity extends Equatable {
   final String language;
   final String notificationFrequency;
   final String? photoUrl;
+  final DateTime dateUpdated;
 
   const ProfileEntity({
     required this.uid,
@@ -22,6 +23,7 @@ class ProfileEntity extends Equatable {
     required this.language,
     this.notificationFrequency = 'none',
     this.photoUrl,
+    required this.dateUpdated,
   });
 
   ProfileEntity copyWith({
@@ -33,6 +35,7 @@ class ProfileEntity extends Equatable {
     String? language,
     String? notificationFrequency,
     String? photoUrl,
+    DateTime? dateUpdated,
   }) {
     return ProfileEntity(
       uid: uid ?? this.uid,
@@ -44,6 +47,7 @@ class ProfileEntity extends Equatable {
       notificationFrequency:
           notificationFrequency ?? this.notificationFrequency,
       photoUrl: photoUrl ?? this.photoUrl,
+      dateUpdated: dateUpdated ?? this.dateUpdated,
     );
   }
 
@@ -73,6 +77,7 @@ class ProfileEntity extends Equatable {
         phone,
         language,
         notificationFrequency,
-        photoUrl
+        photoUrl,
+        dateUpdated
       ];
 }

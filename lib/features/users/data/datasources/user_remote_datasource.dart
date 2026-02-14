@@ -13,9 +13,11 @@ abstract class UserRemoteDataSource {
   Future<UserModel> getUserById(String userId);
   Future<List<UserModel>> getAllUsers();
 
-  Future<void> updateUserDetails(UserEntity user);
+  Future<void> updateUserDetails(
+      UserEntity user, DateTime? expectedDateUpdated);
   Future<void> deleteUser(String userId);
-  Future<ProfileEntity> updateUser(ProfileEntity user, String? newImageUrl);
+  Future<ProfileEntity> updateUser(
+      ProfileEntity user, String? newImageUrl, DateTime? expectedDateUpdated);
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -97,27 +99,39 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   }
 
   @override
-  Future<void> updateUserDetails(UserEntity user) async {
+  Future<void> updateUserDetails(
+      UserEntity user, DateTime? expectedDateUpdated) async {
     try {
-      final userRef = firestore.collection('users').doc(user.uid);
-      // Usamos el método toFirestore del modelo para asegurar consistencia.
-      // Creamos un UserModel temporal para la conversión.
-      final userModel = UserModel(
-        uid: user.uid,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        memberships: user.memberships,
-        status: user.status,
-        dateCreated: user.dateCreated,
-        dateUpdated: user.dateUpdated,
-        isEmailVerified: user.isEmailVerified,
-        phone: user.phone,
-        avatarUrl: user.avatarUrl,
-        language: user.language,
-        lastLoginDate: user.lastLoginDate,
-      );
-      await userRef.update(userModel.toFirestore());
+      await firestore.runTransaction((transaction) async {
+        final userRef = firestore.collection('users').doc(user.uid);
+        final snapshot = await transaction.get(userRef);
+
+        if (!snapshot.exists) {
+          throw ServerException('El usuario no existe.');
+        }
+
+        if (expectedDateUpdated != null) {
+          final currentData = snapshot.data() as Map<String, dynamic>;
+          final currentUpdated =
+              (currentData['dateUpdated'] as Timestamp).toDate();
+
+          if (currentUpdated
+                  .difference(expectedDateUpdated)
+                  .inMilliseconds
+                  .abs() >
+              100) {
+            throw ConcurrencyException();
+          }
+        }
+
+        final userModel = UserModel.fromEntity(user);
+        final dataToUpdate = userModel.toFirestore();
+        dataToUpdate['dateUpdated'] = FieldValue.serverTimestamp();
+
+        transaction.update(userRef, dataToUpdate);
+      });
+    } on ConcurrencyException {
+      rethrow;
     } catch (e) {
       throw ServerException('Error al actualizar los detalles del usuario: $e');
     }
@@ -133,30 +147,50 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   }
 
   @override
-  Future<ProfileEntity> updateUser(
-      ProfileEntity user, String? newImageUrl) async {
+  Future<ProfileEntity> updateUser(ProfileEntity user, String? newImageUrl,
+      DateTime? expectedDateUpdated) async {
     try {
-      final userRef = firestore.collection('users').doc(user.uid);
+      final result = await firestore.runTransaction((transaction) async {
+        final userRef = firestore.collection('users').doc(user.uid);
+        final snapshot = await transaction.get(userRef);
 
-      final Map<String, dynamic> dataToUpdate = {
-        'firstName': user.name,
-        'lastName': user.lastname,
-        'phone': user.phone,
-        'language': user.language,
-        'dateUpdated': FieldValue.serverTimestamp(),
-      };
+        if (!snapshot.exists) {
+          throw ServerException('El usuario no existe.');
+        }
 
-      // Solo actualiza la URL de la foto si se proporcionó una nueva.
-      if (newImageUrl != null) {
-        dataToUpdate['avatarUrl'] = newImageUrl;
-      }
+        if (expectedDateUpdated != null) {
+          final currentData = snapshot.data() as Map<String, dynamic>;
+          final currentUpdated =
+              (currentData['dateUpdated'] as Timestamp).toDate();
 
-      await userRef.update(dataToUpdate);
+          if (currentUpdated
+                  .difference(expectedDateUpdated)
+                  .inMilliseconds
+                  .abs() >
+              100) {
+            throw ConcurrencyException();
+          }
+        }
 
-      // Devuelve la entidad actualizada, incluyendo la nueva URL si existe.
-      return user.copyWith(
-        photoUrl: newImageUrl ?? user.photoUrl,
-      );
+        final Map<String, dynamic> dataToUpdate = {
+          'firstName': user.name,
+          'lastName': user.lastname,
+          'phone': user.phone,
+          'language': user.language,
+          'dateUpdated': FieldValue.serverTimestamp(),
+        };
+
+        if (newImageUrl != null) {
+          dataToUpdate['avatarUrl'] = newImageUrl;
+        }
+
+        transaction.update(userRef, dataToUpdate);
+        return user.copyWith(photoUrl: newImageUrl ?? user.photoUrl);
+      });
+
+      return result;
+    } on ConcurrencyException {
+      rethrow;
     } catch (e) {
       throw ServerException('Error al actualizar el usuario: $e');
     }

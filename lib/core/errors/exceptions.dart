@@ -23,3 +23,12 @@ class NetworkException implements Exception {
   @override
   String toString() => message;
 }
+
+class ConcurrencyException implements Exception {
+  final String message;
+  ConcurrencyException(
+      [this.message = 'El registro ha sido modificado por otro usuario.']);
+
+  @override
+  String toString() => message;
+}

@@ -608,8 +608,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get registrationSuccessMessage =>
-      'Registro exitoso. Por favor, verifica tu email.';
+      'Registro exitoso. Por favor, verifica tu correo electrónico.';
 
   @override
-  String get genericError => 'Ha ocurrido un problema al cargar los datos.';
+  String get genericError => 'Hubo un problema al cargar los datos.';
+
+  @override
+  String get unsavedChangesTitle => 'Cambios sin guardar';
+
+  @override
+  String get unsavedChangesMessage =>
+      'Tienes cambios sin guardar. ¿Deseas salir sin guardarlos?';
+
+  @override
+  String get stay => 'Quedarse';
+
+  @override
+  String get leaveWithoutSaving => 'Salir sin guardar';
 }

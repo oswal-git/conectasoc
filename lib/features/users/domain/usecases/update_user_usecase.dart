@@ -13,8 +13,11 @@ class UpdateUserUseCase {
   Future<Either<Failure, ProfileEntity>> call({
     required ProfileEntity user,
     Uint8List? newImageBytes,
+    DateTime? expectedDateUpdated,
   }) async {
     return await repository.updateUser(
-        user: user, newImageBytes: newImageBytes);
+        user: user,
+        newImageBytes: newImageBytes,
+        expectedDateUpdated: expectedDateUpdated);
   }
 }

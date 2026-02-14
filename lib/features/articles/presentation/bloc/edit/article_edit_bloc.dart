@@ -333,11 +333,14 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
         },
       );
     } else {
-      final result = await _updateArticleUseCase(articleToSave,
-          newCoverImageBytes: currentState.newCoverImageBytes,
-          newSectionImageBytes: currentState.newSectionImageBytes,
-          imagesToDelete:
-              currentState.imagesToDelete); // Pasar las imágenes a borrar
+      final result = await _updateArticleUseCase(
+        articleToSave,
+        newCoverImageBytes: currentState.newCoverImageBytes,
+        newSectionImageBytes: currentState.newSectionImageBytes,
+        imagesToDelete:
+            currentState.imagesToDelete, // Pasar las imágenes a borrar
+        expectedModifiedAt: currentState.article.modifiedAt,
+      );
       result.fold(
         (failure) => emit(currentState.copyWith(
             isSaving: false, errorMessage: () => failure.message)),

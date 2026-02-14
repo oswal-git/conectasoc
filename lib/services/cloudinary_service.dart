@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -13,18 +12,16 @@ import 'package:image/image.dart' as img
     show decodeImage, copyResize, encodeJpg;
 
 class CloudinaryService {
-  /// Subir imagen a Cloudinary
+  /// Subir imagen a Cloudinary (Obsolescente, use uploadImageBytes si es posible)
   static Future<CloudinaryResponse> uploadImage({
-    required File imageFile,
+    required Uint8List imageBytes,
+    required String filename,
     CloudinaryImageType imageType = CloudinaryImageType.general,
     Map<String, String>? tags,
   }) async {
     try {
-      // Validar archivo
-      await _validateImageFile(imageFile);
-
       // Optimizar imagen (diferente para web vs móvil)
-      final optimizedBytes = await _optimizeImage(imageFile);
+      final optimizedBytes = await _optimizeImage(imageBytes, filename);
 
       // Subir a Cloudinary
       final response = await _uploadToCloudinary(
@@ -148,34 +145,31 @@ class CloudinaryService {
 
   // MÉTODOS PRIVADOS
 
-  static Future<void> _validateImageFile(File file) async {
-    if (!await file.exists()) {
-      throw Exception('El archivo no existe');
-    }
-
-    final size = await file.length();
+  static void _validateImageSize(int size) {
     if (size > CloudinaryConfig.maxFileSize) {
       throw Exception(
         'Archivo demasiado grande (${(size / (1024 * 1024)).toStringAsFixed(1)}MB). Máximo: ${CloudinaryConfig.maxFileSize ~/ (1024 * 1024)}MB',
       );
     }
-
-    final extension = path.extension(file.path).toLowerCase().substring(1);
-    if (!CloudinaryConfig.allowedFormats.contains(extension)) {
-      throw Exception(
-        'Formato no soportado ($extension). Formatos permitidos: ${CloudinaryConfig.allowedFormats.join(", ")}',
-      );
-    }
   }
 
-  static Future<Uint8List> _optimizeImage(File imageFile) async {
-    final originalBytes = await imageFile.readAsBytes();
+  static Future<Uint8List> _optimizeImage(
+      Uint8List originalBytes, String filename) async {
+    _validateImageSize(originalBytes.length);
 
-    // En web, no podemos usar la librería image para optimización pesada
+    // Validar extensión
+    final extension = path.extension(filename).toLowerCase();
+    final format = extension.isNotEmpty ? extension.substring(1) : '';
+    if (format.isNotEmpty &&
+        !CloudinaryConfig.allowedFormats.contains(format)) {
+      throw Exception(
+        'Formato no soportado ($format). Formatos permitidos: ${CloudinaryConfig.allowedFormats.join(", ")}',
+      );
+    }
+
+    // En web, no podemos usar la librería image para optimización pesada eficiente
     // Enviamos directamente con transformaciones en Cloudinary
     if (kIsWeb) {
-      SnackBarService.showSnackBar(
-          'Web detected: Skipping client-side optimization, using Cloudinary transformations');
       return originalBytes;
     }
 

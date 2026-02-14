@@ -12,6 +12,7 @@ abstract class AssociationRepository {
   Future<Either<Failure, AssociationEntity>> updateAssociation({
     required AssociationEntity association,
     Uint8List? logoBytes,
+    DateTime? expectedDateUpdated,
   });
 
   Future<Either<Failure, AssociationEntity>> createAssociation({

@@ -24,7 +24,7 @@ class HomeDrawer extends StatelessWidget {
               _buildDrawerItem(
                 context: context,
                 icon: Icons.home_outlined,
-                text: 'Inicio',
+                text: AppLocalizations.of(context).homePage,
                 onTap: () {
                   GoRouter.of(context).pop();
                   GoRouter.of(context).go(RouteNames.home);
@@ -40,8 +40,11 @@ class HomeDrawer extends StatelessWidget {
                     context: context,
                     icon: Icons.people_outline,
                     text: AppLocalizations.of(context).usersListTitle,
-                    onTap: () => GoRouter.of(context)
-                        .push('${RouteNames.home}/${RouteNames.usersList}'),
+                    onTap: () {
+                      GoRouter.of(context).pop();
+                      GoRouter.of(context)
+                          .push('${RouteNames.home}/${RouteNames.usersList}');
+                    },
                   ),
                   // Si el usuario es superadmin global, puede ver todas las asociaciones.
                   // Si es solo admin, puede editar la suya.
@@ -50,8 +53,11 @@ class HomeDrawer extends StatelessWidget {
                       context: context,
                       icon: Icons.business_outlined,
                       text: AppLocalizations.of(context).associationsListTitle,
-                      onTap: () => GoRouter.of(context).go(
-                          '${RouteNames.home}/${RouteNames.associationsList}'),
+                      onTap: () {
+                        GoRouter.of(context).pop();
+                        GoRouter.of(context).go(
+                            '${RouteNames.home}/${RouteNames.associationsList}');
+                      },
                     )
                   else if (state.currentMembership?.associationId != null)
                     _buildDrawerItem(
@@ -59,6 +65,7 @@ class HomeDrawer extends StatelessWidget {
                         icon: Icons.business_outlined,
                         text: AppLocalizations.of(context).association,
                         onTap: () {
+                          GoRouter.of(context).pop();
                           GoRouter.of(context).go(
                               '${RouteNames.home}/${RouteNames.associationEdit}/${state.currentMembership!.associationId}');
                         })
@@ -80,8 +87,11 @@ class HomeDrawer extends StatelessWidget {
                     context: context,
                     icon: Icons.settings_outlined,
                     text: AppLocalizations.of(context).configuration,
-                    onTap: () => GoRouter.of(context)
-                        .push('${RouteNames.home}/${RouteNames.settings}'),
+                    onTap: () {
+                      GoRouter.of(context).pop();
+                      GoRouter.of(context)
+                          .push('${RouteNames.home}/${RouteNames.settings}');
+                    },
                   ),
               ],
               if (state is AuthAuthenticated)
@@ -90,6 +100,7 @@ class HomeDrawer extends StatelessWidget {
                   icon: Icons.person_outline,
                   text: AppLocalizations.of(context).myProfile,
                   onTap: () {
+                    GoRouter.of(context).pop();
                     GoRouter.of(context)
                         .push('${RouteNames.home}/${RouteNames.profile}');
                   },
@@ -100,6 +111,7 @@ class HomeDrawer extends StatelessWidget {
                   icon: Icons.add_business_outlined,
                   text: AppLocalizations.of(context).joinAssociation,
                   onTap: () {
+                    GoRouter.of(context).pop();
                     GoRouter.of(context).push(
                         '${RouteNames.home}/${RouteNames.joinAssociation}');
                   },

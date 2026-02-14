@@ -277,6 +277,10 @@
     "optionalUseYourPhone": "Opcional (se usará tu teléfono)",
     "noAssociationsAvailableToJoin": "No hay asociaciones disponibles. Debes crear una nueva.",
     "register": "Registrarse",
-    "registrationSuccessMessage": "Registro exitoso. Por favor, verifica tu email.",
-    "genericError": "Ha ocurrido un problema al cargar los datos."
+    "registrationSuccessMessage": "Registro exitoso. Por favor, verifica tu correo electrónico.",
+    "genericError": "Hubo un problema al cargar los datos.",
+    "unsavedChangesTitle": "Cambios sin guardar",
+    "unsavedChangesMessage": "Tienes cambios sin guardar. ¿Deseas salir sin guardarlos?",
+    "stay": "Quedarse",
+    "leaveWithoutSaving": "Salir sin guardar"
 }

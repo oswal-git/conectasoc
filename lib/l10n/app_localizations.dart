@@ -1231,14 +1231,38 @@ abstract class AppLocalizations {
   /// No description provided for @registrationSuccessMessage.
   ///
   /// In es, this message translates to:
-  /// **'Registro exitoso. Por favor, verifica tu email.'**
+  /// **'Registro exitoso. Por favor, verifica tu correo electrónico.'**
   String get registrationSuccessMessage;
 
   /// No description provided for @genericError.
   ///
   /// In es, this message translates to:
-  /// **'Ha ocurrido un problema al cargar los datos.'**
+  /// **'Hubo un problema al cargar los datos.'**
   String get genericError;
+
+  /// No description provided for @unsavedChangesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambios sin guardar'**
+  String get unsavedChangesTitle;
+
+  /// No description provided for @unsavedChangesMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Tienes cambios sin guardar. ¿Deseas salir sin guardarlos?'**
+  String get unsavedChangesMessage;
+
+  /// No description provided for @stay.
+  ///
+  /// In es, this message translates to:
+  /// **'Quedarse'**
+  String get stay;
+
+  /// No description provided for @leaveWithoutSaving.
+  ///
+  /// In es, this message translates to:
+  /// **'Salir sin guardar'**
+  String get leaveWithoutSaving;
 }
 
 class _AppLocalizationsDelegate

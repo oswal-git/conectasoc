@@ -21,6 +21,12 @@ class TranslationService {
         article.abstractContent,
         from: article.originalLanguage,
         to: targetLang);
+    final translatedCategory = await _translateString(article.categoryName,
+        from: article.originalLanguage, to: targetLang);
+    final translatedSubcategory = await _translateString(
+        article.subcategoryName,
+        from: article.originalLanguage,
+        to: targetLang);
 
     final translatedSections = <ArticleSection>[];
     for (final section in article.sections) {
@@ -36,6 +42,49 @@ class TranslationService {
       title: translatedTitle,
       abstractContent: translatedAbstract,
       sections: translatedSections,
+      categoryName: translatedCategory,
+      subcategoryName: translatedSubcategory,
+    );
+  }
+
+// Translates a CategoryEntity name to the target language
+  Future<CategoryEntity> translateCategory(
+      CategoryEntity category, String targetLang) async {
+    final translatedName = await _translateString(
+      category.name,
+      from: 'auto',
+      to: targetLang,
+    );
+
+    return category.copyWith(name: translatedName);
+  }
+
+  /// Translates a list of CategoryEntity names to the target language
+  Future<List<CategoryEntity>> translateCategories(
+      List<CategoryEntity> categories, String targetLang) async {
+    return Future.wait(
+      categories.map((category) => translateCategory(category, targetLang)),
+    );
+  }
+
+  /// Translates a SubcategoryEntity name to the target language
+  Future<SubcategoryEntity> translateSubcategory(
+      SubcategoryEntity subcategory, String targetLang) async {
+    final translatedName = await _translateString(
+      subcategory.name,
+      from: 'auto',
+      to: targetLang,
+    );
+
+    return subcategory.copyWith(name: translatedName);
+  }
+
+  /// Translates a list of SubcategoryEntity names to the target language
+  Future<List<SubcategoryEntity>> translateSubcategories(
+      List<SubcategoryEntity> subcategories, String targetLang) async {
+    return Future.wait(
+      subcategories
+          .map((subcategory) => translateSubcategory(subcategory, targetLang)),
     );
   }
 
@@ -65,16 +114,22 @@ class TranslationService {
             final cleanText = textToTranslate.trim();
 
             if (cleanText.isNotEmpty) {
-              // Traducir solo el texto limpio
+              // Traducir usando detección automática del idioma de origen
               final translation = await _translator.translate(
                 cleanText,
-                from: from,
+                from: 'auto', // ✅ Permitir que Google detecte el idioma real
                 to: to,
               );
 
-              // ✅ Restaurar los saltos de línea en la misma posición
-              op['insert'] =
-                  '$leadingNewlines${translation.text}$trailingNewlines';
+              // ✅ Si el idioma detectado es el mismo que el de destino, NO aplicar la traducción.
+              // Esto evita errores gramaticales o cambios no deseados en textos ya correctos.
+              if (translation.sourceLanguage.code == to) {
+                op['insert'] = textToTranslate;
+              } else {
+                // Restaurar los saltos de línea en la misma posición usando el texto traducido
+                op['insert'] =
+                    '$leadingNewlines${translation.text}$trailingNewlines';
+              }
             }
             // Si solo hay saltos de línea, dejarlos sin traducir
           }
@@ -97,6 +152,46 @@ class TranslationService {
     } catch (e) {
       // If translation fails, return the original content with an error prefix for debugging.
       return '[Error de traducción] $jsonString';
+    }
+  }
+
+  /// Translates the text content within a Quill-formatted JSON string (Delta).
+  Future<String> _translateString(
+    String string, {
+    required String from,
+    required String to,
+  }) async {
+    if (string.isEmpty) return '';
+
+    try {
+      // ✅ Solo traducir si hay texto real (no solo \n)
+      if (string.trim().isNotEmpty) {
+        // Extraer solo el texto sin los saltos de línea
+        final cleanText = string.trim();
+
+        if (cleanText.isNotEmpty) {
+          // Traducir usando detección automática del idioma de origen
+          final translation = await _translator.translate(
+            cleanText,
+            from: 'auto', // ✅ Permitir que Google detecte el idioma real
+            to: to,
+          );
+
+          // ✅ Si el idioma detectado es el mismo que el de destino, NO aplicar la traducción.
+          // Esto evita errores gramaticales o cambios no deseados en textos ya correctos.
+          if (translation.sourceLanguage.code != to) {
+            // Restaurar los saltos de línea en la misma posición usando el texto traducido
+            string = translation.text;
+          }
+        }
+        // Si solo hay saltos de línea, dejarlos sin traducir
+      }
+      // Si solo hay \n, no tocar nada
+
+      return string;
+    } catch (e) {
+      // If translation fails, return the original content with an error prefix for debugging.
+      return '[Error de traducción] $string';
     }
   }
 }

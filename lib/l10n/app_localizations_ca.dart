@@ -400,22 +400,22 @@ class AppLocalizationsCa extends AppLocalizations {
   String get statusAnulado => 'Anul·lat';
 
   @override
-  String get statusNotificar => 'Publicar y Notificar';
+  String get statusNotificar => 'Publicar i Notificar';
 
   @override
   String get statusNotificarShort => 'Notificar';
 
   @override
-  String get notificationFreqNone => 'No recibir notificaciones';
+  String get notificationFreqNone => 'No rebre notificacions';
 
   @override
-  String get notificationFreqOnce => 'Una vez al día (12:00)';
+  String get notificationFreqOnce => 'Una vegada al dia (12:00)';
 
   @override
-  String get notificationFreqTwice => 'Dos veces (10:00 y 20:00)';
+  String get notificationFreqTwice => 'Dues vegades (10:00 i 20:00)';
 
   @override
-  String get notificationFreqThrice => 'Tres veces (10:00, 15:00, 20:00)';
+  String get notificationFreqThrice => 'Tres vegades (10:00, 15:00, 20:00)';
 
   @override
   String get categoryInformacion => 'Informació';
@@ -610,4 +610,17 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get genericError => 'Ha hagut un problema en carregar les dades.';
+
+  @override
+  String get unsavedChangesTitle => 'Canvis sense desar';
+
+  @override
+  String get unsavedChangesMessage =>
+      'Tens canvis sense desar. Vols sortir sense desar-los?';
+
+  @override
+  String get stay => 'Quedar-se';
+
+  @override
+  String get leaveWithoutSaving => 'Sortir sense desar';
 }

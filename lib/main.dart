@@ -1,5 +1,6 @@
 // lib/main.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -37,14 +38,51 @@ void main() async {
   runApp(const ConectaSocApp());
 }
 
-class ConectaSocApp extends StatelessWidget {
+class ConectaSocApp extends StatefulWidget {
   const ConectaSocApp({super.key});
 
   @override
+  State<ConectaSocApp> createState() => _ConectaSocAppState();
+}
+
+class _ConectaSocAppState extends State<ConectaSocApp> {
+  late final AppRouter _appRouter;
+  StreamSubscription<String?>? _notificationSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _appRouter = AppRouter(authBloc: sl<AuthBloc>());
+
+    // Solicitar permisos al iniciar (opcionalmente se puede mover a otro lugar)
+    sl<NotificationService>().requestPermissions();
+
+    // Escuchar clics en notificaciones para navegación
+    _notificationSubscription =
+        sl<NotificationService>().onNotificationClick.listen((articleId) {
+      if (articleId != null) {
+        // Navegar al detalle del artículo usando el router
+        _appRouter.router.pushNamed(
+          RouteNames.articleDetail,
+          pathParameters: {'articleId': articleId},
+        );
+      }
+    });
+
+    // Iniciar verificación de autenticación
+    sl<AuthBloc>().add(AuthCheckRequested());
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<AuthBloc>()
-        ..add(AuthCheckRequested()), // Verificar estado de auth al iniciar
+    return BlocProvider.value(
+      value: sl<AuthBloc>(),
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           // Determinar el locale actual basado en el estado de autenticación.
@@ -148,8 +186,7 @@ class ConectaSocApp extends StatelessWidget {
               ),
 
               // Sistema de navegación con GoRouter
-              routerConfig:
-                  AppRouter(authBloc: context.read<AuthBloc>()).router);
+              routerConfig: _appRouter.router);
         },
       ),
     );

@@ -57,6 +57,9 @@ class HomeLoaded extends HomeState {
     bool? hasMore,
     DocumentSnapshot<Object?>? lastDocument,
     bool? isLoading,
+    // Flags para indicar si queremos explícitamente poner null
+    bool clearSelectedCategory = false,
+    bool clearSelectedSubcategory = false,
   }) {
     return HomeLoaded(
       allArticles: allArticles ?? this.allArticles,
@@ -64,8 +67,12 @@ class HomeLoaded extends HomeState {
       categories: categories ?? this.categories,
       associations: associations ?? this.associations,
       subcategories: subcategories ?? this.subcategories,
-      selectedCategory: selectedCategory,
-      selectedSubcategory: selectedSubcategory,
+      selectedCategory: clearSelectedCategory
+          ? null
+          : (selectedCategory ?? this.selectedCategory),
+      selectedSubcategory: clearSelectedSubcategory
+          ? null
+          : (selectedSubcategory ?? this.selectedSubcategory),
       searchTerm: searchTerm ?? this.searchTerm,
       isEditMode: isEditMode ?? this.isEditMode,
       hasMore: hasMore ?? this.hasMore,

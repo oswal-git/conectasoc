@@ -194,7 +194,7 @@ class ArticleEntity extends Equatable {
       subcategoryName: subcategoryName ?? this.subcategoryName,
       publishDate: publishDate ?? this.publishDate,
       effectiveDate: effectiveDate ?? this.effectiveDate,
-      expirationDate: expirationDate,
+      expirationDate: expirationDate ?? this.expirationDate,
       status: status ?? this.status,
       fechaNotificacion: fechaNotificacion ?? this.fechaNotificacion,
       sections: sections ?? this.sections,

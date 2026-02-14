@@ -15,12 +15,14 @@ class UpdateArticleUseCase {
     Uint8List? newCoverImageBytes,
     Map<String, Uint8List>? newSectionImageBytes,
     List<String>? imagesToDelete,
+    DateTime? expectedModifiedAt,
   }) async {
     return repository.updateArticle(
       article,
       newCoverImageBytes: newCoverImageBytes,
       newSectionImageBytes: newSectionImageBytes ?? const {},
       imagesToDelete: imagesToDelete ?? const [],
+      expectedModifiedAt: expectedModifiedAt,
     );
   }
 }

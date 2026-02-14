@@ -194,10 +194,15 @@ class UserEditBloc extends Bloc<UserEditEvent, UserEditState> {
         // Lógica de actualización
         final updatedUser = currentState.user
             .copyWith(configVersion: currentState.user.configVersion + 1);
-        final result =
-            await updateUserUseCase(user: updatedUser.toProfileEntity());
-        emit(result.fold((failure) => UserEditFailure(failure.message),
-            (_) => UserEditSuccess()));
+        final result = await updateUserUseCase(
+          user: updatedUser.toProfileEntity(),
+          expectedDateUpdated: currentState.user.dateUpdated,
+        );
+        emit(result.fold((failure) {
+          // Si es un fallo de concurrencia, emitimos un mensaje específico y permitimos refrescar
+          return currentState.copyWith(
+              isSaving: false, errorMessage: () => failure.message);
+        }, (_) => UserEditSuccess()));
       }
     }
   }

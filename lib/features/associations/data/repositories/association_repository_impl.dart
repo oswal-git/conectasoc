@@ -52,6 +52,7 @@ class AssociationRepositoryImpl implements AssociationRepository {
   Future<Either<Failure, AssociationEntity>> updateAssociation({
     required AssociationEntity association,
     Uint8List? logoBytes,
+    DateTime? expectedDateUpdated,
   }) async {
     try {
       // Gestionar la subida y borrado del logo
@@ -63,9 +64,11 @@ class AssociationRepositoryImpl implements AssociationRepository {
 
       // Llamar al datasource para actualizar la asociación en Firestore
       final updatedAssociationModel = await remoteDataSource.updateAssociation(
-          associationModel, newLogoUrl);
+          associationModel, newLogoUrl, expectedDateUpdated);
 
       return Right(updatedAssociationModel.toEntity());
+    } on ConcurrencyException {
+      return Left(ConcurrencyFailure());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
