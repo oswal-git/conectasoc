@@ -282,5 +282,12 @@
     "unsavedChangesTitle": "Cambios sin guardar",
     "unsavedChangesMessage": "Tienes cambios sin guardar. ¿Deseas salir sin guardarlos?",
     "stay": "Quedarse",
+    "unsavedChanges": "Cambios sin guardar",
+    "continueEditing": "Continuar editando",
+    "discardChanges": "Descartar cambios",
+    "confirmSave": "Confirmar guardado",
+    "confirmSaveMessage": "¿Estás seguro de que deseas guardar los cambios?",
+    "save": "Guardar",
+    "userDeleted": "Usuario {userName} eliminado",
     "leaveWithoutSaving": "Salir sin guardar"
 }

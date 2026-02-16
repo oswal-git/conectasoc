@@ -48,6 +48,7 @@ class _UserEditViewState extends State<_UserEditView> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _hasUnsavedChanges = false;
 
   @override
   void dispose() {
@@ -66,234 +67,298 @@ class _UserEditViewState extends State<_UserEditView> {
     _phoneController.text = user.phone ?? '';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isCreating ? l10n.createUser : l10n.editUser),
-      ),
-      body:
-          BlocConsumer<UserEditBloc, UserEditState>(listener: (context, state) {
-        if (state is UserEditLoaded) {
-          _updateControllers(state.user);
-          if (state.errorMessage != null) {
-            SnackBarService.showSnackBar(state.errorMessage!, isError: true);
-          }
-        } else if (state is UserEditSuccess) {
-          SnackBarService.showSnackBar(l10n.changesSavedSuccessfully);
-          Navigator.of(context).pop();
-        } else if (state is UserEditFailure) {
-          SnackBarService.showSnackBar(state.message, isError: true);
-        }
-      }, builder: (context, state) {
-        if (state is UserEditLoading || state is UserEditInitial) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state is UserEditFailure) {
-          return Center(child: Text(state.message));
-        }
-        if (state is UserEditLoaded) {
-          final user = state.user;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 60,
-                  backgroundImage:
-                      user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-                          ? CachedNetworkImageProvider(user.avatarUrl!)
-                          : null,
-                  child: user.avatarUrl == null || user.avatarUrl!.isEmpty
-                      ? Text(user.initials,
-                          style: const TextStyle(fontSize: 40))
-                      : null,
-                ),
-                const SizedBox(height: 32),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(labelText: l10n.name),
-                  onChanged: (value) => context
-                      .read<UserEditBloc>()
-                      .add(UserFirstNameChanged(value)),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _lastnameController,
-                  decoration: InputDecoration(labelText: l10n.lastname),
-                  onChanged: (value) => context
-                      .read<UserEditBloc>()
-                      .add(UserLastNameChanged(value)),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(labelText: l10n.email),
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (value) =>
-                      context.read<UserEditBloc>().add(UserEmailChanged(value)),
-                ),
-                if (widget.isCreating) ...[
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: l10n.password,
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
-                    obscureText: _obscurePassword,
-                    onChanged: (value) => context
-                        .read<UserEditBloc>()
-                        .add(UserPasswordChanged(value)),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: InputDecoration(labelText: l10n.phone),
-                  keyboardType: TextInputType.phone,
-                  onChanged: (value) =>
-                      context.read<UserEditBloc>().add(UserPhoneChanged(value)),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: user.language,
-                  decoration: InputDecoration(labelText: l10n.language),
-                  items: [
-                    DropdownMenuItem(
-                        value: 'es', child: Text(l10n.langSpanish)),
-                    DropdownMenuItem(
-                        value: 'en', child: Text(l10n.langEnglish)),
-                    DropdownMenuItem(
-                        value: 'ca', child: Text(l10n.langCatalan)),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      context
-                          .read<UserEditBloc>()
-                          .add(UserLanguageChanged(value));
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: user.notificationFrequency,
-                  decoration: InputDecoration(labelText: l10n.notifications),
-                  items: [
-                    DropdownMenuItem(
-                        value: 'none', child: Text(l10n.notificationFreqNone)),
-                    DropdownMenuItem(
-                        value: 'once_day',
-                        child: Text(l10n.notificationFreqOnce)),
-                    DropdownMenuItem(
-                        value: 'twice_day',
-                        child: Text(l10n.notificationFreqTwice)),
-                    DropdownMenuItem(
-                        value: 'thrice_day',
-                        child: Text(l10n.notificationFreqThrice)),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      context
-                          .read<UserEditBloc>()
-                          .add(UserNotificationFrequencyChanged(value));
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<UserStatus>(
-                  initialValue: user.status,
-                  decoration: InputDecoration(labelText: l10n.status),
-                  items: UserStatus.values.map((status) {
-                    return DropdownMenuItem(
-                      value: status,
-                      child: Text(status.value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      context
-                          .read<UserEditBloc>()
-                          .add(UserStatusChanged(value));
-                    }
-                  },
-                ),
-                const SizedBox(height: 32),
-                _MembershipSection(
-                  user: user,
-                  allAssociations: state.allAssociations,
-                ),
-                const SizedBox(height: 16),
-                if (!widget.isCreating)
-                  TextButton.icon(
-                    icon: const Icon(Icons.delete_forever, color: Colors.red),
-                    label: Text(
-                      l10n.deleteUser,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                    onPressed: state.isSaving
-                        ? null
-                        : () => _showDeleteConfirmation(
-                              context,
-                              user.fullName,
-                            ),
-                  ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                    onPressed: state.isSaving
-                        ? null
-                        : () =>
-                            context.read<UserEditBloc>().add(SaveUserChanges()),
-                    child: state.isSaving
-                        ? const CircularProgressIndicator()
-                        : Text(widget.isCreating
-                            ? l10n.createUser
-                            : l10n.saveChanges)),
-                const SizedBox(height: 48), // Espacio extra al final
-              ],
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      }),
-    );
+  void _markAsChanged() {
+    if (!_hasUnsavedChanges) {
+      setState(() {
+        _hasUnsavedChanges = true;
+      });
+    }
   }
 
-  void _showDeleteConfirmation(BuildContext context, String userName) {
-    final l10n = AppLocalizations.of(context);
-    if (!context.mounted) return;
+  Future<bool> _onWillPop() async {
+    if (!_hasUnsavedChanges) {
+      return true;
+    }
 
+    final l10n = AppLocalizations.of(context);
+    final shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.unsavedChanges),
+        content: Text(l10n.unsavedChangesMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.continueEditing),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              l10n.discardChanges,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return shouldPop ?? false;
+  }
+
+  void _showSaveConfirmation() {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.deleteUser),
-        content: Text(l10n.deleteUserConfirmation(userName)),
+        title: Text(l10n.confirmSave),
+        content: Text(l10n.confirmSaveMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text(l10n.cancel),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              context.read<UserEditBloc>().add(DeleteUser());
+              context.read<UserEditBloc>().add(SaveUserChanges());
             },
-            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+            child: Text(l10n.save),
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        final shouldPop = await _onWillPop();
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop(result);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.isCreating ? l10n.createUser : l10n.editUser),
+          actions: [
+            BlocBuilder<UserEditBloc, UserEditState>(
+              builder: (context, state) {
+                if (state is UserEditLoaded) {
+                  return IconButton(
+                    icon: state.isSaving
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.save),
+                    onPressed: state.isSaving ? null : _showSaveConfirmation,
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
+        body: BlocConsumer<UserEditBloc, UserEditState>(
+            listener: (context, state) {
+          if (state is UserEditLoaded) {
+            _updateControllers(state.user);
+            if (state.errorMessage != null) {
+              SnackBarService.showSnackBar(state.errorMessage!, isError: true);
+            }
+          } else if (state is UserEditSuccess) {
+            setState(() {
+              _hasUnsavedChanges = false;
+            });
+            SnackBarService.showSnackBar(l10n.changesSavedSuccessfully);
+            Navigator.of(context).pop();
+          } else if (state is UserEditFailure) {
+            SnackBarService.showSnackBar(state.message, isError: true);
+          }
+        }, builder: (context, state) {
+          if (state is UserEditLoading || state is UserEditInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is UserEditFailure) {
+            return Center(child: Text(state.message));
+          }
+          if (state is UserEditLoaded) {
+            final user = state.user;
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundImage:
+                        user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                            ? CachedNetworkImageProvider(user.avatarUrl!)
+                            : null,
+                    child: user.avatarUrl == null || user.avatarUrl!.isEmpty
+                        ? Text(user.initials,
+                            style: const TextStyle(fontSize: 40))
+                        : null,
+                  ),
+                  const SizedBox(height: 32),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(labelText: l10n.name),
+                    onChanged: (value) {
+                      _markAsChanged();
+                      context
+                          .read<UserEditBloc>()
+                          .add(UserFirstNameChanged(value));
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _lastnameController,
+                    decoration: InputDecoration(labelText: l10n.lastname),
+                    onChanged: (value) {
+                      _markAsChanged();
+                      context
+                          .read<UserEditBloc>()
+                          .add(UserLastNameChanged(value));
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(labelText: l10n.email),
+                    keyboardType: TextInputType.emailAddress,
+                    onChanged: (value) {
+                      _markAsChanged();
+                      context.read<UserEditBloc>().add(UserEmailChanged(value));
+                    },
+                  ),
+                  if (widget.isCreating) ...[
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: l10n.password,
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      obscureText: _obscurePassword,
+                      onChanged: (value) {
+                        _markAsChanged();
+                        context
+                            .read<UserEditBloc>()
+                            .add(UserPasswordChanged(value));
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _phoneController,
+                    decoration: InputDecoration(labelText: l10n.phone),
+                    keyboardType: TextInputType.phone,
+                    onChanged: (value) {
+                      _markAsChanged();
+                      context.read<UserEditBloc>().add(UserPhoneChanged(value));
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: user.language,
+                    decoration: InputDecoration(labelText: l10n.language),
+                    items: [
+                      DropdownMenuItem(
+                          value: 'es', child: Text(l10n.langSpanish)),
+                      DropdownMenuItem(
+                          value: 'en', child: Text(l10n.langEnglish)),
+                      DropdownMenuItem(
+                          value: 'ca', child: Text(l10n.langCatalan)),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        _markAsChanged();
+                        context
+                            .read<UserEditBloc>()
+                            .add(UserLanguageChanged(value));
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: user.notificationFrequency,
+                    decoration: InputDecoration(labelText: l10n.notifications),
+                    items: [
+                      DropdownMenuItem(
+                          value: 'none',
+                          child: Text(l10n.notificationFreqNone)),
+                      DropdownMenuItem(
+                          value: 'once_day',
+                          child: Text(l10n.notificationFreqOnce)),
+                      DropdownMenuItem(
+                          value: 'twice_day',
+                          child: Text(l10n.notificationFreqTwice)),
+                      DropdownMenuItem(
+                          value: 'thrice_day',
+                          child: Text(l10n.notificationFreqThrice)),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        _markAsChanged();
+                        context
+                            .read<UserEditBloc>()
+                            .add(UserNotificationFrequencyChanged(value));
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<UserStatus>(
+                    initialValue: user.status,
+                    decoration: InputDecoration(labelText: l10n.status),
+                    items: UserStatus.values.map((status) {
+                      return DropdownMenuItem(
+                        value: status,
+                        child: Text(status.value),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        _markAsChanged();
+                        context
+                            .read<UserEditBloc>()
+                            .add(UserStatusChanged(value));
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  _MembershipSection(
+                    user: user,
+                    allAssociations: state.allAssociations,
+                    onChanged: _markAsChanged,
+                  ),
+                  const SizedBox(height: 48), // Espacio extra al final
+                ],
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
       ),
     );
   }
@@ -302,10 +367,12 @@ class _UserEditViewState extends State<_UserEditView> {
 class _MembershipSection extends StatelessWidget {
   final UserEntity user;
   final List<AssociationEntity> allAssociations;
+  final VoidCallback onChanged;
 
   const _MembershipSection({
     required this.user,
     required this.allAssociations,
+    required this.onChanged,
   });
 
   @override
@@ -366,6 +433,7 @@ class _MembershipSection extends StatelessWidget {
                           }).toList(),
                           onChanged: (value) {
                             if (value != null) {
+                              onChanged();
                               context
                                   .read<UserEditBloc>()
                                   .add(UserRoleChanged(entry.key, value));
@@ -376,9 +444,12 @@ class _MembershipSection extends StatelessWidget {
                       IconButton(
                         icon:
                             const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () => context
-                            .read<UserEditBloc>()
-                            .add(RemoveMembership(entry.key)),
+                        onPressed: () {
+                          onChanged();
+                          context
+                              .read<UserEditBloc>()
+                              .add(RemoveMembership(entry.key));
+                        },
                       ),
                     ],
                   ),
@@ -451,6 +522,7 @@ class _MembershipSection extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 if (selectedAssociationId != null) {
+                  onChanged();
                   context
                       .read<UserEditBloc>()
                       .add(AddMembership(selectedAssociationId!, selectedRole));

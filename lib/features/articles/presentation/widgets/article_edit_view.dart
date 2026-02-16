@@ -40,6 +40,10 @@ class _ArticleEditViewState extends State<ArticleEditView> {
   late ScrollController
       _abstractScrollController; // Already declared, but ensure it's used
 
+  // Main ScrollControllers for Form and Preview
+  late ScrollController _formScrollController;
+  late ScrollController _previewScrollController;
+
   // Mantener un registro del último artículo sincronizado para evitar actualizaciones redundantes
   ArticleEntity? _lastSyncedArticle;
 
@@ -66,6 +70,9 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     _abstractController.addListener(_onAbstractChanged);
     _titleController.addListener(_updateTitleCharCount);
     _abstractController.addListener(_updateAbstractCharCount);
+
+    _formScrollController = ScrollController();
+    _previewScrollController = ScrollController();
   }
 
   @override
@@ -80,6 +87,8 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     _abstractFocusNode.dispose();
     _titleScrollController.dispose();
     _abstractScrollController.dispose();
+    _formScrollController.dispose();
+    _previewScrollController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
   }
@@ -327,6 +336,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
           ? ArticlePreview(
               state: state,
               l10n: l10n,
+              scrollController: _previewScrollController,
               titleController: _titleController,
               titleFocusNode: _titleFocusNode,
               titleScrollController: _titleScrollController,
@@ -358,6 +368,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
+        controller: _formScrollController,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

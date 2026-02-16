@@ -622,5 +622,28 @@ class AppLocalizationsCa extends AppLocalizations {
   String get stay => 'Quedar-se';
 
   @override
+  String get unsavedChanges => 'Canvis sense desar';
+
+  @override
+  String get continueEditing => 'Continuar editant';
+
+  @override
+  String get discardChanges => 'Descartar canvis';
+
+  @override
+  String get confirmSave => 'Confirmar desat';
+
+  @override
+  String get confirmSaveMessage => 'Estàs segur que vols desar els canvis?';
+
+  @override
+  String get save => 'Desar';
+
+  @override
+  String userDeleted(Object userName) {
+    return 'Usuari $userName eliminat';
+  }
+
+  @override
   String get leaveWithoutSaving => 'Sortir sense desar';
 }

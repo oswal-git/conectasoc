@@ -624,5 +624,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get stay => 'Quedarse';
 
   @override
+  String get unsavedChanges => 'Cambios sin guardar';
+
+  @override
+  String get continueEditing => 'Continuar editando';
+
+  @override
+  String get discardChanges => 'Descartar cambios';
+
+  @override
+  String get confirmSave => 'Confirmar guardado';
+
+  @override
+  String get confirmSaveMessage =>
+      '¿Estás seguro de que deseas guardar los cambios?';
+
+  @override
+  String get save => 'Guardar';
+
+  @override
+  String userDeleted(Object userName) {
+    return 'Usuario $userName eliminado';
+  }
+
+  @override
   String get leaveWithoutSaving => 'Salir sin guardar';
 }

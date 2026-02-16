@@ -624,5 +624,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stay => 'Stay';
 
   @override
+  String get unsavedChanges => 'Unsaved changes';
+
+  @override
+  String get continueEditing => 'Continue editing';
+
+  @override
+  String get discardChanges => 'Discard changes';
+
+  @override
+  String get confirmSave => 'Confirm save';
+
+  @override
+  String get confirmSaveMessage => 'Are you sure you want to save the changes?';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String userDeleted(Object userName) {
+    return 'User $userName deleted';
+  }
+
+  @override
   String get leaveWithoutSaving => 'Leave Without Saving';
 }

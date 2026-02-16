@@ -13,13 +13,16 @@
 ├── GoogleService-Info.plist
 ├── l10n.yaml
 ├── novacios.ps1
-├── novacios.txt
+├── * novacios.txt
 ├── pubspec.lock
 ├── pubspec.yaml
 ├── README.md
 ├── tree_conectasoc.txt
 ├── tree_conectasoc1.txt
 ├── * untranslated.txt
+├── .agent
+  ├── workflows
+      ├── guardar_tarea.md
 ├── assets
   ├── fonts
       ├── Roboto-Bold.ttf
@@ -37,55 +40,43 @@
     ├── injection_container.dart
     ├── main.dart
   ├── app
-      ├── * app.dart
     ├── router
         ├── app_router.dart
         ├── route_names.dart
         ├── router.dart
     ├── theme
-        ├── * app_theme.dart
-        ├── * colors.dart
-        ├── * text_styles.dart
+        ├── app_colors.dart
   ├── core
     ├── constants
-        ├── * api_constants.dart
-        ├── * app_constants.dart
         ├── cloudinary_config.dart
     ├── errors
         ├── errors.dart
         ├── exceptions.dart
         ├── failures.dart
     ├── network
-        ├── * firebase_service.dart
-        ├── * network_info.dart
     ├── platform
-        ├── * device_info.dart
-        ├── * permissions.dart
     ├── services
         ├── image_picker_service.dart
         ├── local_storage_service.dart
         ├── translation_service.dart
     ├── utils
         ├── article_permissions.dart
-        ├── * formatters.dart
-        ├── * helpers.dart
-        ├── * logger.dart
+        ├── formatters.dart
         ├── network_helper.dart
         ├── quill_helpers.dart
         ├── utils.dart
         ├── validators.dart
+    ├── widgets
+        ├── user_friendly_error_widget.dart
   ├── debug
       ├── email_debug_panel.dart
   ├── features
     ├── articles
       ├── data
         ├── datasources
-            ├── * article_local_datasource.dart
-            ├── * article_remote_datasource.dart
         ├── models
             ├── article_model.dart
             ├── category_model.dart
-            ├── * item_article_model.dart
             ├── models.dart
         ├── repositories
             ├── article_repository_impl.dart
@@ -96,7 +87,6 @@
             ├── article_section_entity.dart
             ├── category_entity.dart
             ├── entities.dart
-            ├── * item_article_entity.dart
             ├── subcategory_entity.dart
         ├── repositories
             ├── article_repository.dart
@@ -144,14 +134,11 @@
     ├── associations
       ├── data
         ├── datasources
-            ├── * association_local_datasource.dart
             ├── association_remote_datasource.dart
             ├── datasources.dart
             ├── settings_remote_datasource.dart
         ├── models
             ├── association_model.dart
-            ├── * item_association_model.dart
-            ├── * type_model.dart
         ├── repositories
             ├── association_repository_impl.dart
             ├── repositories.dart
@@ -160,7 +147,6 @@
         ├── entities
             ├── association_entity.dart
             ├── entities.dart
-            ├── * item_association_entity.dart
         ├── repositories
             ├── association_repository.dart
             ├── repositories.dart
@@ -180,7 +166,6 @@
               ├── delete_subcategory_usecase.dart
               ├── reorder_categories_usecase.dart
               ├── reorder_subcategories_usecase.dart
-              ├── * settings_usecases.dart
               ├── update_category_usecase.dart
               ├── update_subcategory_usecase.dart
       ├── presentation
@@ -198,18 +183,12 @@
               ├── settings_event_bloc.dart
               ├── settings_state_bloc.dart
         ├── pages
-            ├── * association_detail_page.dart
             ├── association_edit_page.dart
             ├── association_list_page.dart
             ├── pages.dart
             ├── settings_page.dart
         ├── widgets
             ├── association_avatar_widget.dart
-            ├── * association_card_widget.dart
-            ├── * association_content_widget.dart
-            ├── * association_edit_form.dart
-            ├── * association_form_widget.dart
-            ├── * logo_picker_widget_widget.dart
     ├── auth
       ├── data
         ├── datasources
@@ -217,8 +196,6 @@
             ├── auth_remote_datasource.dart
             ├── datasources.dart
         ├── models
-            ├── * auth_request_model.dart
-            ├── * membership_model.dart
             ├── models.dart
             ├── user_model.dart
         ├── repositories
@@ -266,24 +243,12 @@
     ├── home
       ├── data
         ├── datasources
-            ├── * home_local_datasource.dart
-            ├── * home_remote_datasource.dart
         ├── models
-            ├── * home_model.dart
-            ├── * item_home_model.dart
         ├── repositories
-            ├── * home_repository_impl.dart
       ├── domain
         ├── entities
-            ├── * home_entity.dart
-            ├── * item_home_entity.dart
         ├── repositories
-            ├── * home_repository.dart
         ├── usecases
-            ├── * create_home_usecase.dart
-            ├── * delete_home_usecase.dart
-            ├── * get_home_usecase.dart
-            ├── * update_home_usecase.dart
       ├── presentation
         ├── bloc
             ├── bloc.dart
@@ -291,8 +256,6 @@
             ├── home_event_bloc.dart
             ├── home_state_bloc.dart
         ├── pages
-            ├── * home_card.dart
-            ├── * home_content.dart
             ├── home_page.dart
             ├── pages.dart
         ├── widgets
@@ -304,61 +267,19 @@
             ├── home_drawer.dart
             ├── home_page_view_widget.dart
             ├── home_view_widget.dart
-            ├── * image_picker_widget.dart
-            ├── * rich_text_editor_widget.dart
+            ├── search_field_widget.dart
             ├── widgets.dart
-    ├── notifications
-      ├── data
-        ├── datasources
-            ├── * notification_local_datasource.dart
-            ├── * notification_remote_datasource.dart
-        ├── models
-            ├── * item_notification_model.dart
-            ├── * notification_model.dart
-            ├── * type_model.dart
-        ├── repositories
-            ├── * notification_repository_impl.dart
-      ├── domain
-        ├── entities
-            ├── * item_notification_entity.dart
-            ├── * notification_entity.dart
-        ├── repositories
-            ├── * notification_repository.dart
-        ├── usecases
-            ├── * create_notification_usecase.dart
-            ├── * delete_notification_usecase.dart
-            ├── * get_notifications_usecase.dart
-            ├── * update_notification_usecase.dart
-      ├── presentation
-        ├── bloc
-            ├── notification_bloc.dart
-            ├── * notification_event_bloc.dart
-            ├── * notification_stat_bloc.dart
-        ├── pages
-            ├── * notification_detail_page.dart
-            ├── * notification_editor_page.dart
-            ├── * notification_list_page.dart
-        ├── widgets
-            ├── * notification_badge_widget.dart
-            ├── * notification_card_widget.dart
-            ├── * notification_content_widget.dart
-            ├── * notification_form_widget.dart
     ├── users
       ├── data
         ├── datasources
-            ├── * user_local_datasource.dart
             ├── user_remote_datasource.dart
         ├── models
-            ├── * item_user_model.dart
-            ├── * role_model.dart
-            ├── * user_model.dart
         ├── repositories
             ├── users_repository_impl.dart
       ├── domain
         ├── entities
             ├── entities.dart
             ├── i_user.dart
-            ├── * item_user_entity.dart
             ├── profile_entity.dart
             ├── user.dart
         ├── repositories
@@ -369,7 +290,6 @@
             ├── delete_user_usecase.dart
             ├── get_all_users_usecase.dart
             ├── get_user_by_id_usecase.dart
-            ├── * get_user_usecase.dart
             ├── get_users_by_association_usecase.dart
             ├── join_association_usecase.dart
             ├── update_user_usecase.dart
@@ -396,15 +316,10 @@
             ├── join_association_page.dart
             ├── pages.dart
             ├── profile_page.dart
-            ├── * user_detail_page.dart
             ├── user_edit_page.dart
-            ├── * user_editor_page.dart
             ├── user_list_page.dart
         ├── widgets
-            ├── * profile_image_picker_widget.dart
-            ├── * user_card_widget.dart
-            ├── * user_content_widget.dart
-            ├── * user_form_widget.dart
+            ├── user_avatar_widget.dart
   ├── l10n
       ├── app_ca.arb
       ├── app_en.arb
@@ -415,39 +330,7 @@
       ├── app_localizations.dart
   ├── services
       ├── cloudinary_service.dart
+      ├── notification_service.dart
       ├── snackbar_service.dart
-  ├── shared
-    ├── extensions
-        ├── * context_extensions.dart
-        ├── * datetime_extensions.dart
-        ├── * string_extensions.dart
-    ├── models
-        ├── * api_response.dart
-        ├── * base_model.dart
-    ├── services
-        ├── * analytics_service.dart
-        ├── * cache_service.dart
-        ├── * notification_service.dart
-        ├── * storage_service.dart
-    ├── widgets
-      ├── buttons
-          ├── * icon_button.dart
-          ├── * primary_button.dart
-          ├── * secondary_button.dart
-      ├── cards
-          ├── * action_card.dart
-          ├── * info_card.dart
-          ├── * stat_card.dart
-      ├── common
-          ├── * custom_app_bar.dart
-          ├── * custom_drawer.dart
-          ├── * empty_state_widget.dart
-          ├── * error_widget.dart
-          ├── * loading_widget.dart
-      ├── forms
-          ├── * custom_checkbox.dart
-          ├── * custom_dropdown.dart
-          ├── * custom_text_field.dart
-          ├── * form_validators.dart
   ├── widgets
       ├── test_cloudinary_widget.dart

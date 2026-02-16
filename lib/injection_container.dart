@@ -206,7 +206,7 @@ Future<void> init() async {
   // ============================================
 
   // Bloc
-  sl.registerLazySingleton(
+  sl.registerFactory(
     () => HomeBloc(
         getArticlesUseCase: sl(),
         getCategoriesUseCase: sl(),

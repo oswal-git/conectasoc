@@ -1258,6 +1258,48 @@ abstract class AppLocalizations {
   /// **'Quedarse'**
   String get stay;
 
+  /// No description provided for @unsavedChanges.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambios sin guardar'**
+  String get unsavedChanges;
+
+  /// No description provided for @continueEditing.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar editando'**
+  String get continueEditing;
+
+  /// No description provided for @discardChanges.
+  ///
+  /// In es, this message translates to:
+  /// **'Descartar cambios'**
+  String get discardChanges;
+
+  /// No description provided for @confirmSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar guardado'**
+  String get confirmSave;
+
+  /// No description provided for @confirmSaveMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro de que deseas guardar los cambios?'**
+  String get confirmSaveMessage;
+
+  /// No description provided for @save.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get save;
+
+  /// No description provided for @userDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Usuario {userName} eliminado'**
+  String userDeleted(Object userName);
+
   /// No description provided for @leaveWithoutSaving.
   ///
   /// In es, this message translates to:

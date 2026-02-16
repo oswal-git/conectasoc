@@ -117,8 +117,9 @@ class _AssociationListItem extends StatelessWidget {
         key: Key(association.id),
         direction: DismissDirection.endToStart,
         onDismissed: (direction) {
-          final bloc = context.read<AssociationBloc>();
-          bloc.add(DeleteAssociation(association.id));
+          context
+              .read<AssociationBloc>()
+              .add(DeleteAssociation(association.id));
         },
         confirmDismiss: (direction) async {
           return await showDialog<bool>(
@@ -146,8 +147,12 @@ class _AssociationListItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.centerRight,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: const Icon(Icons.delete, color: Colors.white),
+          padding: const EdgeInsets.only(right: 20.0),
+          child: const Icon(
+            Icons.delete,
+            color: Colors.white,
+            size: 32,
+          ),
         ),
         child: Card(
           elevation: 2,

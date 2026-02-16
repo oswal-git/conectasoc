@@ -28,6 +28,14 @@ class SectionList extends StatelessWidget {
         return ReorderableListView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
+          primary: false,
+          buildDefaultDragHandles: false,
+          proxyDecorator: (child, index, animation) {
+            return BlocProvider.value(
+              value: context.read<ArticleEditBloc>(),
+              child: child,
+            );
+          },
           itemCount: sectionIds.length,
           itemBuilder: (context, index) {
             final sectionId = sectionIds[index];
@@ -42,6 +50,7 @@ class SectionList extends StatelessWidget {
               section: section,
               index: index,
               isEditingEnabled: isEditingEnabled,
+              showDragHandle: sectionIds.length > 1,
               onRemove: () =>
                   context.read<ArticleEditBloc>().add(RemoveSection(sectionId)),
             );

@@ -69,16 +69,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _onUserUpdated(AuthUserUpdated event, Emitter<AuthState> emit) {
     final currentState = state;
     if (currentState is AuthAuthenticated) {
-      final currentAssociationId =
-          currentState.currentMembership?.associationId;
-      final updatedMembership = (currentAssociationId != null &&
-              event.user.memberships.containsKey(currentAssociationId))
-          ? currentState.currentMembership
-          : event.user.memberships.entries.firstOrNull
-              ?.toMembershipEntity(userId: event.user.uid);
+      // Fix: Si es superadmin y tiene 'Todas' (null) seleccionado, mantenerlo así
+      // independientemente de los cambios en sus membresías.
+      if (currentState.currentMembership == null && event.user.isSuperAdmin) {
+        logger.t(
+            "➡️ AuthBloc-_onUserUpdated: emit(AuthAuthenticated) - Keeping Superadmin 'All' view");
+        emit(AuthAuthenticated(event.user, null));
+      } else {
+        final currentAssociationId =
+            currentState.currentMembership?.associationId;
+        final updatedMembership = (currentAssociationId != null &&
+                event.user.memberships.containsKey(currentAssociationId))
+            ? currentState.currentMembership
+            : event.user.memberships.entries.firstOrNull
+                ?.toMembershipEntity(userId: event.user.uid);
 
-      logger.t("➡️ AuthBloc-_onUserUpdated: emit(AuthAuthenticated)");
-      emit(AuthAuthenticated(event.user, updatedMembership));
+        logger.t("➡️ AuthBloc-_onUserUpdated: emit(AuthAuthenticated)");
+        emit(AuthAuthenticated(event.user, updatedMembership));
+      }
       // Programar notificaciones
       sl<NotificationService>().scheduleNotifications(event.user);
     }
@@ -211,6 +219,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     logger.t("➡️ AuthBloc-_onAuthCheckRequested: emit(AuthLoading)");
+    final previousState = state;
     emit(AuthLoading());
 
     // CRÍTICO: Iniciar el listener SOLO cuando se hace el check inicial
@@ -237,8 +246,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final realMemberships = user.memberships.entries
           .where((entry) => entry.key != 'superadmin_access');
 
-      final currentMembership =
+      MembershipEntity? currentMembership =
           realMemberships.firstOrNull?.toMembershipEntity(userId: user.uid);
+
+      // Fix: Si es superadmin y tenía 'Todas' (null) seleccionado previamente, mantenerlo.
+      if (previousState is AuthAuthenticated &&
+          previousState.currentMembership == null &&
+          user.isSuperAdmin) {
+        currentMembership = null;
+      }
+
       logger.t("➡️ AuthBloc-_onAuthCheckRequested: emit(AuthAuthenticated)");
       emit(AuthAuthenticated(user, currentMembership));
       // Programar notificaciones
@@ -566,13 +583,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(currentState);
       },
       (_) {
+        // Create new map of memberships without the removed one
+        final updatedMemberships =
+            Map<String, String>.from(currentState.user.memberships);
+        updatedMemberships.remove(event.membership.associationId);
+
+        // Update user entity
+        final updatedUser = currentState.user.copyWith(
+          memberships: updatedMemberships,
+        );
+
         MembershipEntity? newMembership = currentState.currentMembership;
         if (currentState.currentMembership?.associationId ==
             event.membership.associationId) {
           newMembership = null;
         }
         logger.t("➡️ AuthBloc-_onLeaveAssociation: emit(AuthAuthenticated)");
-        emit(AuthAuthenticated(currentState.user, newMembership));
+        emit(AuthAuthenticated(updatedUser, newMembership));
       },
     );
   }

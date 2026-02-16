@@ -282,5 +282,12 @@
     "unsavedChangesTitle": "Unsaved Changes",
     "unsavedChangesMessage": "You have unsaved changes. Do you want to leave without saving?",
     "stay": "Stay",
+    "unsavedChanges": "Unsaved changes",
+    "continueEditing": "Continue editing",
+    "discardChanges": "Discard changes",
+    "confirmSave": "Confirm save",
+    "confirmSaveMessage": "Are you sure you want to save the changes?",
+    "save": "Save",
+    "userDeleted": "User {userName} deleted",
     "leaveWithoutSaving": "Leave Without Saving"
 }

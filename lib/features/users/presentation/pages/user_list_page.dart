@@ -141,31 +141,79 @@ class _UserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.grey[200],
-            backgroundImage:
-                user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-                    ? CachedNetworkImageProvider(user.avatarUrl!)
-                    : null,
-            child: user.avatarUrl == null || user.avatarUrl!.isEmpty
-                ? Text(user.initials)
-                : null,
+      child: Dismissible(
+        key: Key(user.uid),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) async {
+          return await showDialog<bool>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: Text(l10n.deleteUser),
+              content: Text(l10n.deleteUserConfirmation(user.fullName)),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(l10n.cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(
+                    l10n.delete,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        onDismissed: (direction) {
+          // Aquí deberías llamar al bloc para eliminar el usuario
+          // context.read<UserListBloc>().add(DeleteUser(user.uid));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.userDeleted(user.fullName))),
+          );
+        },
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20.0),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(12),
           ),
-          title: Text(user.fullName,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(user.email),
-          onTap: () {
-            GoRouter.of(context)
-                .push('${RouteNames.home}/${RouteNames.userEdit}/${user.uid}');
-          },
+          child: const Icon(
+            Icons.delete,
+            color: Colors.white,
+            size: 32,
+          ),
+        ),
+        child: Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.grey[200],
+              backgroundImage:
+                  user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                      ? CachedNetworkImageProvider(user.avatarUrl!)
+                      : null,
+              child: user.avatarUrl == null || user.avatarUrl!.isEmpty
+                  ? Text(user.initials)
+                  : null,
+            ),
+            title: Text(user.fullName,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(user.email),
+            onTap: () {
+              GoRouter.of(context).push(
+                  '${RouteNames.home}/${RouteNames.userEdit}/${user.uid}');
+            },
+          ),
         ),
       ),
     );

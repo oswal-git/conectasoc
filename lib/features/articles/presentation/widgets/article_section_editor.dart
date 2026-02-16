@@ -15,6 +15,7 @@ class ArticleSectionEditor extends StatefulWidget {
   final int index;
   final VoidCallback onRemove;
   final bool isEditingEnabled;
+  final bool showDragHandle;
 
   const ArticleSectionEditor({
     super.key,
@@ -22,6 +23,7 @@ class ArticleSectionEditor extends StatefulWidget {
     required this.index,
     required this.onRemove,
     required this.isEditingEnabled,
+    this.showDragHandle = true,
   });
 
   @override
@@ -162,10 +164,11 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
                                   onPressed: _confirmRemoveSection,
                                   icon: const Icon(Icons.delete,
                                       color: Colors.red)),
-                              ReorderableDragStartListener(
-                                index: widget.index,
-                                child: const Icon(Icons.drag_handle),
-                              ),
+                              if (widget.showDragHandle)
+                                ReorderableDragStartListener(
+                                  index: widget.index,
+                                  child: const Icon(Icons.drag_handle),
+                                ),
                             ]
                           : [],
                     ),

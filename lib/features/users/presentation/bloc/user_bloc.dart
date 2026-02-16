@@ -46,7 +46,12 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   Future<void> _onLoadAvailableAssociations(
       LoadAvailableAssociations event, Emitter<UserState> emit) async {
     emit(AvailableAssociationsLoading());
-    final authState = authBloc.state;
+    // Fix: Manejar estado de carga del AuthBloc para evitar race conditions
+    var authState = authBloc.state;
+    if (authState is AuthLoading) {
+      authState = await authBloc.stream.firstWhere((s) => s is! AuthLoading);
+    }
+
     if (authState is! AuthAuthenticated) {
       emit(const UserError("Usuario no autenticado"));
       return;

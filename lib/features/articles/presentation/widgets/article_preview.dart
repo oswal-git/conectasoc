@@ -12,6 +12,7 @@ class ArticlePreview extends StatelessWidget {
   final quill.QuillController titleController;
   final FocusNode titleFocusNode;
   final ScrollController titleScrollController;
+  final ScrollController scrollController;
   final quill.QuillController abstractController;
   final FocusNode abstractFocusNode;
   final ScrollController abstractScrollController;
@@ -20,6 +21,7 @@ class ArticlePreview extends StatelessWidget {
     super.key,
     required this.state,
     required this.l10n,
+    required this.scrollController,
     required this.titleController,
     required this.titleFocusNode,
     required this.titleScrollController,
@@ -41,6 +43,7 @@ class ArticlePreview extends StatelessWidget {
     }
 
     return SingleChildScrollView(
+      controller: scrollController,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

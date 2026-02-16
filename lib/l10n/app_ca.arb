@@ -282,5 +282,12 @@
     "unsavedChangesTitle": "Canvis sense desar",
     "unsavedChangesMessage": "Tens canvis sense desar. Vols sortir sense desar-los?",
     "stay": "Quedar-se",
+    "unsavedChanges": "Canvis sense desar",
+    "continueEditing": "Continuar editant",
+    "discardChanges": "Descartar canvis",
+    "confirmSave": "Confirmar desat",
+    "confirmSaveMessage": "Estàs segur que vols desar els canvis?",
+    "save": "Desar",
+    "userDeleted": "Usuari {userName} eliminat",
     "leaveWithoutSaving": "Sortir sense desar"
 }
