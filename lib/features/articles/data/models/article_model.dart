@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
+import 'package:conectasoc/features/documents/domain/entities/document_link_entity.dart';
 
 // Hereda de ArticleEntity para reutilizar la lógica de negocio y la igualdad.
 class ArticleModel extends ArticleEntity {
@@ -25,6 +26,7 @@ class ArticleModel extends ArticleEntity {
     required super.originalLanguage,
     required super.createdAt,
     required super.modifiedAt,
+    super.documentLink,
   });
 
   // Convierte un documento de Firestore en un ArticleModel
@@ -64,6 +66,10 @@ class ArticleModel extends ArticleEntity {
           : null,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       modifiedAt: (data['modifiedAt'] as Timestamp).toDate(),
+      documentLink: data['documentLink'] != null
+          ? DocumentLinkEntity.fromJson(
+              data['documentLink'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -91,6 +97,7 @@ class ArticleModel extends ArticleEntity {
       fechaNotificacion: entity.fechaNotificacion,
       createdAt: entity.createdAt,
       modifiedAt: entity.modifiedAt,
+      documentLink: entity.documentLink,
     );
   }
 
@@ -114,6 +121,7 @@ class ArticleModel extends ArticleEntity {
                 'imageUrl': s.imageUrl,
                 'richTextContent': s.richTextContent,
                 'order': s.order,
+                'documentLink': s.documentLink?.toJson(),
               })
           .toList(),
       'userId': userId,
@@ -127,6 +135,7 @@ class ArticleModel extends ArticleEntity {
           : null,
       'createdAt': Timestamp.fromDate(createdAt),
       'modifiedAt': Timestamp.fromDate(modifiedAt),
+      'documentLink': documentLink?.toJson(),
       // Campo para búsquedas de texto. Se convierte el título y el resumen
       // en un array de palabras en minúsculas para poder usar 'array-contains'.
       'searchText':
@@ -156,6 +165,7 @@ class ArticleModel extends ArticleEntity {
       'fechaNotificacion': fechaNotificacion?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'modifiedAt': modifiedAt.toIso8601String(),
+      'documentLink': documentLink?.toJson(),
     };
   }
 }

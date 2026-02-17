@@ -1,6 +1,11 @@
 // lib/injection_container.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:conectasoc/features/documents/data/datasources/document_remote_datasource.dart';
+import 'package:conectasoc/features/documents/data/repositories/document_repository_impl.dart';
+import 'package:conectasoc/features/documents/domain/repositories/document_repository.dart';
+import 'package:conectasoc/features/documents/domain/usecases/usecases.dart';
+import 'package:conectasoc/features/documents/presentation/bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -252,6 +257,55 @@ Future<void> init() async {
   // Repository
   sl.registerLazySingleton<ArticleRepository>(
     () => ArticleRepositoryImpl(firestore: sl()),
+  );
+
+  // ============================================
+  // FEATURES - DOCUMENTS
+  // ============================================
+
+// Data sources
+  sl.registerLazySingleton<DocumentRemoteDataSource>(
+    () => DocumentRemoteDataSourceImpl(firestore: sl()),
+  );
+
+// Repository
+  sl.registerLazySingleton<DocumentRepository>(
+    () => DocumentRepositoryImpl(remoteDataSource: sl()),
+  );
+
+// Use cases
+  sl.registerLazySingleton(() => CreateDocumentUseCase(sl()));
+  sl.registerLazySingleton(() => GetDocumentByIdUseCase(sl()));
+  sl.registerLazySingleton(() => GetDocumentsByAssociationUseCase(sl()));
+  sl.registerLazySingleton(() => SearchDocumentsUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteDocumentUseCase(sl()));
+
+// BLoCs
+  sl.registerFactory(
+    () => DocumentUploadBloc(
+      createDocumentUseCase: sl(),
+      getCategoriesUseCase: sl(),
+      getSubcategoriesUseCase: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => DocumentSearchBloc(
+      getDocumentsByAssociationUseCase: sl(),
+      searchDocumentsUseCase: sl(),
+      getCategoriesUseCase: sl(),
+      getSubcategoriesUseCase: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => DocumentBloc(
+      getDocumentsByAssociationUseCase: sl(),
+      searchDocumentsUseCase: sl(),
+      deleteDocumentUseCase: sl(),
+      getCategoriesUseCase: sl(),
+      getSubcategoriesUseCase: sl(),
+    ),
   );
 
   // ============================================

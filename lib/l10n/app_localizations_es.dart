@@ -649,4 +649,60 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get leaveWithoutSaving => 'Salir sin guardar';
+
+  @override
+  String get uploadDocuments => 'Subir documentos';
+
+  @override
+  String get selectDocument => 'Seleccionar documento';
+
+  @override
+  String get documentDescription => 'Descripción del documento';
+
+  @override
+  String get documentDescriptionHint =>
+      'Describe el contenido del documento (máximo 200 caracteres)';
+
+  @override
+  String get documentUploaded => 'Documento subido exitosamente';
+
+  @override
+  String get downloadDocument => 'Descargar documento';
+
+  @override
+  String get viewDocument => 'Ver documento';
+
+  @override
+  String get linkDocument => 'Enlazar documento';
+
+  @override
+  String get searchDocument => 'Buscar documento';
+
+  @override
+  String get uploadNewDocument => 'Subir nuevo documento';
+
+  @override
+  String get documentNotAvailable => 'Documento no disponible';
+
+  @override
+  String get removeDocumentLink => 'Quitar enlace a documento';
+
+  @override
+  String get documentIncompatible =>
+      'No se puede enlazar documento si hay imagen o texto en la sección';
+
+  @override
+  String get noDocumentsFound => 'No se encontraron documentos';
+
+  @override
+  String get documentDetails => 'Detalles del documento';
+
+  @override
+  String get uploadedBy => 'Subido por';
+
+  @override
+  String get fileSize => 'Tamaño del archivo';
+
+  @override
+  String get canDownload => 'Permitir descarga';
 }

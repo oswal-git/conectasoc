@@ -646,4 +646,60 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get leaveWithoutSaving => 'Sortir sense desar';
+
+  @override
+  String get uploadDocuments => 'Pujar documents';
+
+  @override
+  String get selectDocument => 'Seleccionar document';
+
+  @override
+  String get documentDescription => 'Descripció del document';
+
+  @override
+  String get documentDescriptionHint =>
+      'Descriu el contingut del document (màxim 200 caràcters)';
+
+  @override
+  String get documentUploaded => 'Document pujat amb èxit';
+
+  @override
+  String get downloadDocument => 'Descarregar document';
+
+  @override
+  String get viewDocument => 'Veure document';
+
+  @override
+  String get linkDocument => 'Enllaçar document';
+
+  @override
+  String get searchDocument => 'Cercar document';
+
+  @override
+  String get uploadNewDocument => 'Pujar document nou';
+
+  @override
+  String get documentNotAvailable => 'Document no disponible';
+
+  @override
+  String get removeDocumentLink => 'Treure enllaç a document';
+
+  @override
+  String get documentIncompatible =>
+      'No es pot enllaçar document si hi ha imatge o text a la secció';
+
+  @override
+  String get noDocumentsFound => 'No s\'han trobat documents';
+
+  @override
+  String get documentDetails => 'Detalls del document';
+
+  @override
+  String get uploadedBy => 'Pujat per';
+
+  @override
+  String get fileSize => 'Mida de l\'arxiu';
+
+  @override
+  String get canDownload => 'Permetre descàrrega';
 }

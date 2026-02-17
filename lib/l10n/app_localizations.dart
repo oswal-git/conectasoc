@@ -1305,6 +1305,114 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Salir sin guardar'**
   String get leaveWithoutSaving;
+
+  /// No description provided for @uploadDocuments.
+  ///
+  /// In es, this message translates to:
+  /// **'Subir documentos'**
+  String get uploadDocuments;
+
+  /// No description provided for @selectDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar documento'**
+  String get selectDocument;
+
+  /// No description provided for @documentDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción del documento'**
+  String get documentDescription;
+
+  /// No description provided for @documentDescriptionHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Describe el contenido del documento (máximo 200 caracteres)'**
+  String get documentDescriptionHint;
+
+  /// No description provided for @documentUploaded.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento subido exitosamente'**
+  String get documentUploaded;
+
+  /// No description provided for @downloadDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargar documento'**
+  String get downloadDocument;
+
+  /// No description provided for @viewDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver documento'**
+  String get viewDocument;
+
+  /// No description provided for @linkDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Enlazar documento'**
+  String get linkDocument;
+
+  /// No description provided for @searchDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar documento'**
+  String get searchDocument;
+
+  /// No description provided for @uploadNewDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Subir nuevo documento'**
+  String get uploadNewDocument;
+
+  /// No description provided for @documentNotAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento no disponible'**
+  String get documentNotAvailable;
+
+  /// No description provided for @removeDocumentLink.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar enlace a documento'**
+  String get removeDocumentLink;
+
+  /// No description provided for @documentIncompatible.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede enlazar documento si hay imagen o texto en la sección'**
+  String get documentIncompatible;
+
+  /// No description provided for @noDocumentsFound.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontraron documentos'**
+  String get noDocumentsFound;
+
+  /// No description provided for @documentDetails.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalles del documento'**
+  String get documentDetails;
+
+  /// No description provided for @uploadedBy.
+  ///
+  /// In es, this message translates to:
+  /// **'Subido por'**
+  String get uploadedBy;
+
+  /// No description provided for @fileSize.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño del archivo'**
+  String get fileSize;
+
+  /// No description provided for @canDownload.
+  ///
+  /// In es, this message translates to:
+  /// **'Permitir descarga'**
+  String get canDownload;
 }
 
 class _AppLocalizationsDelegate

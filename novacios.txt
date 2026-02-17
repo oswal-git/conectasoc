@@ -240,6 +240,53 @@
             ├── login_form_widget.dart
             ├── register_form_widget.dart
             ├── widgets.dart
+    ├── documents
+      ├── data
+        ├── datasources
+            ├── document_remote_datasource.dart
+        ├── models
+            ├── document_model.dart
+            ├── models.dart
+        ├── repositories
+            ├── document_repository_impl.dart
+      ├── domain
+        ├── entities
+            ├── document_entity.dart
+            ├── document_link_entity.dart
+            ├── entities.dart
+        ├── repositories
+            ├── document_repository.dart
+        ├── usecases
+            ├── create_document_usecase.dart
+            ├── delete_document_usecase.dart
+            ├── get_document_by_asaociation_usecase.dart
+            ├── * get_document_by_id_usecase.dart
+            ├── search_document_usecase.dart
+            ├── usecases.dart
+      ├── presentation
+        ├── bloc
+            ├── bloc.dart
+            ├── * document_bloc.dart
+            ├── * document_event_bloc.dart
+            ├── * document_state_bloc.dart
+          ├── search
+              ├── * document_search_bloc.dart
+              ├── * document_search_event_bloc.dart
+              ├── * document_search_state_bloc.dart
+          ├── upload
+              ├── * document_upload_bloc.dart
+              ├── * document_upload_event_bloc.dart
+              ├── * document_upload_state_bloc.dart
+        ├── pages
+            ├── * documents_list_page.dart
+            ├── * documents_upload_page.dart
+            ├── pages.dart
+        ├── widgets
+            ├── * document_picker_widget.dart
+            ├── * document_search_dialog.dart
+            ├── * document_thumbnail_widget.dart
+            ├── * document_viewer_widget.dart
+            ├── widgets.dart
     ├── home
       ├── data
         ├── datasources
@@ -329,6 +376,7 @@
       ├── app_localizations_es.dart
       ├── app_localizations.dart
   ├── services
+      ├── cloudinary_document_service.dart
       ├── cloudinary_service.dart
       ├── notification_service.dart
       ├── snackbar_service.dart
