@@ -90,6 +90,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSavedSuccess => 'Profile saved successfully';
 
   @override
+  String get noChangesToSave => 'Nothing modified to save';
+
+  @override
   String get profileLoadError => 'Error loading profile.';
 
   @override

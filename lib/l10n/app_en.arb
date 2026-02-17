@@ -40,6 +40,7 @@
     "login": "Login",
     "editProfile": "Edit Profile",
     "profileSavedSuccess": "Profile saved successfully",
+    "noChangesToSave": "Nothing modified to save",
     "profileLoadError": "Error loading profile.",
     "name": "Name",
     "lastname": "Last Name",

@@ -40,6 +40,7 @@
     "login": "Accedir",
     "editProfile": "Editar Perfil",
     "profileSavedSuccess": "Perfil desat amb èxit",
+    "noChangesToSave": "No hi ha res modificat per guardar",
     "profileLoadError": "Error en carregar el perfil.",
     "name": "Nom",
     "lastname": "Cognoms",

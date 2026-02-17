@@ -250,6 +250,12 @@ abstract class AppLocalizations {
   /// **'Perfil guardado con éxito'**
   String get profileSavedSuccess;
 
+  /// No description provided for @noChangesToSave.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay nada modificado para guardar'**
+  String get noChangesToSave;
+
   /// No description provided for @profileLoadError.
   ///
   /// In es, this message translates to:

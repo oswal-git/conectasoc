@@ -40,6 +40,7 @@
     "login": "Acceder",
     "editProfile": "Editar Perfil",
     "profileSavedSuccess": "Perfil guardado con éxito",
+    "noChangesToSave": "No hay nada modificado para guardar",
     "profileLoadError": "Error al cargar el perfil.",
     "name": "Nombre",
     "lastname": "Apellidos",

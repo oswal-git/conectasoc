@@ -1,11 +1,6 @@
 // lib/injection_container.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:conectasoc/features/documents/data/datasources/document_remote_datasource.dart';
-import 'package:conectasoc/features/documents/data/repositories/document_repository_impl.dart';
-import 'package:conectasoc/features/documents/domain/repositories/document_repository.dart';
-import 'package:conectasoc/features/documents/domain/usecases/usecases.dart';
-import 'package:conectasoc/features/documents/presentation/bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -58,6 +53,17 @@ import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 
 // Articles - Presentation
 import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
+
+// Documents - Data
+import 'package:conectasoc/features/documents/data/datasources/document_remote_datasource.dart';
+import 'package:conectasoc/features/documents/data/repositories/document_repository_impl.dart';
+
+// Documents - Domain
+import 'package:conectasoc/features/documents/domain/repositories/document_repository.dart';
+import 'package:conectasoc/features/documents/domain/usecases/usecases.dart';
+
+// Documents - Presentation
+import 'package:conectasoc/features/documents/presentation/bloc/bloc.dart';
 
 // Seervices
 import 'package:conectasoc/core/services/translation_service.dart';

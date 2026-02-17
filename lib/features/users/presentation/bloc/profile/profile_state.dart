@@ -16,19 +16,35 @@ class ProfileLoading extends ProfileState {}
 
 class ProfileLoaded extends ProfileState {
   final ProfileEntity user;
+  final ProfileEntity? initialUser;
   final bool isSaving;
   final Uint8List? localImageBytes;
 
-  const ProfileLoaded(
-      {required this.user, this.localImageBytes, this.isSaving = false});
+  const ProfileLoaded({
+    required this.user,
+    this.initialUser,
+    this.localImageBytes,
+    this.isSaving = false,
+  });
+
+  bool get hasChanges {
+    // Si hay una imagen local nueva, siempre hay cambios
+    if (localImageBytes != null) return true;
+    // Si no hay usuario inicial (p.ej. carga inicial), no hay cambios todavía
+    if (initialUser == null) return false;
+    // Comparar usuario actual con el inicial
+    return user != initialUser;
+  }
 
   ProfileLoaded copyWith({
     ProfileEntity? user,
+    ProfileEntity? initialUser,
     bool? isSaving,
     Uint8List? localImageBytes,
   }) {
     return ProfileLoaded(
       user: user ?? this.user,
+      initialUser: initialUser ?? this.initialUser,
       isSaving: isSaving ?? this.isSaving,
       localImageBytes: localImageBytes ?? this.localImageBytes,
     );
@@ -37,6 +53,7 @@ class ProfileLoaded extends ProfileState {
   @override
   List<Object?> get props => [
         user,
+        initialUser,
         isSaving,
         localImageBytes,
       ];

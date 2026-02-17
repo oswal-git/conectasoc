@@ -40,7 +40,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
       result.fold(
         (failure) => emit(ProfileUpdateFailure(failure.message)),
-        (user) => emit(ProfileLoaded(user: user.toProfileEntity())),
+        (user) {
+          final profileEntity = user.toProfileEntity();
+          emit(ProfileLoaded(
+            user: profileEntity,
+            initialUser: profileEntity,
+          ));
+        },
       );
     } else {
       emit(const ProfileUpdateFailure('Usuario no autenticado.'));
@@ -96,6 +102,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       SaveProfileChanges event, Emitter<ProfileState> emit) async {
     if (state is ProfileLoaded) {
       final currentState = state as ProfileLoaded;
+
+      // Verificar si hay cambios antes de proceder
+      if (!currentState.hasChanges) {
+        // Emitir un error específico que la UI capturará como "No hay cambios"
+        emit(const ProfileUpdateFailure('NO_CHANGES_ERROR'));
+        return;
+      }
+
       emit(currentState.copyWith(
           isSaving: true, localImageBytes: currentState.localImageBytes));
 
@@ -125,7 +139,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             // incluyendo la nueva URL de la imagen si se subió una.
             // También limpiamos el newImagePath local ya que la subida ha finalizado.
             emit(ProfileLoaded(
-                user: updatedUser, isSaving: false, localImageBytes: null));
+                user: updatedUser,
+                initialUser: updatedUser,
+                isSaving: false,
+                localImageBytes: null));
           }
         },
       );

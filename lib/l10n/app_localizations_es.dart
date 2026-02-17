@@ -90,6 +90,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profileSavedSuccess => 'Perfil guardado con éxito';
 
   @override
+  String get noChangesToSave => 'No hay nada modificado para guardar';
+
+  @override
   String get profileLoadError => 'Error al cargar el perfil.';
 
   @override

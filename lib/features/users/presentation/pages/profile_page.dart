@@ -31,56 +31,91 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.editProfile),
-        actions: [
-          BlocBuilder<ProfileBloc, ProfileState>(
-            builder: (context, state) {
-              if (state is ProfileLoaded && state.isSaving) {
-                return const Padding(
-                  padding: EdgeInsets.only(right: 16.0),
-                  child: Center(
-                      child: CircularProgressIndicator(color: Colors.white)),
-                );
-              }
-              return IconButton(
-                icon: const Icon(Icons.save),
-                onPressed: () {
-                  if (_formKey.currentState?.saveAndValidate() ?? false) {
-                    context
-                        .read<ProfileBloc>()
-                        .add(SaveProfileChanges(context.read<AuthBloc>()));
-                  }
-                },
-              );
-            },
+    return BlocConsumer<ProfileBloc, ProfileState>(
+      listener: (context, state) {
+        if (state is ProfileUpdateFailure) {
+          final message = state.error == 'NO_CHANGES_ERROR'
+              ? l10n.noChangesToSave
+              : state.error;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message), backgroundColor: Colors.red),
+          );
+        } else if (state is ProfileUpdateSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(l10n.profileSavedSuccess),
+              backgroundColor: Colors.green));
+        }
+      },
+      builder: (context, state) {
+        final hasChanges = state is ProfileLoaded && state.hasChanges;
+
+        return PopScope(
+          canPop: !hasChanges,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
+            final l10n = AppLocalizations.of(context);
+            final discard = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(l10n.unsavedChangesTitle),
+                    content: Text(l10n.unsavedChangesMessage),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text(l10n.stay),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(l10n.discard),
+                      ),
+                    ],
+                  ),
+                ) ??
+                false;
+
+            if (discard && context.mounted) {
+              Navigator.of(context).pop();
+            }
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(l10n.editProfile),
+              actions: [
+                if (state is ProfileLoaded && state.isSaving)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 16.0),
+                    child: Center(
+                        child: CircularProgressIndicator(color: Colors.white)),
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.save),
+                    onPressed: () {
+                      if (_formKey.currentState?.saveAndValidate() ?? false) {
+                        context
+                            .read<ProfileBloc>()
+                            .add(SaveProfileChanges(context.read<AuthBloc>()));
+                      }
+                    },
+                  ),
+              ],
+            ),
+            body: _buildBody(state, l10n),
           ),
-        ],
-      ),
-      body: BlocConsumer<ProfileBloc, ProfileState>(
-        listener: (context, state) {
-          if (state is ProfileUpdateFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error), backgroundColor: Colors.red),
-            );
-          } else if (state is ProfileUpdateSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(l10n.profileSavedSuccess),
-                backgroundColor: Colors.green));
-          }
-        },
-        builder: (context, state) {
-          if (state is ProfileLoading || state is ProfileInitial) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is ProfileLoaded) {
-            return _buildProfileForm(state, l10n);
-          } else {
-            return Center(child: Text((state as ProfileUpdateFailure).error));
-          }
-        },
-      ),
+        );
+      },
     );
+  }
+
+  Widget _buildBody(ProfileState state, AppLocalizations l10n) {
+    if (state is ProfileLoading || state is ProfileInitial) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (state is ProfileLoaded) {
+      return _buildProfileForm(state, l10n);
+    } else if (state is ProfileUpdateFailure) {
+      return Center(child: Text(state.error));
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildProfileForm(ProfileLoaded state, AppLocalizations l10n) {
