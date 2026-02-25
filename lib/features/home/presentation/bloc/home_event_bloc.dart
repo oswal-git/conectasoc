@@ -72,3 +72,7 @@ class LoadMoreArticles extends HomeEvent {
   @override
   List<Object?> get props => [user];
 }
+
+class ToggleSearch extends HomeEvent {}
+
+class ToggleFilter extends HomeEvent {}

@@ -1,4 +1,5 @@
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
+import 'package:conectasoc/features/documents/domain/entities/document_link_entity.dart';
 import 'package:equatable/equatable.dart';
 
 enum ArticleStatus {
@@ -12,9 +13,7 @@ enum ArticleStatus {
 
 extension ArticleStatusExtension on ArticleStatus {
   /// Devuelve el valor en string para ser guardado en la base de datos.
-  String get value {
-    return toString().split('.').last;
-  }
+  String get value => toString().split('.').last;
 
   /// Crea un ArticleStatus a partir de un string de la base de datos.
   static ArticleStatus fromValue(String value) {
@@ -40,6 +39,7 @@ class ArticleEntity extends Equatable {
   final ArticleStatus status;
   final DateTime? fechaNotificacion; // Fecha en que se marcó para notificar
   final List<ArticleSection> sections; // List of sections
+  final DocumentLinkEntity? documentLink;
 
   // Metadata
   final String userId; // Creator's UID
@@ -72,6 +72,7 @@ class ArticleEntity extends Equatable {
     required this.originalLanguage,
     required this.createdAt,
     required this.modifiedAt,
+    this.documentLink,
   });
 
   @override
@@ -97,6 +98,7 @@ class ArticleEntity extends Equatable {
         originalLanguage,
         createdAt,
         modifiedAt,
+        documentLink,
       ];
 
   // Constructor 'empty' para la creación de nuevos artículos
@@ -124,6 +126,7 @@ class ArticleEntity extends Equatable {
       originalLanguage: 'es',
       createdAt: now,
       modifiedAt: now, // Default status is 'redaccion'
+      documentLink: null,
     );
   }
 
@@ -157,6 +160,9 @@ class ArticleEntity extends Equatable {
       originalLanguage: json['originalLanguage'] ?? 'es',
       createdAt: DateTime.parse(json['createdAt']),
       modifiedAt: DateTime.parse(json['modifiedAt']),
+      documentLink: json['documentLink'] != null
+          ? DocumentLinkEntity.fromJson(json['documentLink'])
+          : null,
     );
   }
 
@@ -182,6 +188,10 @@ class ArticleEntity extends Equatable {
     String? originalLanguage,
     DateTime? createdAt,
     DateTime? modifiedAt,
+    DocumentLinkEntity? documentLink,
+    bool clearDocumentLink = false,
+    bool clearExpirationDate = false,
+    bool clearFechaNotificacion = false,
   }) {
     return ArticleEntity(
       id: id ?? this.id,
@@ -194,9 +204,12 @@ class ArticleEntity extends Equatable {
       subcategoryName: subcategoryName ?? this.subcategoryName,
       publishDate: publishDate ?? this.publishDate,
       effectiveDate: effectiveDate ?? this.effectiveDate,
-      expirationDate: expirationDate ?? this.expirationDate,
+      expirationDate:
+          clearExpirationDate ? null : (expirationDate ?? this.expirationDate),
       status: status ?? this.status,
-      fechaNotificacion: fechaNotificacion ?? this.fechaNotificacion,
+      fechaNotificacion: clearFechaNotificacion
+          ? null
+          : (fechaNotificacion ?? this.fechaNotificacion),
       sections: sections ?? this.sections,
       userId: userId ?? this.userId,
       assocId: assocId ?? this.assocId,
@@ -205,6 +218,8 @@ class ArticleEntity extends Equatable {
       originalLanguage: originalLanguage ?? this.originalLanguage,
       createdAt: createdAt ?? this.createdAt,
       modifiedAt: modifiedAt ?? this.modifiedAt,
+      documentLink:
+          clearDocumentLink ? null : (documentLink ?? this.documentLink),
     );
   }
 }

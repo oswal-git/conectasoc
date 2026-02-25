@@ -4,6 +4,7 @@ import 'package:conectasoc/features/documents/data/datasources/document_remote_d
 import 'package:conectasoc/features/documents/data/models/document_model.dart';
 import 'package:conectasoc/features/documents/domain/entities/document_entity.dart';
 import 'package:conectasoc/features/documents/domain/repositories/document_repository.dart';
+import 'package:flutter/material.dart';
 
 class DocumentRepositoryImpl implements DocumentRepository {
   final DocumentRemoteDataSource remoteDataSource;
@@ -40,14 +41,20 @@ class DocumentRepositoryImpl implements DocumentRepository {
     String? associationId,
     String? categoryId,
     String? subcategoryId,
+    required bool isSuperAdmin,
+    String? userAssociationId,
+    String? userRole,
   }) async {
     try {
       final result = await remoteDataSource.getDocumentsByAssociation(
         associationId: associationId,
         categoryId: categoryId,
         subcategoryId: subcategoryId,
+        isSuperAdmin: isSuperAdmin,
+        userAssociationId: userAssociationId,
+        userRole: userRole,
       );
-      return Right(result.map((model) => model.toEntity()).toList());
+      return Right(result.map((model) => model).toList());
     } catch (e) {
       return Left(
           ServerFailure('Error al obtener documentos por asociación: $e'));
@@ -60,6 +67,9 @@ class DocumentRepositoryImpl implements DocumentRepository {
     String? associationId,
     String? categoryId,
     String? subcategoryId,
+    required bool isSuperAdmin,
+    String? userAssociationId,
+    String? userRole,
   }) async {
     try {
       final result = await remoteDataSource.searchDocuments(
@@ -67,8 +77,11 @@ class DocumentRepositoryImpl implements DocumentRepository {
         associationId: associationId,
         categoryId: categoryId,
         subcategoryId: subcategoryId,
+        isSuperAdmin: isSuperAdmin,
+        userAssociationId: userAssociationId,
+        userRole: userRole,
       );
-      return Right(result.map((model) => model.toEntity()).toList());
+      return Right(result.map((model) => model).toList());
     } catch (e) {
       return Left(ServerFailure('Error al buscar documentos: $e'));
     }
@@ -89,10 +102,14 @@ class DocumentRepositoryImpl implements DocumentRepository {
 
   @override
   Future<Either<Failure, void>> deleteDocument(String documentId) async {
+    debugPrint('DocumentRepositoryImpl -> deleteDocument');
+
     try {
       await remoteDataSource.deleteDocument(documentId);
+      debugPrint('DocumentRepositoryImpl -> deleteDocument ok');
       return const Right(null);
     } catch (e) {
+      debugPrint('DocumentRepositoryImpl -> Error al eliminar documento: $e');
       return Left(ServerFailure('Error al eliminar documento: $e'));
     }
   }
@@ -128,6 +145,17 @@ class DocumentRepositoryImpl implements DocumentRepository {
     } catch (e) {
       return Left(
           ServerFailure('Error al obtener documentos por subcategoría: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isDocumentLinked(String documentId) async {
+    try {
+      final result = await remoteDataSource.isDocumentLinked(documentId);
+      return Right(result);
+    } catch (e) {
+      return Left(
+          ServerFailure('Error al comprobar vínculos del documento: $e'));
     }
   }
 }

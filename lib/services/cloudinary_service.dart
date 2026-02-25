@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as path;
@@ -46,6 +47,8 @@ class CloudinaryService {
     try {
       // Validar tamaño
       if (imageBytes.length > CloudinaryConfig.maxFileSize) {
+        debugPrint(
+            '🧪 CloudinaryService: uploadImageBytes ✅ Archivo demasiado grande (${(imageBytes.length / (1024 * 1024)).toStringAsFixed(1)}MB). Máximo: ${CloudinaryConfig.maxFileSize ~/ (1024 * 1024)}MB');
         throw Exception(
           'Archivo demasiado grande (${(imageBytes.length / (1024 * 1024)).toStringAsFixed(1)}MB). Máximo: ${CloudinaryConfig.maxFileSize ~/ (1024 * 1024)}MB',
         );
@@ -61,6 +64,8 @@ class CloudinaryService {
 
       return response;
     } catch (e) {
+      debugPrint(
+          '🧪 CloudinaryService: uploadImageBytes ✅ Error subiendo imagen: $e');
       return CloudinaryResponse.error('Error subiendo imagen: $e');
     }
   }
@@ -219,12 +224,12 @@ class CloudinaryService {
     String? filename,
   }) async {
     try {
-      final uri = Uri.parse(CloudinaryConfig.uploadUrl);
+      final uri = Uri.parse(CloudinaryConfig.uploadUrlImage);
       final request = http.MultipartRequest('POST', uri);
 
       // Parámetros básicos
-      request.fields['upload_preset'] = CloudinaryConfig.uploadPreset;
-      request.fields['folder'] = folder;
+      request.fields['upload_preset'] = CloudinaryConfig.uploadPresetImagen;
+      request.fields['asset_folder'] = folder;
 
       // Para web, aplicar transformaciones en servidor para optimizar
       // if (kIsWeb) {

@@ -170,7 +170,7 @@ class AssociationRemoteDataSourceImpl implements AssociationRemoteDataSource {
       // 1. Verificar si algún usuario pertenece a esta asociación.
       final usersSnapshot = await firestore
           .collection('users')
-          .where('associationIds', arrayContains: associationId)
+          .orderBy('memberships.$associationId')
           .limit(1)
           .get();
 

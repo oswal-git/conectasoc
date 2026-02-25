@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
+import 'package:conectasoc/features/documents/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class ArticleEditEvent extends Equatable {
@@ -147,4 +148,31 @@ class DiscardDraft extends ArticleEditEvent {
 
 class TogglePreviewMode extends ArticleEditEvent {
   const TogglePreviewMode();
+}
+
+/// Actualiza (o elimina) el documento enlazado al artículo completo.
+///
+/// Pasar [documentLink] = null para eliminar el enlace.
+class UpdateArticleDocumentLink extends ArticleEditEvent {
+  final DocumentLinkEntity? documentLink;
+
+  const UpdateArticleDocumentLink(this.documentLink);
+
+  @override
+  List<Object?> get props => [documentLink];
+}
+
+/// Actualiza (o elimina) el documento enlazado de una sección concreta.
+///
+/// Al enlazar un documento, el BLoC debe:
+///   - Limpiar [imageUrl] y [richTextContent] de esa sección.
+/// Al pasar [documentLink] = null, el BLoC elimina el enlace.
+class UpdateSectionDocumentLink extends ArticleEditEvent {
+  final String sectionId;
+  final DocumentLinkEntity? documentLink;
+
+  const UpdateSectionDocumentLink(this.sectionId, this.documentLink);
+
+  @override
+  List<Object?> get props => [sectionId, documentLink];
 }

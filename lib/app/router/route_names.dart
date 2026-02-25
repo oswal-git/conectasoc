@@ -18,4 +18,7 @@ class RouteNames {
   static const String articleEdit = 'articleEdit';
   static const String articleDetail = 'articleDetail';
   static const String settings = 'settings';
+  static const String documentUpload = 'document-upload';
+  static const String documentList = 'document-list';
+  static const String documentView = 'document-view/:documentId';
 }

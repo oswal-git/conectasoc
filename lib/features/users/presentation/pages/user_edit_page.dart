@@ -418,7 +418,7 @@ class _MembershipSection extends StatelessWidget {
                             // Lista base de roles
                             'admin',
                             'editor',
-                            'member',
+                            'asociado', // Usar 'asociado' en lugar de 'member'
                             // Añadir 'superadmin' a la lista solo si el usuario actual es superadmin
                             // y el rol que se está editando ya es 'superadmin'.
                             if (currentUser.isSuperAdmin &&
@@ -428,7 +428,9 @@ class _MembershipSection extends StatelessWidget {
                             // toSet().toList() para evitar duplicados
                             return DropdownMenuItem(
                               value: role,
-                              child: Text(l10n.role(role)),
+                              child: Text(role == 'asociado'
+                                  ? (l10n.role('member'))
+                                  : l10n.role(role)),
                             ); // Usar l10n para traducir el rol
                           }).toList(),
                           onChanged: (value) {
@@ -477,7 +479,7 @@ class _MembershipSection extends StatelessWidget {
         .toList();
 
     String? selectedAssociationId;
-    String selectedRole = 'member';
+    String selectedRole = 'asociado';
 
     if (!context.mounted) return;
 
@@ -503,7 +505,7 @@ class _MembershipSection extends StatelessWidget {
               DropdownButtonFormField<String>(
                 initialValue: selectedRole,
                 decoration: InputDecoration(labelText: l10n.roleTitle),
-                items: ['admin', 'editor', 'member'].map((role) {
+                items: ['admin', 'editor', 'asociado'].map((role) {
                   return DropdownMenuItem(
                     value: role,
                     child: Text(role),

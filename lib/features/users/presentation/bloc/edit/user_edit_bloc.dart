@@ -6,14 +6,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class UserEditBloc extends Bloc<UserEditEvent, UserEditState> {
   final GetUserByIdUseCase getUserByIdUseCase;
-  final UpdateUserUseCase updateUserUseCase;
+  final UpdateUserDetailsUseCase
+      updateUserDetailsUseCase; // Using full update for admin edits
   final GetAllAssociationsUseCase getAllAssociationsUseCase;
   final CreateUserUseCase createUserUseCase;
   final DeleteUserUseCase deleteUserUseCase;
 
   UserEditBloc(
       {required this.getUserByIdUseCase,
-      required this.updateUserUseCase,
+      required this.updateUserDetailsUseCase,
       required this.getAllAssociationsUseCase,
       required this.createUserUseCase,
       required this.deleteUserUseCase})
@@ -194,8 +195,8 @@ class UserEditBloc extends Bloc<UserEditEvent, UserEditState> {
         // Lógica de actualización
         final updatedUser = currentState.user
             .copyWith(configVersion: currentState.user.configVersion + 1);
-        final result = await updateUserUseCase(
-          user: updatedUser.toProfileEntity(),
+        final result = await updateUserDetailsUseCase(
+          updatedUser,
           expectedDateUpdated: currentState.user.dateUpdated,
         );
         emit(result.fold((failure) {

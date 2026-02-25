@@ -27,6 +27,8 @@ class HomeLoaded extends HomeState {
   final bool isEditMode;
   final bool hasMore;
   final DocumentSnapshot<Object?>? lastDocument; // Firestore-specific cursor
+  final bool showSearch;
+  final bool showFilter;
   final bool isLoading;
 
   const HomeLoaded({
@@ -41,6 +43,8 @@ class HomeLoaded extends HomeState {
     this.isEditMode = false,
     this.hasMore = true,
     this.lastDocument,
+    this.showSearch = false,
+    this.showFilter = false,
     this.isLoading = false,
   });
 
@@ -56,6 +60,8 @@ class HomeLoaded extends HomeState {
     bool? isEditMode,
     bool? hasMore,
     DocumentSnapshot<Object?>? lastDocument,
+    bool? showSearch,
+    bool? showFilter,
     bool? isLoading,
     // Flags para indicar si queremos explícitamente poner null
     bool clearSelectedCategory = false,
@@ -77,6 +83,8 @@ class HomeLoaded extends HomeState {
       isEditMode: isEditMode ?? this.isEditMode,
       hasMore: hasMore ?? this.hasMore,
       lastDocument: lastDocument,
+      showSearch: showSearch ?? this.showSearch,
+      showFilter: showFilter ?? this.showFilter,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -94,6 +102,8 @@ class HomeLoaded extends HomeState {
         isEditMode,
         hasMore,
         lastDocument,
+        showSearch,
+        showFilter,
         isLoading,
       ];
 }

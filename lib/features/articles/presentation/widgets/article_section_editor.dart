@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:conectasoc/features/documents/domain/entities/entities.dart';
+import 'package:conectasoc/features/documents/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
@@ -104,6 +106,12 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
     }
   }
 
+  void _onDocumentSelected(DocumentLinkEntity? documentLink) {
+    context.read<ArticleEditBloc>().add(
+          UpdateSectionDocumentLink(widget.section.id, documentLink),
+        );
+  }
+
   Future<void> _confirmRemoveSection() async {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
@@ -132,6 +140,15 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final section = widget.section;
+
+    // ── Lógica de incompatibilidad ─────────────────────────────────────────
+    // Si hay documento enlazado → los controles de imagen/texto se deshabilitan
+    // Si hay imagen o texto     → el picker de documento se deshabilita
+    final hasDocument = section.hasDocument;
+    final hasContent = section.hasContent;
+    final contentControlsEnabled = widget.isEditingEnabled && !hasDocument;
+    final documentPickerEnabled = widget.isEditingEnabled && !hasContent;
 
     // Using BlocSelector for image bytes to prevent rebuilding for other state changes.
     return BlocSelector<ArticleEditBloc, ArticleEditState, Uint8List?>(
@@ -149,96 +166,164 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ── Cabecera con título y acciones ───────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('${l10n.section} ${widget.index + 1}',
                         style: Theme.of(context).textTheme.titleMedium),
-                    Row(
-                      children: widget.isEditingEnabled
-                          ? [
-                              IconButton(
-                                  onPressed: _pickImage,
-                                  icon: const Icon(Icons.image)),
-                              IconButton(
-                                  onPressed: _confirmRemoveSection,
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red)),
-                              if (widget.showDragHandle)
-                                ReorderableDragStartListener(
-                                  index: widget.index,
-                                  child: const Icon(Icons.drag_handle),
-                                ),
-                            ]
-                          : [],
-                    ),
+                    if (widget.isEditingEnabled)
+                      Row(
+                        children: [
+                          // Imagen: deshabilitada si hay documento
+                          IconButton(
+                            onPressed:
+                                contentControlsEnabled ? _pickImage : null,
+                            icon: Icon(
+                              Icons.image,
+                              color: contentControlsEnabled
+                                  ? null
+                                  : Colors.grey.shade400,
+                            ),
+                            tooltip:
+                                hasDocument ? l10n.documentIncompatible : null,
+                          ),
+                          // Eliminar sección
+                          IconButton(
+                            onPressed: _confirmRemoveSection,
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                          ),
+                          // Reordenar
+                          ReorderableDragStartListener(
+                            index: widget.index,
+                            child: const Icon(Icons.drag_handle),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
-                SectionImage(
-                  imageBytes: imageBytes,
-                  imageUrl: widget.section.imageUrl,
-                ),
-                if (widget.isEditingEnabled)
-                  quill.QuillSimpleToolbar(
-                    controller: _quillController,
-                    config: quill.QuillSimpleToolbarConfig(
-                      showAlignmentButtons: true,
-                      multiRowsDisplay: false,
-                      showBoldButton: true,
-                      showItalicButton: true,
-                      showUnderLineButton: true,
-                      showStrikeThrough: true,
-                      showColorButton: true,
-                      showBackgroundColorButton: true,
-                      showListBullets: true,
-                      showListNumbers: true,
-                      showListCheck: true,
-                      showCodeBlock: true,
-                      showQuote: true,
-                      showIndent: true,
-                      showLink: true,
-                      showUndo: true,
-                      showRedo: true,
-                      showFontSize: true,
-                      showFontFamily: true,
-                      showClearFormat: true,
-                      showHeaderStyle: true,
-                      showSearchButton: true,
-                      buttonOptions: quill.QuillSimpleToolbarButtonOptions(
-                        base: quill.QuillToolbarBaseButtonOptions(
-                          iconButtonFactor: 1.0,
+                // ── Imagen de la sección ─────────────────────────────────
+                if (!hasDocument)
+                  SectionImage(
+                    imageBytes: imageBytes,
+                    imageUrl: section.imageUrl,
+                  ),
+                // ── Editor de texto enriquecido ──────────────────────────
+                if (!hasDocument) ...[
+                  if (contentControlsEnabled)
+                    quill.QuillSimpleToolbar(
+                      controller: _quillController,
+                      config: quill.QuillSimpleToolbarConfig(
+                        showAlignmentButtons: true,
+                        multiRowsDisplay: false,
+                        showBoldButton: true,
+                        showItalicButton: true,
+                        showUnderLineButton: true,
+                        showStrikeThrough: true,
+                        showColorButton: true,
+                        showBackgroundColorButton: true,
+                        showListBullets: true,
+                        showListNumbers: true,
+                        showListCheck: true,
+                        showCodeBlock: true,
+                        showQuote: true,
+                        showIndent: true,
+                        showLink: true,
+                        showUndo: true,
+                        showRedo: true,
+                        showFontSize: true,
+                        showFontFamily: true,
+                        showClearFormat: true,
+                        showHeaderStyle: true,
+                        showSearchButton: true,
+                        buttonOptions: quill.QuillSimpleToolbarButtonOptions(
+                          base: quill.QuillToolbarBaseButtonOptions(
+                            iconButtonFactor: 1.0,
+                          ),
+                          fontSize: quill.QuillToolbarFontSizeButtonOptions(
+                            items: {
+                              'Small': '12',
+                              'Medium': '16',
+                              'Large': '20',
+                              'Clear': '0',
+                            },
+                          ),
                         ),
-                        fontSize: quill.QuillToolbarFontSizeButtonOptions(
-                          items: {
-                            'Small': '12',
-                            'Medium': '16',
-                            'Large': '20',
-                            'Clear': '0'
-                          },
-                        ),
+                        toolbarRunSpacing: 0,
+                        toolbarSectionSpacing: 0,
                       ),
-                      toolbarRunSpacing: 0,
-                      toolbarSectionSpacing: 0,
                     ),
-                  ),
-                Container(
-                  height: 150,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: quill.QuillEditor(
+                  Container(
+                    height: 150,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: quill.QuillEditor(
                       controller: _quillController,
                       focusNode: _focusNode,
                       scrollController: _scrollController,
                       config: const quill.QuillEditorConfig(
-                          padding: EdgeInsets.all(8))),
+                          padding: EdgeInsets.all(8)),
+                    ),
+                  ),
+                ],
+
+                // ── Separador ────────────────────────────────────────────
+                if (widget.isEditingEnabled) ...[
+                  const SizedBox(height: 12),
+                  _buildIncompatibilityHint(
+                      context, l10n, hasDocument, hasContent),
+                  const SizedBox(height: 8),
+                ],
+
+                // ── DocumentPickerWidget ─────────────────────────────────
+                DocumentPickerWidget(
+                  currentDocumentLink: section.documentLink,
+                  isEnabled: documentPickerEnabled,
+                  onDocumentSelected: _onDocumentSelected,
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  /// Muestra un aviso sutil cuando uno de los modos está bloqueado
+  Widget _buildIncompatibilityHint(
+    BuildContext context,
+    AppLocalizations l10n,
+    bool hasDocument,
+    bool hasContent,
+  ) {
+    if (!hasDocument && !hasContent) return const SizedBox.shrink();
+
+    final message = hasDocument
+        ? l10n
+            .documentIncompatible // "No se puede añadir imagen/texto si hay documento"
+        : l10n.documentIncompatible; // Mismo mensaje en sentido contrario
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        border: Border.all(color: Colors.amber.shade300),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, size: 16, color: Colors.amber.shade800),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(fontSize: 12, color: Colors.amber.shade900),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -111,7 +111,8 @@ class _TestCloudinaryPageState extends State<TestCloudinaryPage> {
             ),
             const SizedBox(height: 12),
             _buildConfigRow('Cloud Name', CloudinaryConfig.cloudName),
-            _buildConfigRow('Upload Preset', CloudinaryConfig.uploadPreset),
+            _buildConfigRow(
+                'Upload Preset', CloudinaryConfig.uploadPresetImagen),
             _buildConfigRow(
                 'API Key',
                 CloudinaryConfig.apiKey.length > 10

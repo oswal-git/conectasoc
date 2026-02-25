@@ -17,6 +17,7 @@
 ├── pubspec.lock
 ├── pubspec.yaml
 ├── README.md
+├── sort_arb.py
 ├── tree_conectasoc.txt
 ├── tree_conectasoc1.txt
 ├── * untranslated.txt
@@ -118,6 +119,7 @@
             ├── article_edit_page.dart
             ├── pages.dart
         ├── widgets
+            ├── article_edit_view copy.dar
             ├── article_edit_view.dart
             ├── article_preview.dart
             ├── article_quill_editor_field.dart
@@ -126,6 +128,7 @@
             ├── cover_image_picker.dart
             ├── date_picker_field.dart
             ├── date_picker_section.dart
+            ├── preview_section copy.dar
             ├── preview_section.dart
             ├── section_image.dart
             ├── section_list.dart
@@ -240,6 +243,54 @@
             ├── login_form_widget.dart
             ├── register_form_widget.dart
             ├── widgets.dart
+    ├── documents
+      ├── data
+        ├── datasources
+            ├── document_remote_datasource.dart
+        ├── models
+            ├── document_model.dart
+            ├── models.dart
+        ├── repositories
+            ├── document_repository_impl.dart
+      ├── domain
+        ├── entities
+            ├── document_entity.dart
+            ├── document_link_entity.dart
+            ├── entities.dart
+        ├── repositories
+            ├── document_repository.dart
+        ├── usecases
+            ├── create_document_usecase.dart
+            ├── delete_document_usecase.dart
+            ├── get_document_by_association_usecase.dart
+            ├── get_document_by_id_usecase.dart
+            ├── search_document_usecase.dart
+            ├── usecases.dart
+      ├── presentation
+        ├── bloc
+            ├── bloc.dart
+            ├── document_bloc.dart
+            ├── document_event_bloc.dart
+            ├── document_state_bloc.dart
+          ├── search
+              ├── document_search_bloc.dart
+              ├── document_search_event_bloc.dart
+              ├── document_search_state_bloc.dart
+          ├── upload
+              ├── document_upload_bloc.dart
+              ├── document_upload_event_bloc.dart
+              ├── document_upload_state_bloc.dart
+        ├── pages
+            ├── document_view_page.dart
+            ├── documents_list_page.dart
+            ├── documents_upload_page.dart
+            ├── pages.dart
+        ├── widgets
+            ├── document_picker_widget.dart
+            ├── document_search_dialog.dart
+            ├── document_thumbnail_widget.dart
+            ├── document_viewer_widget.dart
+            ├── widgets.dart
     ├── home
       ├── data
         ├── datasources
@@ -292,6 +343,7 @@
             ├── get_user_by_id_usecase.dart
             ├── get_users_by_association_usecase.dart
             ├── join_association_usecase.dart
+            ├── update_user_details_usecase.dart
             ├── update_user_usecase.dart
             ├── usecases.dart
       ├── presentation
@@ -328,7 +380,10 @@
       ├── app_localizations_en.dart
       ├── app_localizations_es.dart
       ├── app_localizations.dart
+      ├── localization_extensions.dart
+      ├── localizations.dart
   ├── services
+      ├── cloudinary_document_service.dart
       ├── cloudinary_service.dart
       ├── notification_service.dart
       ├── snackbar_service.dart

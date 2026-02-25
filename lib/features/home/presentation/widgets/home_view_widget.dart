@@ -24,23 +24,51 @@ class HomeViewWidgetState extends State<HomeViewWidget> {
               const LinearProgressIndicator(
                 minHeight: 2,
               ),
-            SearchFieldWidget(
-              height: 40.0, // Altura total del campo
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 12, // Padding vertical interior
-                horizontal: 20, // Padding horizontal interior
+            if (state is HomeLoaded) ...[
+              Visibility(
+                visible: state.showSearch,
+                maintainState: true,
+                child: SearchFieldWidget(
+                  height: 40.0,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 20,
+                  ),
+                  fillColor: const Color.fromARGB(255, 233, 236, 231),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                  borderRadius: 8.0,
+                ),
               ),
-              fillColor:
-                  const Color.fromARGB(255, 221, 235, 212), // Color de fondo
-              textStyle: TextStyle(
-                // O estilo completo de texto
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+              Visibility(
+                visible: state.showFilter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: const CategoryFilterBarWidget(),
+                ),
               ),
-              borderRadius: 8.0, // Radio de borde
-            ),
-            const CategoryFilterBarWidget(),
+            ],
+            // if (state is! HomeLoaded) ...[
+            //   // Fallback for initial/loading states if needed
+            //   SearchFieldWidget(
+            //     height: 40.0,
+            //     contentPadding: const EdgeInsets.symmetric(
+            //       vertical: 12,
+            //       horizontal: 20,
+            //     ),
+            //     fillColor: const Color.fromARGB(255, 221, 235, 212),
+            //     textStyle: const TextStyle(
+            //       fontSize: 16,
+            //       fontWeight: FontWeight.w500,
+            //       color: Colors.black87,
+            //     ),
+            //     borderRadius: 8.0,
+            //   ),
+            //   const CategoryFilterBarWidget(),
+            // ],
             Expanded(
               child: ArticleListWidget(),
             ),

@@ -1,9 +1,10 @@
 // lib/features/auth/domain/usecases/register_usecase.dart
 
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_debugPrint
 
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 import 'package:conectasoc/core/errors/failures.dart';
@@ -40,10 +41,10 @@ class RegisterUseCase {
     String? newAssociationPhone,
   }) async {
     // DEBUG: Verificar que se llama al método
-    print('=== REGISTER USECASE CALLED ===');
-    print('Email: $email');
-    print('CreateAssociation: $createAssociation');
-    print('AssociationId: $associationId');
+    debugPrint('=== REGISTER USECASE CALLED ===');
+    debugPrint('Email: $email');
+    debugPrint('CreateAssociation: $createAssociation');
+    debugPrint('AssociationId: $associationId');
 
     firebase.User? firebaseUser;
     String? createdAssociationId; // Para hacer rollback si es necesario
@@ -52,8 +53,8 @@ class RegisterUseCase {
       logger.i('Iniciando proceso de registro para: $email');
 
       // DEBUG: Antes de llamar al repositorio
-      print('=== ANTES DE createFirebaseAuthUser ===');
-      print('Repository type: ${repository.runtimeType}');
+      debugPrint('=== ANTES DE createFirebaseAuthUser ===');
+      debugPrint('Repository type: ${repository.runtimeType}');
 
       // PASO 1: Crear el usuario en Firebase Authentication
       logger.d('Paso 1: Creando usuario en Firebase Auth');
@@ -61,7 +62,7 @@ class RegisterUseCase {
           await repository.createFirebaseAuthUser(email, password).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
-          print('=== TIMEOUT EN createFirebaseAuthUser ===');
+          debugPrint('=== TIMEOUT EN createFirebaseAuthUser ===');
           logger.e('Timeout al crear usuario en Firebase Auth');
           throw const ServerFailure(
               'La operación tardó demasiado. Por favor, verifica tu conexión.');
@@ -84,8 +85,8 @@ class RegisterUseCase {
 
           logger.i('Usuario creado en Auth con UID: ${firebaseUser!.uid}');
           // DEBUG: Después de llamar al repositorio
-          print('=== DESPUÉS DE createFirebaseAuthUser ===');
-          print('CredentialResult type: ${credentialResult.runtimeType}');
+          debugPrint('=== DESPUÉS DE createFirebaseAuthUser ===');
+          debugPrint('CredentialResult type: ${credentialResult.runtimeType}');
           logger.d('Paso 1 completado: credentialResult obtenido');
 
           // PASO 2: Determinar el rol y la asociación
@@ -208,10 +209,10 @@ class RegisterUseCase {
       await _rollbackAll(firebaseUser, createdAssociationId);
       return Left(failure);
     } catch (e, stackTrace) {
-      print('=== EXCEPTION CAPTURADA ===');
-      print('Exception type: ${e.runtimeType}');
-      print('Exception: $e');
-      print('StackTrace: $stackTrace');
+      debugPrint('=== EXCEPTION CAPTURADA ===');
+      debugPrint('Exception type: ${e.runtimeType}');
+      debugPrint('Exception: $e');
+      debugPrint('StackTrace: $stackTrace');
       logger.e('Error inesperado durante el registro',
           error: e, stackTrace: stackTrace);
       // Manejar cualquier otro error inesperado

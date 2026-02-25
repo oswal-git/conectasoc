@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
+import 'package:conectasoc/features/documents/domain/entities/document_link_entity.dart';
 
 // Hereda de ArticleEntity para reutilizar la lógica de negocio y la igualdad.
 class ArticleModel extends ArticleEntity {
@@ -25,6 +26,7 @@ class ArticleModel extends ArticleEntity {
     required super.originalLanguage,
     required super.createdAt,
     required super.modifiedAt,
+    super.documentLink,
   });
 
   // Convierte un documento de Firestore en un ArticleModel
@@ -50,6 +52,11 @@ class ArticleModel extends ArticleEntity {
                     imageUrl: s['imageUrl'],
                     richTextContent: s['richTextContent'],
                     order: s['order'] ?? 0,
+                    // ✨ Parsear documentLink de la sección
+                    documentLink: s['documentLink'] != null
+                        ? DocumentLinkEntity.fromJson(
+                            s['documentLink'] as Map<String, dynamic>)
+                        : null,
                   ))
               .toList() ??
           [],
@@ -64,6 +71,10 @@ class ArticleModel extends ArticleEntity {
           : null,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       modifiedAt: (data['modifiedAt'] as Timestamp).toDate(),
+      documentLink: data['documentLink'] != null
+          ? DocumentLinkEntity.fromJson(
+              data['documentLink'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -91,6 +102,7 @@ class ArticleModel extends ArticleEntity {
       fechaNotificacion: entity.fechaNotificacion,
       createdAt: entity.createdAt,
       modifiedAt: entity.modifiedAt,
+      documentLink: entity.documentLink,
     );
   }
 
@@ -114,6 +126,7 @@ class ArticleModel extends ArticleEntity {
                 'imageUrl': s.imageUrl,
                 'richTextContent': s.richTextContent,
                 'order': s.order,
+                'documentLink': s.documentLink?.toJson(),
               })
           .toList(),
       'userId': userId,
@@ -127,6 +140,7 @@ class ArticleModel extends ArticleEntity {
           : null,
       'createdAt': Timestamp.fromDate(createdAt),
       'modifiedAt': Timestamp.fromDate(modifiedAt),
+      'documentLink': documentLink?.toJson(),
       // Campo para búsquedas de texto. Se convierte el título y el resumen
       // en un array de palabras en minúsculas para poder usar 'array-contains'.
       'searchText':
@@ -156,6 +170,65 @@ class ArticleModel extends ArticleEntity {
       'fechaNotificacion': fechaNotificacion?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'modifiedAt': modifiedAt.toIso8601String(),
+      'documentLink': documentLink?.toJson(),
     };
+  }
+
+  @override
+  ArticleModel copyWith({
+    String? id,
+    String? title,
+    String? abstractContent,
+    String? coverUrl,
+    String? categoryId,
+    String? categoryName,
+    String? subcategoryId,
+    String? subcategoryName,
+    DateTime? publishDate,
+    DateTime? effectiveDate,
+    DateTime? expirationDate,
+    ArticleStatus? status,
+    DateTime? fechaNotificacion,
+    List<ArticleSection>? sections,
+    String? userId,
+    String? assocId,
+    String? authorName,
+    String? associationShortName,
+    String? originalLanguage,
+    DateTime? createdAt,
+    DateTime? modifiedAt,
+    DocumentLinkEntity? documentLink,
+    bool clearDocumentLink = false,
+    bool clearExpirationDate = false,
+    bool clearFechaNotificacion = false,
+  }) {
+    return ArticleModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      abstractContent: abstractContent ?? this.abstractContent,
+      coverUrl: coverUrl ?? this.coverUrl,
+      categoryId: categoryId ?? this.categoryId,
+      categoryName: categoryName ?? this.categoryName,
+      subcategoryId: subcategoryId ?? this.subcategoryId,
+      subcategoryName: subcategoryName ?? this.subcategoryName,
+      publishDate: publishDate ?? this.publishDate,
+      effectiveDate: effectiveDate ?? this.effectiveDate,
+      expirationDate:
+          clearExpirationDate ? null : (expirationDate ?? this.expirationDate),
+      status: status ?? this.status,
+      fechaNotificacion: clearFechaNotificacion
+          ? null
+          : (fechaNotificacion ?? this.fechaNotificacion),
+      sections: sections ?? this.sections,
+      userId: userId ?? this.userId,
+      assocId: assocId ?? this.assocId,
+      authorName: authorName ?? this.authorName,
+      associationShortName: associationShortName ?? this.associationShortName,
+      originalLanguage: originalLanguage ?? this.originalLanguage,
+      createdAt: createdAt ?? this.createdAt,
+      modifiedAt: modifiedAt ?? this.modifiedAt,
+      documentLink:
+          clearDocumentLink ? null : (documentLink ?? this.documentLink),
+    );
   }
 }

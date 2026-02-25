@@ -81,30 +81,72 @@ class HomeDrawer extends StatelessWidget {
                           );
                         }),
                 ],
-                // Opción de Configuración solo para superadmin
-                if (state.user.isSuperAdmin)
+
+                if (state.user.isSuperAdmin ||
+                    state.currentMembership?.role == 'admin' ||
+                    state.currentMembership?.role == 'editor') ...[
+                  const Divider(indent: 16, endIndent: 16),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                    child: Text(
+                      AppLocalizations.of(context).documents,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
                   _buildDrawerItem(
                     context: context,
-                    icon: Icons.settings_outlined,
-                    text: AppLocalizations.of(context).configuration,
+                    icon: Icons.upload_file_outlined,
+                    text: AppLocalizations.of(context).uploadDocuments,
                     onTap: () {
                       GoRouter.of(context).pop();
-                      GoRouter.of(context)
-                          .push('${RouteNames.home}/${RouteNames.settings}');
+                      GoRouter.of(context).push(
+                          '${RouteNames.home}/${RouteNames.documentUpload}');
                     },
                   ),
-              ],
-              if (state is AuthAuthenticated)
+                  _buildDrawerItem(
+                    context: context,
+                    icon: Icons.folder_outlined,
+                    text: AppLocalizations.of(context).documentList,
+                    onTap: () {
+                      GoRouter.of(context).pop();
+                      GoRouter.of(context).push(
+                          '${RouteNames.home}/${RouteNames.documentList}');
+                    },
+                  ),
+                ],
+
+                // Opción de Configuración solo para superadmin
+                if (state.user.isSuperAdmin)
+                  const Divider(indent: 16, endIndent: 16),
                 _buildDrawerItem(
                   context: context,
-                  icon: Icons.person_outline,
-                  text: AppLocalizations.of(context).myProfile,
+                  icon: Icons.settings_outlined,
+                  text: AppLocalizations.of(context).configuration,
                   onTap: () {
                     GoRouter.of(context).pop();
                     GoRouter.of(context)
-                        .push('${RouteNames.home}/${RouteNames.profile}');
+                        .push('${RouteNames.home}/${RouteNames.settings}');
                   },
                 ),
+              ],
+              if (state is AuthAuthenticated)
+                // ── Perfil y asociación ──────────────────────────────────
+                const Divider(indent: 16, endIndent: 16),
+              _buildDrawerItem(
+                context: context,
+                icon: Icons.person_outline,
+                text: AppLocalizations.of(context).myProfile,
+                onTap: () {
+                  GoRouter.of(context).pop();
+                  GoRouter.of(context)
+                      .push('${RouteNames.home}/${RouteNames.profile}');
+                },
+              ),
               if (state is AuthAuthenticated)
                 _buildDrawerItem(
                   context: context,

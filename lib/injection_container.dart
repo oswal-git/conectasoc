@@ -54,6 +54,17 @@ import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 // Articles - Presentation
 import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
 
+// Documents - Data
+import 'package:conectasoc/features/documents/data/datasources/document_remote_datasource.dart';
+import 'package:conectasoc/features/documents/data/repositories/document_repository_impl.dart';
+
+// Documents - Domain
+import 'package:conectasoc/features/documents/domain/repositories/document_repository.dart';
+import 'package:conectasoc/features/documents/domain/usecases/usecases.dart';
+
+// Documents - Presentation
+import 'package:conectasoc/features/documents/presentation/bloc/bloc.dart';
+
 // Seervices
 import 'package:conectasoc/core/services/translation_service.dart';
 import 'package:conectasoc/services/cloudinary_service.dart';
@@ -145,6 +156,7 @@ Future<void> init() async {
   // Se elimina la dependencia de FirebaseStorage, ya que se usa CloudinaryService.
   sl.registerLazySingleton<UserRemoteDataSource>(
       () => UserRemoteDataSourceImpl(firestore: sl()));
+  sl.registerLazySingleton(() => UpdateUserDetailsUseCase(sl()));
   sl.registerLazySingleton(() => GetAllUsersUseCase(sl()));
 
   sl.registerLazySingleton(
@@ -157,7 +169,7 @@ Future<void> init() async {
   sl.registerFactory(
     () => UserEditBloc(
       getUserByIdUseCase: sl(),
-      updateUserUseCase: sl(),
+      updateUserDetailsUseCase: sl(),
       getAllAssociationsUseCase: sl(),
       deleteUserUseCase: sl(),
       createUserUseCase: sl(),
@@ -252,6 +264,56 @@ Future<void> init() async {
   // Repository
   sl.registerLazySingleton<ArticleRepository>(
     () => ArticleRepositoryImpl(firestore: sl()),
+  );
+
+  // ============================================
+  // FEATURES - DOCUMENTS
+  // ============================================
+
+// Data sources
+  sl.registerLazySingleton<DocumentRemoteDataSource>(
+    () => DocumentRemoteDataSourceImpl(firestore: sl()),
+  );
+
+// Repository
+  sl.registerLazySingleton<DocumentRepository>(
+    () => DocumentRepositoryImpl(remoteDataSource: sl()),
+  );
+
+// Use cases
+  sl.registerLazySingleton(() => CreateDocumentUseCase(sl()));
+  sl.registerLazySingleton(() => GetDocumentByIdUseCase(sl()));
+  sl.registerLazySingleton(() => GetDocumentsByAssociationUseCase(sl()));
+  sl.registerLazySingleton(() => SearchDocumentsUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteDocumentUseCase(sl()));
+  sl.registerLazySingleton(() => IsDocumentLinkedUseCase(sl()));
+
+// BLoCs
+  sl.registerFactory(
+    () => DocumentUploadBloc(
+      createDocumentUseCase: sl(),
+      getCategoriesUseCase: sl(),
+      getSubcategoriesUseCase: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => DocumentSearchBloc(
+      getDocumentsByAssociationUseCase: sl(),
+      searchDocumentsUseCase: sl(),
+      getCategoriesUseCase: sl(),
+      getSubcategoriesUseCase: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => DocumentBloc(
+      getDocumentsByAssociationUseCase: sl(),
+      searchDocumentsUseCase: sl(),
+      deleteDocumentUseCase: sl(),
+      getCategoriesUseCase: sl(),
+      getSubcategoriesUseCase: sl(),
+    ),
   );
 
   // ============================================

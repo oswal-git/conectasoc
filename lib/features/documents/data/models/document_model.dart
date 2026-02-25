@@ -4,6 +4,7 @@ import 'package:conectasoc/features/documents/domain/entities/document_entity.da
 class DocumentModel extends DocumentEntity {
   const DocumentModel({
     required super.id,
+    required super.publicId,
     required super.urlDoc,
     required super.urlThumb,
     required super.descDoc,
@@ -17,6 +18,7 @@ class DocumentModel extends DocumentEntity {
     required super.fileName,
     required super.fileExtension,
     required super.fileSize,
+    required super.readScope,
   });
 
   /// Convierte un documento de Firestore en un DocumentModel
@@ -24,6 +26,7 @@ class DocumentModel extends DocumentEntity {
     final data = doc.data() as Map<String, dynamic>;
     return DocumentModel(
       id: doc.id,
+      publicId: data['publicId'] ?? '',
       urlDoc: data['urlDoc'] ?? '',
       urlThumb: data['urlThumb'] ?? '',
       descDoc: data['descDoc'] ?? '',
@@ -37,6 +40,8 @@ class DocumentModel extends DocumentEntity {
       fileName: data['fileName'] ?? '',
       fileExtension: data['fileExtension'] ?? '',
       fileSize: data['fileSize'] ?? 0,
+      readScope: ReadScopeExtension.fromValue(
+          data['readScope'] ?? 'asociado'), // ✨ NUEVO
     );
   }
 
@@ -44,6 +49,7 @@ class DocumentModel extends DocumentEntity {
   factory DocumentModel.fromEntity(DocumentEntity entity) {
     return DocumentModel(
       id: entity.id,
+      publicId: entity.publicId,
       urlDoc: entity.urlDoc,
       urlThumb: entity.urlThumb,
       descDoc: entity.descDoc,
@@ -57,12 +63,14 @@ class DocumentModel extends DocumentEntity {
       fileName: entity.fileName,
       fileExtension: entity.fileExtension,
       fileSize: entity.fileSize,
+      readScope: entity.readScope,
     );
   }
 
   /// Convierte un DocumentModel en un mapa para guardarlo en Firestore
   Map<String, dynamic> toFirestore() {
     return {
+      'publicId': publicId,
       'urlDoc': urlDoc,
       'urlThumb': urlThumb,
       'descDoc': descDoc,
@@ -76,6 +84,7 @@ class DocumentModel extends DocumentEntity {
       'fileName': fileName,
       'fileExtension': fileExtension,
       'fileSize': fileSize,
+      'readScope': readScope.value, // ✨ NUEVO
       // Campo para búsquedas de texto
       'searchText': '${descDoc.toLowerCase()} ${fileName.toLowerCase()}'
           .split(RegExp(r'\s+'))
@@ -89,6 +98,7 @@ class DocumentModel extends DocumentEntity {
   DocumentEntity toEntity() {
     return DocumentEntity(
       id: id,
+      publicId: publicId,
       urlDoc: urlDoc,
       urlThumb: urlThumb,
       descDoc: descDoc,
@@ -102,6 +112,46 @@ class DocumentModel extends DocumentEntity {
       fileName: fileName,
       fileExtension: fileExtension,
       fileSize: fileSize,
+      readScope: readScope,
+    );
+  }
+
+  @override
+  DocumentModel copyWith({
+    String? id,
+    String? publicId,
+    String? urlDoc,
+    String? urlThumb,
+    String? descDoc,
+    bool? canDownload,
+    String? associationId,
+    String? categoryId,
+    String? subcategoryId,
+    DateTime? dateCreation,
+    DateTime? dateModification,
+    String? uploadedBy,
+    String? fileName,
+    String? fileExtension,
+    int? fileSize,
+    ReadScope? readScope,
+  }) {
+    return DocumentModel(
+      id: id ?? this.id,
+      publicId: publicId ?? this.publicId,
+      urlDoc: urlDoc ?? this.urlDoc,
+      urlThumb: urlThumb ?? this.urlThumb,
+      descDoc: descDoc ?? this.descDoc,
+      canDownload: canDownload ?? this.canDownload,
+      associationId: associationId ?? this.associationId,
+      categoryId: categoryId ?? this.categoryId,
+      subcategoryId: subcategoryId ?? this.subcategoryId,
+      dateCreation: dateCreation ?? this.dateCreation,
+      dateModification: dateModification ?? this.dateModification,
+      uploadedBy: uploadedBy ?? this.uploadedBy,
+      fileName: fileName ?? this.fileName,
+      fileExtension: fileExtension ?? this.fileExtension,
+      fileSize: fileSize ?? this.fileSize,
+      readScope: readScope ?? this.readScope,
     );
   }
 }

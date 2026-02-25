@@ -167,6 +167,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
     try {
       // 1. Subir imagen de portada a Cloudinary si existe
       if (hasCoverImage) {
+        debugPrint('🧪 ArticleRepositoryImpl: createArticle ✅ hasCoverImage');
         final uploadResult = await CloudinaryService.uploadImageBytes(
           imageBytes: coverImageBytes,
           filename: uuid.v4(), // Generate a unique filename
@@ -174,6 +175,8 @@ class ArticleRepositoryImpl implements ArticleRepository {
         );
 
         if (!uploadResult.success) {
+          debugPrint(
+              '🧪 ArticleRepositoryImpl: createArticle ✅ Error al subir la imagen de portada.');
           return Left(ServerFailure(
               uploadResult.error ?? 'Error al subir la imagen de portada.'));
         }
@@ -184,6 +187,8 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
       // 2. Subir imágenes de las secciones
       final List<ArticleSection> sectionsWithUploadedImages = [];
+      debugPrint(
+          '🧪 ArticleRepositoryImpl: createArticle ✅ Subir imágenes de las secciones');
       for (final section in article.sections) {
         if (sectionImageBytes.containsKey(section.id)) {
           final bytes = sectionImageBytes[section.id]!;
@@ -219,6 +224,8 @@ class ArticleRepositoryImpl implements ArticleRepository {
       // 4. Devolver la entidad completa con el ID asignado
       return Right(articleModel.copyWith(id: docRef.id));
     } catch (e) {
+      debugPrint(
+          '🧪 ArticleRepositoryImpl: createArticle ✅ Error al crear el artículo: $e');
       // ROLLBACK: Si algo falla (subida de imagen de sección o escritura en Firestore),
       // se borran las imágenes que ya se habían subido.
       if (uploadedCoverUrl != null) {
