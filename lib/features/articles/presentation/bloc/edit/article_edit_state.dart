@@ -16,6 +16,7 @@ class ArticleEditLoading extends ArticleEditState {}
 
 class ArticleEditLoaded extends ArticleEditState {
   final ArticleEntity article;
+  final ArticleEntity? initialArticle;
   final List<CategoryEntity> categories;
   final List<SubcategoryEntity> subcategories;
   final bool isCreating;
@@ -28,10 +29,12 @@ class ArticleEditLoaded extends ArticleEditState {
   final bool isPreviewMode;
   final int titleCharCount;
   final int abstractCharCount;
+  final bool canEditContent;
   final List<String> imagesToDelete; // Para rastrear imágenes a borrar
 
   const ArticleEditLoaded({
     required this.article,
+    this.initialArticle,
     required this.categories,
     required this.subcategories,
     this.newSectionImageBytes = const {},
@@ -44,11 +47,21 @@ class ArticleEditLoaded extends ArticleEditState {
     this.isArticleValid = false,
     this.titleCharCount = 0,
     this.abstractCharCount = 0,
+    this.canEditContent = true,
     this.imagesToDelete = const [],
   });
 
+  bool get isDirty {
+    if (newCoverImageBytes != null) return true;
+    if (newSectionImageBytes.isNotEmpty) return true;
+    if (imagesToDelete.isNotEmpty) return true;
+    if (initialArticle == null) return false;
+    return article != initialArticle;
+  }
+
   ArticleEditLoaded copyWith({
     ArticleEntity? article,
+    ArticleEntity? initialArticle,
     List<CategoryEntity>? categories,
     List<SubcategoryEntity>? subcategories,
     bool? isCreating,
@@ -61,10 +74,12 @@ class ArticleEditLoaded extends ArticleEditState {
     bool? isPreviewMode,
     int? titleCharCount,
     int? abstractCharCount,
+    bool? canEditContent,
     List<String>? imagesToDelete,
   }) {
     return ArticleEditLoaded(
       article: article ?? this.article,
+      initialArticle: initialArticle ?? this.initialArticle,
       categories: categories ?? this.categories,
       subcategories: subcategories ?? this.subcategories,
       isCreating: isCreating ?? this.isCreating,
@@ -77,6 +92,7 @@ class ArticleEditLoaded extends ArticleEditState {
       isPreviewMode: isPreviewMode ?? this.isPreviewMode,
       titleCharCount: titleCharCount ?? this.titleCharCount,
       abstractCharCount: abstractCharCount ?? this.abstractCharCount,
+      canEditContent: canEditContent ?? this.canEditContent,
       imagesToDelete: imagesToDelete ?? this.imagesToDelete,
     );
   }
@@ -84,6 +100,7 @@ class ArticleEditLoaded extends ArticleEditState {
   @override
   List<Object?> get props => [
         article,
+        initialArticle,
         categories,
         subcategories,
         isCreating,
@@ -96,6 +113,7 @@ class ArticleEditLoaded extends ArticleEditState {
         isPreviewMode,
         titleCharCount,
         abstractCharCount,
+        canEditContent,
         imagesToDelete,
       ];
 }

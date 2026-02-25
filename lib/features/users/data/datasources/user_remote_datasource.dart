@@ -32,8 +32,6 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       await firestore.collection('users').doc(userId).update({
         // Usar notación de punto para actualizar un campo dentro de un mapa
         'memberships.$associationId': role,
-        // Añadir el ID al array de Ids de asociación para optimizar consultas
-        'associationIds': FieldValue.arrayUnion([associationId]),
       });
     } on FirebaseException catch (e) {
       throw ServerException(
@@ -48,7 +46,6 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     try {
       await firestore.collection('users').doc(userId).update({
         'memberships.$associationId': FieldValue.delete(),
-        'associationIds': FieldValue.arrayRemove([associationId])
       });
     } on FirebaseException catch (e) {
       throw ServerException(
@@ -61,9 +58,11 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<List<UserModel>> getUsersByAssociation(String associationId) async {
     try {
+      // Usar el mapa 'memberships' como fuente de verdad.
+      // '.orderBy' con notación de punto filtra los documentos que tienen ese campo.
       final snapshot = await firestore
           .collection('users')
-          .where('associationIds', arrayContains: associationId)
+          .orderBy('memberships.$associationId')
           .get();
 
       return snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();

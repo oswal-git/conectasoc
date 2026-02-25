@@ -11,6 +11,7 @@ import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 import 'package:conectasoc/features/users/data/datasources/user_remote_datasource.dart';
 import 'package:conectasoc/features/users/domain/entities/profile_entity.dart';
 import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
+import 'package:flutter/material.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource remoteDataSource;
@@ -79,13 +80,22 @@ class UserRepositoryImpl implements UserRepository {
       }
 
       if (newImageBytes != null) {
+        final filename = user.uid; // Use user ID for a unique filename
         final uploadResult = await CloudinaryService.uploadImageBytes(
           imageBytes: newImageBytes,
-          filename: user.uid, // Use user ID for a unique filename
+          filename: filename,
           imageType: CloudinaryImageType.avatar,
         );
         if (uploadResult.success) {
           newImageUrl = uploadResult.secureUrl;
+          debugPrint(
+              "➡️ UserRepositoryImpl - updateUser: uploadImageBytes - filename => $filename");
+          debugPrint(
+              "➡️ UserRepositoryImpl - updateUser: uploadImageBytes - toString => ${uploadResult.toString()}");
+          debugPrint(
+              "➡️ UserRepositoryImpl - updateUser: uploadImageBytes - url => ${uploadResult.url}");
+          debugPrint(
+              "➡️ UserRepositoryImpl - updateUser: uploadImageBytes - secureUrl => ${uploadResult.secureUrl}");
         } else {
           return Left(
               ServerFailure(uploadResult.error ?? 'Error al subir la imagen'));

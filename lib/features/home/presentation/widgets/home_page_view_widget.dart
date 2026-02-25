@@ -36,6 +36,40 @@ class HomePageViewWidget extends StatelessWidget {
           // El título ahora se construye aquí, con acceso a ambos BLoCs.
           title: _buildAppBarTitle(context, authState),
           actions: [
+            BlocBuilder<HomeBloc, HomeState>(
+              builder: (context, state) {
+                final isSearchVisible =
+                    state is HomeLoaded ? state.showSearch : false;
+                final isFilterVisible =
+                    state is HomeLoaded ? state.showFilter : false;
+
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        isSearchVisible ? Icons.search_off : Icons.search,
+                        color: isSearchVisible ? Colors.blue : null,
+                      ),
+                      onPressed: () =>
+                          context.read<HomeBloc>().add(ToggleSearch()),
+                      tooltip: AppLocalizations.of(context).search,
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        isFilterVisible
+                            ? Icons.filter_alt
+                            : Icons.filter_alt_outlined,
+                        color: isFilterVisible ? Colors.blue : null,
+                      ),
+                      onPressed: () =>
+                          context.read<HomeBloc>().add(ToggleFilter()),
+                      tooltip: AppLocalizations.of(context).filter,
+                    ),
+                  ],
+                );
+              },
+            ),
             if (canEdit)
               BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {

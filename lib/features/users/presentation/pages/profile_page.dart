@@ -124,7 +124,28 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         children: [
           _buildProfileImage(state.user.photoUrl, state.localImageBytes),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
+          Builder(builder: (context) {
+            final authState = context.watch<AuthBloc>().state;
+            String roleText = '';
+            if (authState is AuthAuthenticated) {
+              if (authState.user.isSuperAdmin) {
+                roleText = 'SuperAdmin';
+              } else {
+                final role = authState.currentMembership?.role ?? 'asociado';
+                // Usamos la traducción del rol si está disponible, si no, capitalizamos el rol técnico
+                roleText = l10n.role(role == 'member' ? 'asociado' : role);
+              }
+            }
+            return Text(
+              roleText,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.bold,
+                  ),
+            );
+          }),
+          const SizedBox(height: 16),
           FormBuilder(
             key: _formKey,
             initialValue: {

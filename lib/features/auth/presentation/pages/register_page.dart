@@ -1,6 +1,6 @@
 // lib/features/auth/presentation/pages/register_page.dart
 
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_debugPrint
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/material.dart';
@@ -40,17 +40,17 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          print('🧪 TEST: Iniciando prueba directa de Firebase');
+          debugPrint('🧪 TEST: Iniciando prueba directa de Firebase');
 
           try {
             final auth = firebase.FirebaseAuth.instance;
-            print('🧪 TEST: FirebaseAuth instance obtenida');
+            debugPrint('🧪 TEST: FirebaseAuth instance obtenida');
 
             final testEmail =
                 'test${DateTime.now().millisecondsSinceEpoch}@test.com';
             final testPassword = 'test123456';
 
-            print('🧪 TEST: Intentando crear usuario: $testEmail');
+            debugPrint('🧪 TEST: Intentando crear usuario: $testEmail');
 
             final credential = await auth
                 .createUserWithEmailAndPassword(
@@ -60,16 +60,17 @@ class _RegisterPageState extends State<RegisterPage> {
                 .timeout(
               const Duration(seconds: 10),
               onTimeout: () {
-                print('🧪 TEST: TIMEOUT!');
+                debugPrint('🧪 TEST: TIMEOUT!');
                 throw Exception('Timeout');
               },
             );
 
-            print('🧪 TEST: ✅ Usuario creado! UID: ${credential.user?.uid}');
+            debugPrint(
+                '🧪 TEST: ✅ Usuario creado! UID: ${credential.user?.uid}');
 
             // Limpiar
             await credential.user?.delete();
-            print('🧪 TEST: ✅ Usuario eliminado');
+            debugPrint('🧪 TEST: ✅ Usuario eliminado');
 
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -77,8 +78,8 @@ class _RegisterPageState extends State<RegisterPage> {
               );
             }
           } catch (e, stack) {
-            print('🧪 TEST: ❌ Error: $e');
-            print('🧪 TEST: Stack: $stack');
+            debugPrint('🧪 TEST: ❌ Error: $e');
+            debugPrint('🧪 TEST: Stack: $stack');
 
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(

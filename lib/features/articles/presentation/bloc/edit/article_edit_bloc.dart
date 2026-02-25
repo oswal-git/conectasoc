@@ -63,6 +63,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     on<RestoreDraft>(_onRestoreDraft);
     on<TogglePreviewMode>(_onTogglePreviewMode);
     on<DiscardDraft>(_onDiscardDraft);
+    on<UpdateArticleDocumentLink>(_onUpdateArticleDocumentLink);
+    on<UpdateSectionDocumentLink>(_onUpdateSectionDocumentLink);
   }
 
   Future<void> _onPrepareArticleCreation(
@@ -111,11 +113,13 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
 
           emit(ArticleEditLoaded(
             article: newArticle!,
+            initialArticle: newArticle!,
             categories: categories,
             subcategories: const [],
             isCreating: true,
             titleCharCount: titleCharCount,
             abstractCharCount: abstractCharCount,
+            canEditContent: true, // New articles are always editable by creator
           ));
         },
       );
@@ -185,14 +189,19 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       final abstractCharCount =
           quillJsonToPlainText(article.abstractContent).length;
 
+      final canEditContent = ArticlePermissions.canEdit(
+          article: article, user: user, membership: membership);
+
       final initialState = ArticleEditLoaded(
           article: article,
+          initialArticle: article,
           status: ArticleStatus
               .redaccion, // Se establece automáticamente en redacción al editar
           categories: categories,
           subcategories: subcategories,
           titleCharCount: titleCharCount,
-          abstractCharCount: abstractCharCount);
+          abstractCharCount: abstractCharCount,
+          canEditContent: canEditContent);
 
       // Validar el estado inicial antes de emitirlo
       final isValid = _isArticleValid(initialState.article, null, false);
@@ -329,6 +338,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
         (_) {
           // On success, clear the draft
           _sharedPreferences.remove(_getDraftKey(null));
+          emit(currentState.copyWith(
+              isSaving: false, initialArticle: articleToSave));
           emit(const ArticleEditSuccess(isCreating: true));
         },
       );
@@ -347,6 +358,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
         (_) {
           // On success, clear the draft
           _sharedPreferences.remove(_getDraftKey(articleToSave.id));
+          emit(currentState.copyWith(
+              isSaving: false, initialArticle: articleToSave));
           emit(const ArticleEditSuccess(isCreating: false));
         },
       );
@@ -664,8 +677,19 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
           quillJsonToPlainText(currentState.draftArticle.abstractContent)
               .length;
 
+      // --- Security Check: RBAC for draft ---
+      final authState = _authBloc.state;
+      final user = authState is AuthAuthenticated ? authState.user : null;
+      final membership =
+          authState is AuthAuthenticated ? authState.currentMembership : null;
+      final canEditContent = ArticlePermissions.canEdit(
+          article: currentState.draftArticle,
+          user: user,
+          membership: membership);
+
       emit(ArticleEditLoaded(
         article: currentState.draftArticle,
+        initialArticle: currentState.originalArticle,
         status: currentState.draftArticle.status,
         categories: categoriesResult.getOrElse(() => []),
         subcategories: subcategories,
@@ -674,6 +698,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
         titleCharCount: titleCharCount, // Pasar el contador de caracteres.
         abstractCharCount:
             abstractCharCount, // Pasar el contador de caracteres.
+        canEditContent: canEditContent,
       ));
     }
   }
@@ -695,5 +720,47 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       final currentState = state as ArticleEditLoaded;
       emit(currentState.copyWith(isPreviewMode: !currentState.isPreviewMode));
     }
+  }
+
+  void _onUpdateArticleDocumentLink(
+    UpdateArticleDocumentLink event,
+    Emitter<ArticleEditState> emit,
+  ) {
+    if (state is! ArticleEditLoaded) return;
+    final current = state as ArticleEditLoaded;
+
+    final updatedArticle = event.documentLink != null
+        ? current.article.copyWith(documentLink: event.documentLink)
+        : current.article.copyWith(clearDocumentLink: true);
+
+    emit(current.copyWith(article: updatedArticle));
+  }
+
+  void _onUpdateSectionDocumentLink(
+    UpdateSectionDocumentLink event,
+    Emitter<ArticleEditState> emit,
+  ) {
+    if (state is! ArticleEditLoaded) return;
+    final current = state as ArticleEditLoaded;
+
+    final updatedSections = current.article.sections.map((section) {
+      if (section.id != event.sectionId) return section;
+
+      if (event.documentLink != null) {
+        // Enlazar documento: limpiar imagen y texto (incompatibilidad)
+        return ArticleSection.withDocument(
+          id: section.id,
+          documentLink: event.documentLink!,
+          order: section.order,
+        );
+      } else {
+        // Quitar documento: dejar sección vacía de contenido
+        return section.copyWith(clearDocumentLink: true);
+      }
+    }).toList();
+
+    emit(current.copyWith(
+      article: current.article.copyWith(sections: updatedSections),
+    ));
   }
 }

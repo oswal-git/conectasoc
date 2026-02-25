@@ -19,6 +19,9 @@ class DocumentSearchBloc
 
   // Guardamos el associationId para reutilizarlo en refrescos y filtros
   String? _associationId;
+  bool _isSuperAdmin = false;
+  String? _userAssociationId;
+  String? _userRole;
 
   DocumentSearchBloc({
     required this.getDocumentsByAssociationUseCase,
@@ -49,6 +52,9 @@ class DocumentSearchBloc
     Emitter<DocumentSearchState> emit,
   ) async {
     _associationId = event.associationId;
+    _isSuperAdmin = event.isSuperAdmin;
+    _userAssociationId = event.userAssociationId;
+    _userRole = event.userRole;
     emit(const DocumentSearchLoading());
 
     // Llamadas separadas para preservar tipos genéricos de Dartz.
@@ -56,6 +62,9 @@ class DocumentSearchBloc
     final categoriesResult = await getCategoriesUseCase();
     final documentsResult = await getDocumentsByAssociationUseCase(
       associationId: _associationId,
+      isSuperAdmin: _isSuperAdmin,
+      userAssociationId: _userAssociationId,
+      userRole: _userRole,
     );
 
     if (categoriesResult.isLeft()) {
@@ -223,6 +232,9 @@ class DocumentSearchBloc
       associationId: _associationId,
       categoryId: current.selectedCategoryId,
       subcategoryId: current.selectedSubcategoryId,
+      isSuperAdmin: _isSuperAdmin,
+      userAssociationId: _userAssociationId,
+      userRole: _userRole,
     );
 
     result.fold(

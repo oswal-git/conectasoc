@@ -14,12 +14,18 @@ class SearchDocumentsUseCase {
     String? associationId,
     String? categoryId,
     String? subcategoryId,
+    required bool isSuperAdmin,
+    String? userAssociationId,
+    String? userRole,
   }) async {
     return await repository.searchDocuments(
       query: query,
       associationId: associationId,
       categoryId: categoryId,
       subcategoryId: subcategoryId,
+      isSuperAdmin: isSuperAdmin,
+      userAssociationId: userAssociationId,
+      userRole: userRole,
     );
   }
 }

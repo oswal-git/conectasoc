@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:conectasoc/features/documents/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 /// Events for document upload
@@ -89,4 +90,14 @@ class SubmitDocumentUpload extends DocumentUploadEvent {
 /// Clear form and reset to initial state
 class ResetUpload extends DocumentUploadEvent {
   const ResetUpload();
+}
+
+/// User changed read scope
+class ReadScopeChanged extends DocumentUploadEvent {
+  final ReadScope readScope;
+
+  const ReadScopeChanged(this.readScope);
+
+  @override
+  List<Object?> get props => [readScope];
 }

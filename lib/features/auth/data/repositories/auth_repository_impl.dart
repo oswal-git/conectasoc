@@ -12,6 +12,7 @@ import 'package:conectasoc/core/errors/failures.dart';
 import 'package:conectasoc/features/auth/data/datasources/datasources.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/repositories/repositories.dart';
+import 'package:flutter/material.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
@@ -129,17 +130,17 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, firebase.UserCredential>> createFirebaseAuthUser(
       String email, String password) async {
-    print('Inicio createFirebaseAuthUser');
+    debugPrint('Inicio createFirebaseAuthUser');
     try {
       final credential =
           await remoteDataSource.createFirebaseAuthUser(email, password);
-      print('createFirebaseAuthUser: credential');
+      debugPrint('createFirebaseAuthUser: credential');
       return Right(credential);
     } on ServerException catch (e) {
-      print('createFirebaseAuthUser: ServerException -> ${e.message}');
+      debugPrint('createFirebaseAuthUser: ServerException -> ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('createFirebaseAuthUser: GenericException -> $e');
+      debugPrint('createFirebaseAuthUser: GenericException -> $e');
       return Left(ServerFailure('Error creando usuario en Auth: $e'));
     }
   }

@@ -107,6 +107,9 @@ class _LinkedDocumentCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorWidget: (_, __, ___) =>
                           _IconFallback(ext: ext, color: color),
+                      httpHeaders: {
+                        'Cache-Control': 'max-age=86400', // 24 horas
+                      },
                     )
                   : _IconFallback(ext: ext, color: color),
             ),
@@ -214,14 +217,31 @@ class _SelectionButtons extends StatelessWidget {
 
   const _SelectionButtons({required this.onDocumentSelected});
 
-  String? _associationId(BuildContext context) {
+  (String?, bool, String?, String?) _getSearchParams(BuildContext context) {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
-      return authState.user.isSuperAdmin
-          ? null // superadmin ve todos
-          : authState.currentMembership?.associationId;
+      final user = authState.user;
+      final membership = authState.currentMembership;
+      final associationId =
+          user.isSuperAdmin ? null : membership?.associationId;
+      return (
+        associationId, // Para filtrar por asociación
+        user.isSuperAdmin, // readScope: isSuperAdmin
+        membership?.associationId, // readScope: userAssociationId
+        membership?.role, // readScope: userRole
+      );
     }
-    return null;
+    return (null, false, null, null);
+  }
+
+  DocumentLinkEntity _documentToLink(DocumentEntity doc) {
+    return DocumentLinkEntity(
+      documentId: doc.id,
+      description: doc.descDoc,
+      urlThumb: doc.urlThumb,
+      urlDoc: doc.urlDoc,
+      fileExtension: doc.fileExtension,
+    );
   }
 
   @override
@@ -234,9 +254,15 @@ class _SelectionButtons extends StatelessWidget {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () async {
+              final (associationId, isSuperAdmin, userAssociationId, userRole) =
+                  _getSearchParams(context);
+
               final doc = await showDocumentSearchDialog(
                 context: context,
-                associationId: _associationId(context),
+                associationId: associationId,
+                isSuperAdmin: isSuperAdmin,
+                userAssociationId: userAssociationId,
+                userRole: userRole,
               );
               if (doc != null) {
                 onDocumentSelected(_documentToLink(doc));
@@ -275,16 +301,6 @@ class _SelectionButtons extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  DocumentLinkEntity _documentToLink(DocumentEntity doc) {
-    return DocumentLinkEntity(
-      documentId: doc.id,
-      description: doc.descDoc,
-      urlThumb: doc.urlThumb,
-      urlDoc: doc.urlDoc,
-      fileExtension: doc.fileExtension,
     );
   }
 }

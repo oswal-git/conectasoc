@@ -52,6 +52,11 @@ class ArticleModel extends ArticleEntity {
                     imageUrl: s['imageUrl'],
                     richTextContent: s['richTextContent'],
                     order: s['order'] ?? 0,
+                    // ✨ Parsear documentLink de la sección
+                    documentLink: s['documentLink'] != null
+                        ? DocumentLinkEntity.fromJson(
+                            s['documentLink'] as Map<String, dynamic>)
+                        : null,
                   ))
               .toList() ??
           [],
@@ -167,5 +172,63 @@ class ArticleModel extends ArticleEntity {
       'modifiedAt': modifiedAt.toIso8601String(),
       'documentLink': documentLink?.toJson(),
     };
+  }
+
+  @override
+  ArticleModel copyWith({
+    String? id,
+    String? title,
+    String? abstractContent,
+    String? coverUrl,
+    String? categoryId,
+    String? categoryName,
+    String? subcategoryId,
+    String? subcategoryName,
+    DateTime? publishDate,
+    DateTime? effectiveDate,
+    DateTime? expirationDate,
+    ArticleStatus? status,
+    DateTime? fechaNotificacion,
+    List<ArticleSection>? sections,
+    String? userId,
+    String? assocId,
+    String? authorName,
+    String? associationShortName,
+    String? originalLanguage,
+    DateTime? createdAt,
+    DateTime? modifiedAt,
+    DocumentLinkEntity? documentLink,
+    bool clearDocumentLink = false,
+    bool clearExpirationDate = false,
+    bool clearFechaNotificacion = false,
+  }) {
+    return ArticleModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      abstractContent: abstractContent ?? this.abstractContent,
+      coverUrl: coverUrl ?? this.coverUrl,
+      categoryId: categoryId ?? this.categoryId,
+      categoryName: categoryName ?? this.categoryName,
+      subcategoryId: subcategoryId ?? this.subcategoryId,
+      subcategoryName: subcategoryName ?? this.subcategoryName,
+      publishDate: publishDate ?? this.publishDate,
+      effectiveDate: effectiveDate ?? this.effectiveDate,
+      expirationDate:
+          clearExpirationDate ? null : (expirationDate ?? this.expirationDate),
+      status: status ?? this.status,
+      fechaNotificacion: clearFechaNotificacion
+          ? null
+          : (fechaNotificacion ?? this.fechaNotificacion),
+      sections: sections ?? this.sections,
+      userId: userId ?? this.userId,
+      assocId: assocId ?? this.assocId,
+      authorName: authorName ?? this.authorName,
+      associationShortName: associationShortName ?? this.associationShortName,
+      originalLanguage: originalLanguage ?? this.originalLanguage,
+      createdAt: createdAt ?? this.createdAt,
+      modifiedAt: modifiedAt ?? this.modifiedAt,
+      documentLink:
+          clearDocumentLink ? null : (documentLink ?? this.documentLink),
+    );
   }
 }

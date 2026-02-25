@@ -10,11 +10,20 @@ abstract class DocumentEvent extends Equatable {
 /// Carga inicial de documentos para una asociación
 class LoadDocuments extends DocumentEvent {
   final String? associationId; // null = superadmin (ve todos)
+  final bool isSuperAdmin;
+  final String? userAssociationId;
+  final String? userRole;
 
-  const LoadDocuments({this.associationId});
+  const LoadDocuments({
+    this.associationId,
+    this.isSuperAdmin = false,
+    this.userAssociationId,
+    this.userRole,
+  });
 
   @override
-  List<Object?> get props => [associationId];
+  List<Object?> get props =>
+      [associationId, isSuperAdmin, userAssociationId, userRole];
 }
 
 /// Cambio en el campo de búsqueda

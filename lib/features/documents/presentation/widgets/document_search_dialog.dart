@@ -11,12 +11,20 @@ import 'package:conectasoc/l10n/app_localizations.dart';
 Future<DocumentEntity?> showDocumentSearchDialog({
   required BuildContext context,
   required String? associationId,
+  required bool isSuperAdmin,
+  String? userAssociationId,
+  String? userRole,
 }) {
   return showDialog<DocumentEntity>(
     context: context,
     builder: (_) => BlocProvider(
       create: (_) => sl<DocumentSearchBloc>()
-        ..add(InitializeDocumentSearch(associationId: associationId)),
+        ..add(InitializeDocumentSearch(
+          associationId: associationId,
+          isSuperAdmin: isSuperAdmin,
+          userAssociationId: userAssociationId,
+          userRole: userRole,
+        )),
       child: const _DocumentSearchDialogContent(),
     ),
   );

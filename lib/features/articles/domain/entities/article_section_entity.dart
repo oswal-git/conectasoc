@@ -1,6 +1,16 @@
 import 'package:conectasoc/features/documents/domain/entities/document_link_entity.dart';
 import 'package:equatable/equatable.dart';
 
+/// Sección de un artículo.
+///
+/// REGLA DE INCOMPATIBILIDAD:
+/// - Si [documentLink] está informado → [imageUrl] y [richTextContent] deben
+///   ser nulos/vacíos.
+/// - Si [imageUrl] o [richTextContent] están informados → [documentLink] debe
+///   ser nulo.
+/// Usar los factories [withDocument] y [withContent] para garantizar esto.
+///
+
 class ArticleSection extends Equatable {
   final String id;
   final String? imageUrl;
@@ -17,7 +27,12 @@ class ArticleSection extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, imageUrl, richTextContent, order];
+  List<Object?> get props => [
+        id,
+        imageUrl,
+        richTextContent,
+        documentLink,
+      ];
 
   ArticleSection copyWith({
     String? id,
@@ -42,6 +57,10 @@ class ArticleSection extends Equatable {
     );
   }
 
+  // ─────────────────────────────────────────────
+  // Serialización
+  // ─────────────────────────────────────────────
+
   factory ArticleSection.fromJson(Map<String, dynamic> json) {
     return ArticleSection(
       id: json['id'] ?? '',
@@ -51,6 +70,19 @@ class ArticleSection extends Equatable {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'imageUrl': imageUrl,
+      'richTextContent': richTextContent,
+      'order': order,
+      'documentLink': documentLink?.toJson(), // ✨ NUEVO
+    };
+  }
+
+  // ─────────────────────────────────────────────
+  // Getters de estado
+  // ─────────────────────────────────────────────
   /// Retorna true si la sección tiene un documento enlazado
   bool get hasDocument => documentLink != null;
 
@@ -62,7 +94,11 @@ class ArticleSection extends Equatable {
   /// Valida que no haya documento Y contenido al mismo tiempo
   bool get isValid => !(hasDocument && hasContent);
 
-  // Factory para crear sección con documento
+  // ─────────────────────────────────────────────
+  // Factories
+  // ─────────────────────────────────────────────
+
+  /// Crea una sección con documento enlazado (limpia imagen y texto)
   factory ArticleSection.withDocument({
     required String id,
     required DocumentLinkEntity documentLink,
@@ -77,7 +113,7 @@ class ArticleSection extends Equatable {
     );
   }
 
-  // Factory para crear sección con contenido
+  /// Crea una sección con imagen y/o texto (limpia documento)
   factory ArticleSection.withContent({
     required String id,
     String? imageUrl,

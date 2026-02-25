@@ -19,6 +19,9 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
 
   Timer? _debounceTimer;
   String? _associationId;
+  bool _isSuperAdmin = false;
+  String? _userAssociationId;
+  String? _userRole;
 
   DocumentBloc({
     required this.getDocumentsByAssociationUseCase,
@@ -51,6 +54,10 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     Emitter<DocumentState> emit,
   ) async {
     _associationId = event.associationId;
+    _isSuperAdmin = event.isSuperAdmin;
+    _userAssociationId = event.userAssociationId;
+    _userRole = event.userRole;
+
     emit(const DocumentLoading());
 
     // Llamadas separadas para preservar los tipos genéricos de Dartz.
@@ -58,6 +65,9 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     final categoriesResult = await getCategoriesUseCase();
     final documentsResult = await getDocumentsByAssociationUseCase(
       associationId: _associationId,
+      isSuperAdmin: _isSuperAdmin,
+      userAssociationId: _userAssociationId,
+      userRole: _userRole,
     );
 
     if (categoriesResult.isLeft()) {
@@ -237,6 +247,9 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       associationId: _associationId,
       categoryId: current.selectedCategoryId,
       subcategoryId: current.selectedSubcategoryId,
+      isSuperAdmin: _isSuperAdmin,
+      userAssociationId: _userAssociationId,
+      userRole: _userRole,
     );
 
     result.fold(

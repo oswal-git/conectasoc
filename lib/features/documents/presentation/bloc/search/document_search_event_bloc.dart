@@ -10,11 +10,20 @@ abstract class DocumentSearchEvent extends Equatable {
 /// Carga inicial: categorías + documentos de la asociación
 class InitializeDocumentSearch extends DocumentSearchEvent {
   final String? associationId; // null = superadmin (ve todos)
+  final bool isSuperAdmin;
+  final String? userAssociationId;
+  final String? userRole;
 
-  const InitializeDocumentSearch({this.associationId});
+  const InitializeDocumentSearch({
+    this.associationId,
+    required this.isSuperAdmin,
+    this.userAssociationId,
+    this.userRole,
+  });
 
   @override
-  List<Object?> get props => [associationId];
+  List<Object?> get props =>
+      [associationId, isSuperAdmin, userAssociationId, userRole];
 }
 
 /// El usuario escribe en el campo de búsqueda

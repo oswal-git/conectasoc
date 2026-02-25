@@ -6,6 +6,7 @@ import 'package:conectasoc/features/articles/presentation/pages/pages.dart';
 import 'package:conectasoc/features/associations/presentation/pages/pages.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/pages/pages.dart';
+import 'package:conectasoc/features/documents/presentation/pages/pages.dart';
 import 'package:conectasoc/features/home/presentation/pages/pages.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/presentation/pages/pages.dart';
@@ -124,6 +125,24 @@ class AppRouter {
             path: 'settings',
             name: RouteNames.settings,
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.documentUpload,
+            name: RouteNames.documentUpload,
+            builder: (context, state) => const DocumentUploadPage(),
+          ),
+          GoRoute(
+            path: RouteNames.documentList,
+            name: RouteNames.documentList,
+            builder: (context, state) => const DocumentListPage(),
+          ),
+          GoRoute(
+            path: RouteNames.documentView,
+            name: RouteNames.documentView,
+            builder: (context, state) {
+              final documentId = state.pathParameters['documentId']!;
+              return DocumentViewPage(documentId: documentId);
+            },
           ),
         ],
       ),

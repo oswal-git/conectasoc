@@ -26,6 +26,7 @@ class DocumentUploadReady extends DocumentUploadState {
   final String userId;
   final String description;
   final bool canDownload;
+  final ReadScope readScope;
   final Uint8List? selectedFileBytes;
   final String? selectedFileName;
   final List<CategoryEntity> categories;
@@ -38,6 +39,7 @@ class DocumentUploadReady extends DocumentUploadState {
     required this.userId,
     this.description = '',
     this.canDownload = true,
+    this.readScope = ReadScope.asociado,
     this.selectedFileBytes,
     this.selectedFileName,
     required this.categories,
@@ -51,6 +53,7 @@ class DocumentUploadReady extends DocumentUploadState {
     String? userId,
     String? description,
     bool? canDownload,
+    ReadScope? readScope,
     Uint8List? selectedFileBytes,
     String? selectedFileName,
     List<CategoryEntity>? categories,
@@ -64,6 +67,7 @@ class DocumentUploadReady extends DocumentUploadState {
       userId: userId ?? this.userId,
       description: description ?? this.description,
       canDownload: canDownload ?? this.canDownload,
+      readScope: readScope ?? this.readScope,
       selectedFileBytes:
           clearFile ? null : (selectedFileBytes ?? this.selectedFileBytes),
       selectedFileName:
@@ -98,6 +102,7 @@ class DocumentUploadReady extends DocumentUploadState {
         userId,
         description,
         canDownload,
+        readScope,
         selectedFileBytes,
         selectedFileName,
         categories,

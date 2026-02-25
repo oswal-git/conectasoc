@@ -37,6 +37,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<SubcategorySelected>(_onSubcategorySelected);
     on<ClearCategoryFilter>(_onClearCategoryFilter);
     on<LoadMoreArticles>(_onLoadMoreArticles);
+    on<ToggleSearch>(_onToggleSearch);
+    on<ToggleFilter>(_onToggleFilter);
   }
 
   Future<void> _onLoadHomeData(
@@ -348,7 +350,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(currentState.copyWith(filteredArticles: filtered));
   }
 
-  // Helper to convert Quill JSON to plain text for search
   String _quillJsonToPlainText(String quillJson) {
     if (quillJson.isEmpty) return '';
     try {
@@ -356,6 +357,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       return doc.toPlainText().trim();
     } catch (e) {
       return ''; // Handle malformed JSON gracefully
+    }
+  }
+
+  void _onToggleSearch(ToggleSearch event, Emitter<HomeState> emit) {
+    if (state is HomeLoaded) {
+      final currentState = state as HomeLoaded;
+      emit(currentState.copyWith(showSearch: !currentState.showSearch));
+    }
+  }
+
+  void _onToggleFilter(ToggleFilter event, Emitter<HomeState> emit) {
+    if (state is HomeLoaded) {
+      final currentState = state as HomeLoaded;
+      emit(currentState.copyWith(showFilter: !currentState.showFilter));
     }
   }
 }

@@ -1,12 +1,15 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/material.dart';
+
+import 'package:conectasoc/injection_container.dart';
+
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/documents/domain/entities/entities.dart';
 import 'package:conectasoc/features/documents/presentation/bloc/upload/document_upload_bloc.dart';
 import 'package:conectasoc/features/documents/presentation/bloc/upload/document_upload_event_bloc.dart';
 import 'package:conectasoc/features/documents/presentation/bloc/upload/document_upload_state_bloc.dart';
-import 'package:conectasoc/injection_container.dart';
-import 'package:conectasoc/l10n/app_localizations.dart';
+import 'package:conectasoc/l10n/localizations.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
 
 class DocumentUploadPage extends StatelessWidget {
@@ -96,7 +99,7 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
         listener: (context, state) {
           if (state is DocumentUploadSuccess) {
             SnackBarService.showSnackBar(l10n.documentUploaded);
-            Navigator.of(context).pop(state.document);
+            Navigator.of(context).pop(true);
           } else if (state is DocumentUploadFailure) {
             SnackBarService.showSnackBar(state.error, isError: true);
           }
@@ -129,6 +132,9 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
 
                     // Subcategory selector
                     _buildSubcategorySelector(context, state, l10n),
+                    const SizedBox(height: 24),
+
+                    _buildReadScopeSelector(context, state, l10n),
                     const SizedBox(height: 24),
 
                     // Download permission toggle
@@ -345,6 +351,115 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
         return null;
       },
     );
+  }
+
+  Widget _buildReadScopeSelector(
+    BuildContext context,
+    DocumentUploadReady state,
+    AppLocalizations l10n,
+  ) {
+    // Opciones disponibles según el rol del usuario
+    final authState = context.read<AuthBloc>().state as AuthAuthenticated;
+    final user = authState.user;
+
+    // Determinar qué opciones están disponibles
+    List<ReadScope> availableScopes = [];
+
+    if (user.isSuperAdmin) {
+      // Superadmin puede elegir cualquier scope
+      availableScopes = ReadScope.values;
+    } else {
+      final membership = authState.currentMembership;
+      final userRole = membership?.role;
+
+      if (userRole == 'admin') {
+        // Admin puede marcar como admin, editor o asociado (no superadmin)
+        availableScopes = [
+          ReadScope.admin,
+          ReadScope.editor,
+          ReadScope.asociado,
+        ];
+      } else if (userRole == 'editor') {
+        // Editor solo puede marcar como editor o asociado
+        availableScopes = [
+          ReadScope.editor,
+          ReadScope.asociado,
+        ];
+      } else {
+        // Otros roles solo pueden marcar como asociado
+        availableScopes = [ReadScope.asociado];
+      }
+    }
+
+    return DropdownButtonFormField<ReadScope>(
+      initialValue: state.readScope,
+      decoration: InputDecoration(
+        labelText: l10n.readScope,
+        prefixIcon: const Icon(Icons.visibility_outlined),
+        border: const OutlineInputBorder(),
+        helperText: _getReadScopeHelperText(state.readScope, l10n),
+        helperMaxLines: 2,
+      ),
+      items: availableScopes.map((scope) {
+        return DropdownMenuItem(
+          value: scope,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _getReadScopeIcon(scope),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  l10n.readScopeLabel(scope),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        if (value != null) {
+          context.read<DocumentUploadBloc>().add(ReadScopeChanged(value));
+        }
+      },
+      validator: (value) {
+        if (value == null) {
+          return 'Seleccione un ámbito de lectura';
+        }
+        return null;
+      },
+    );
+  }
+
+  Icon _getReadScopeIcon(ReadScope scope) {
+    switch (scope) {
+      case ReadScope.superadmin:
+        return const Icon(Icons.admin_panel_settings,
+            size: 18, color: Colors.red);
+      case ReadScope.admin:
+        return const Icon(Icons.shield, size: 18, color: Colors.orange);
+      case ReadScope.editor:
+        return const Icon(Icons.edit, size: 18, color: Colors.blue);
+      case ReadScope.asociado:
+        return const Icon(Icons.group, size: 18, color: Colors.green);
+    }
+  }
+
+  String _getReadScopeHelperText(ReadScope scope, AppLocalizations l10n) {
+    switch (scope) {
+      case ReadScope.superadmin:
+        return l10n.readScopeSuperadminHelp; // "Solo visible para superadmin"
+      case ReadScope.admin:
+        return l10n
+            .readScopeAdminHelp; // "Visible para superadmin y admin de la asociación"
+      case ReadScope.editor:
+        return l10n
+            .readScopeEditorHelp; // "Visible para superadmin, admin y editores"
+      case ReadScope.asociado:
+        return l10n
+            .readScopeAsociadoHelp; // "Visible para todos los de la asociación"
+    }
   }
 
   Widget _buildDownloadPermissionToggle(

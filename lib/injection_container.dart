@@ -156,6 +156,7 @@ Future<void> init() async {
   // Se elimina la dependencia de FirebaseStorage, ya que se usa CloudinaryService.
   sl.registerLazySingleton<UserRemoteDataSource>(
       () => UserRemoteDataSourceImpl(firestore: sl()));
+  sl.registerLazySingleton(() => UpdateUserDetailsUseCase(sl()));
   sl.registerLazySingleton(() => GetAllUsersUseCase(sl()));
 
   sl.registerLazySingleton(
@@ -168,7 +169,7 @@ Future<void> init() async {
   sl.registerFactory(
     () => UserEditBloc(
       getUserByIdUseCase: sl(),
-      updateUserUseCase: sl(),
+      updateUserDetailsUseCase: sl(),
       getAllAssociationsUseCase: sl(),
       deleteUserUseCase: sl(),
       createUserUseCase: sl(),
@@ -285,6 +286,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetDocumentsByAssociationUseCase(sl()));
   sl.registerLazySingleton(() => SearchDocumentsUseCase(sl()));
   sl.registerLazySingleton(() => DeleteDocumentUseCase(sl()));
+  sl.registerLazySingleton(() => IsDocumentLinkedUseCase(sl()));
 
 // BLoCs
   sl.registerFactory(

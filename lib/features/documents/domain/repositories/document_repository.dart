@@ -18,6 +18,9 @@ abstract class DocumentRepository {
     String? associationId,
     String? categoryId,
     String? subcategoryId,
+    required bool isSuperAdmin,
+    String? userAssociationId,
+    String? userRole,
   });
 
   /// Search documents by query
@@ -26,6 +29,9 @@ abstract class DocumentRepository {
     String? associationId,
     String? categoryId,
     String? subcategoryId,
+    required bool isSuperAdmin,
+    String? userAssociationId,
+    String? userRole,
   });
 
   /// Update document
@@ -47,4 +53,9 @@ abstract class DocumentRepository {
     required String subcategoryId,
     String? associationId,
   });
+
+  /// Comprueba si el documento está referenciado en algún artículo
+  /// (campo raíz documentLink o en alguna sección).
+  /// Devuelve true si está enlazado, false si no lo está.
+  Future<Either<Failure, bool>> isDocumentLinked(String documentId);
 }

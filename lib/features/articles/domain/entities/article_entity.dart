@@ -13,9 +13,7 @@ enum ArticleStatus {
 
 extension ArticleStatusExtension on ArticleStatus {
   /// Devuelve el valor en string para ser guardado en la base de datos.
-  String get value {
-    return toString().split('.').last;
-  }
+  String get value => toString().split('.').last;
 
   /// Crea un ArticleStatus a partir de un string de la base de datos.
   static ArticleStatus fromValue(String value) {
@@ -192,6 +190,8 @@ class ArticleEntity extends Equatable {
     DateTime? modifiedAt,
     DocumentLinkEntity? documentLink,
     bool clearDocumentLink = false,
+    bool clearExpirationDate = false,
+    bool clearFechaNotificacion = false,
   }) {
     return ArticleEntity(
       id: id ?? this.id,
@@ -204,9 +204,12 @@ class ArticleEntity extends Equatable {
       subcategoryName: subcategoryName ?? this.subcategoryName,
       publishDate: publishDate ?? this.publishDate,
       effectiveDate: effectiveDate ?? this.effectiveDate,
-      expirationDate: expirationDate ?? this.expirationDate,
+      expirationDate:
+          clearExpirationDate ? null : (expirationDate ?? this.expirationDate),
       status: status ?? this.status,
-      fechaNotificacion: fechaNotificacion ?? this.fechaNotificacion,
+      fechaNotificacion: clearFechaNotificacion
+          ? null
+          : (fechaNotificacion ?? this.fechaNotificacion),
       sections: sections ?? this.sections,
       userId: userId ?? this.userId,
       assocId: assocId ?? this.assocId,

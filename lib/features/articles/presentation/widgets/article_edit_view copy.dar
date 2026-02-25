@@ -5,11 +5,10 @@ import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_event.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_state.dart';
 import 'package:conectasoc/features/articles/presentation/widgets/widgets.dart';
-import 'package:conectasoc/features/documents/domain/entities/document_link_entity.dart';
-import 'package:conectasoc/features/documents/presentation/widgets/document_picker_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
@@ -25,20 +24,29 @@ class ArticleEditView extends StatefulWidget {
 
 class _ArticleEditViewState extends State<ArticleEditView> {
   final _formKey = GlobalKey<FormState>();
+
+  // State for toggling between edit and preview mode
   bool _isPreviewMode = false;
 
+  // Controladores para los editores de texto enriquecido
   late quill.QuillController _titleController;
   late quill.QuillController _abstractController;
-  Timer? _debounceTimer;
+  Timer? _debounceTimer; // Para debouncing de los cambios en Quill
 
+  // FocusNodes y ScrollControllers - CRÍTICO: deben ser persistentes
   late FocusNode _titleFocusNode;
   late FocusNode _abstractFocusNode;
   late ScrollController _titleScrollController;
-  late ScrollController _abstractScrollController;
+  late ScrollController
+      _abstractScrollController; // Already declared, but ensure it's used
+
+  // Main ScrollControllers for Form and Preview
   late ScrollController _formScrollController;
   late ScrollController _previewScrollController;
 
+  // Mantener un registro del último artículo sincronizado para evitar actualizaciones redundantes
   ArticleEntity? _lastSyncedArticle;
+
   int _titleCharCount = 0;
   int _abstractCharCount = 0;
 
@@ -47,8 +55,11 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     super.initState();
     _titleController = quill.QuillController.basic();
     _abstractController = quill.QuillController.basic();
+
+    // Set default styles
     _titleController.formatSelection(quill.Attribute.h1);
-    _abstractController.formatSelection(quill.Attribute.header);
+    _abstractController
+        .formatSelection(quill.Attribute.header); // Normal style (reset header)
 
     _titleFocusNode = FocusNode();
     _abstractFocusNode = FocusNode();
@@ -68,9 +79,9 @@ class _ArticleEditViewState extends State<ArticleEditView> {
   void dispose() {
     _titleController.removeListener(_onTitleChanged);
     _abstractController.removeListener(_onAbstractChanged);
+    _titleController.dispose();
     _titleController.removeListener(_updateTitleCharCount);
     _abstractController.removeListener(_updateAbstractCharCount);
-    _titleController.dispose();
     _abstractController.dispose();
     _titleFocusNode.dispose();
     _abstractFocusNode.dispose();
@@ -84,25 +95,35 @@ class _ArticleEditViewState extends State<ArticleEditView> {
 
   void _updateTitleCharCount() {
     final plainText = _titleController.document.toPlainText().trim();
-    if (mounted) setState(() => _titleCharCount = plainText.length);
+    if (mounted) {
+      setState(() {
+        _titleCharCount = plainText.length;
+      });
+    }
   }
 
   void _updateAbstractCharCount() {
     final plainText = _abstractController.document.toPlainText().trim();
-    if (mounted) setState(() => _abstractCharCount = plainText.length);
+    if (mounted) {
+      setState(() {
+        _abstractCharCount = plainText.length;
+      });
+    }
   }
 
   void _onTitleChanged() {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      final currentState = context.read<ArticleEditBloc>().state;
-      if (currentState is ArticleEditLoaded) {
+      final currentArticleState = context.read<ArticleEditBloc>().state;
+      if (currentArticleState is ArticleEditLoaded) {
         final newTitleJson =
             jsonEncode(_titleController.document.toDelta().toJson());
-        if (currentState.article.title != newTitleJson) {
+        // Solo despachar si el contenido ha cambiado realmente para evitar eventos redundantes
+        // Also check if the current state's article title is different from the new one
+        if (currentArticleState.article.title != newTitleJson) {
           context.read<ArticleEditBloc>().add(
                 ArticleFieldChanged(
-                    currentState.article.copyWith(title: newTitleJson)),
+                    currentArticleState.article.copyWith(title: newTitleJson)),
               );
         }
       }
@@ -112,13 +133,15 @@ class _ArticleEditViewState extends State<ArticleEditView> {
   void _onAbstractChanged() {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      final currentState = context.read<ArticleEditBloc>().state;
-      if (currentState is ArticleEditLoaded) {
+      final currentArticleState = context.read<ArticleEditBloc>().state;
+      if (currentArticleState is ArticleEditLoaded) {
         final newAbstractJson =
             jsonEncode(_abstractController.document.toDelta().toJson());
-        if (currentState.article.abstractContent != newAbstractJson) {
+        // Solo despachar si el contenido ha cambiado realmente para evitar eventos redundantes
+        // Also check if the current state's article abstract content is different from the new one
+        if (currentArticleState.article.abstractContent != newAbstractJson) {
           context.read<ArticleEditBloc>().add(
-                ArticleFieldChanged(currentState.article
+                ArticleFieldChanged(currentArticleState.article
                     .copyWith(abstractContent: newAbstractJson)),
               );
         }
@@ -126,9 +149,15 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     });
   }
 
+  /// Sincroniza el contenido de los controladores de Quill con el estado del artículo.
+  /// Se llama desde el BlocListener para asegurar que solo se ejecute cuando los datos cambian.
   void _syncQuillControllers(ArticleEntity article) {
-    if (_lastSyncedArticle == article) return;
+    // Prevenir la sincronización si el artículo no ha cambiado o si es el mismo que el último sincronizado
+    if (_lastSyncedArticle == article) {
+      return; // No hacer nada si el artículo no ha cambiado.
+    }
 
+    // Only update if the content has actually changed to avoid cursor issues
     final currentTitleJson =
         jsonEncode(_titleController.document.toDelta().toJson());
     if (currentTitleJson != article.title) {
@@ -136,7 +165,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
         jsonDecode(
             article.title.isEmpty ? '[{"insert":"\\n"}]' : article.title),
       );
-      _titleController.moveCursorToEnd();
+      _titleController.moveCursorToEnd(); // Keep cursor at end after update
     }
 
     final currentAbstractJson =
@@ -147,7 +176,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
             ? '[{"insert":"\\n"}]'
             : article.abstractContent),
       );
-      _abstractController.moveCursorToEnd();
+      _abstractController.moveCursorToEnd(); // Keep cursor at end after update
     }
 
     _lastSyncedArticle = article;
@@ -159,6 +188,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
 
     return BlocBuilder<ArticleEditBloc, ArticleEditState>(
       builder: (context, state) {
+        // Determine the title based on the state.
         final bool isCreating = state is! ArticleEditLoaded ||
             state.article.id.isEmpty ||
             state.isCreating;
@@ -166,16 +196,84 @@ class _ArticleEditViewState extends State<ArticleEditView> {
 
         return PopScope(
           canPop: false,
-          onPopInvokedWithResult: (didPop, result) {
+          onPopInvokedWithResult: (bool didPop, dynamic result) async {
             if (didPop) return;
-            if (state is ArticleEditLoaded && state.isDirty) {
-              _showExitConfirmationDialog(context, l10n);
-            } else {
-              context.pop();
+
+            // Check if there are unsaved changes
+            bool hasUnsavedChanges = false;
+            if (state is ArticleEditLoaded) {
+              // Consider changes unsaved if the article has been modified
+              // We can check this by comparing with a saved state or checking if isSaving is false
+              // For simplicity, we'll show the dialog if not currently saving
+              hasUnsavedChanges = !state.isSaving;
+            }
+
+            if (!hasUnsavedChanges || !context.mounted) {
+              Navigator.of(context).pop();
+              return;
+            }
+
+            // Show confirmation dialog
+            final shouldPop = await showDialog<bool>(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                title: Text(l10n.unsavedChangesTitle),
+                content: Text(l10n.unsavedChangesMessage),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                    child: Text(l10n.stay),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                    child: Text(l10n.leaveWithoutSaving),
+                  ),
+                ],
+              ),
+            );
+
+            if (shouldPop == true && context.mounted) {
+              Navigator.of(context).pop();
             }
           },
           child: Scaffold(
-            appBar: _buildAppBar(context, state, title, l10n),
+            appBar: AppBar(
+              title: Text(title),
+              actions: [
+                IconButton(
+                  icon: Icon(_isPreviewMode ? Icons.edit : Icons.visibility),
+                  tooltip: _isPreviewMode
+                      ? l10n.edit
+                      : l10n.previewMode, // Localized
+                  onPressed: () {
+                    setState(() {
+                      _isPreviewMode = !_isPreviewMode;
+                    });
+                  },
+                ),
+                if (state is ArticleEditLoaded)
+                  IconButton(
+                    icon: const Icon(Icons.save),
+                    // El botón de guardar se habilita/deshabilita según el estado
+                    onPressed: state.isArticleValid
+                        ? () {
+                            if (_isPreviewMode) {
+                              setState(() {
+                                _isPreviewMode = false;
+                              });
+                            }
+                            SchedulerBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                context
+                                    .read<ArticleEditBloc>()
+                                    .add(const SaveArticle());
+                              }
+                            });
+                          }
+                        : null, // Se deshabilita si no es válido
+                  ),
+              ],
+            ),
             body: BlocListener<ArticleEditBloc, ArticleEditState>(
               listener: (context, state) {
                 if (state is ArticleEditSuccess) {
@@ -228,96 +326,25 @@ class _ArticleEditViewState extends State<ArticleEditView> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(
-    BuildContext context,
-    ArticleEditState state,
-    String title,
-    AppLocalizations l10n,
-  ) {
-    final bool isSaving = state is ArticleEditLoaded && state.isSaving;
-
-    return AppBar(
-      title: Text(title),
-      actions: [
-        if (state is ArticleEditLoaded) ...[
-          IconButton(
-            icon: Icon(_isPreviewMode ? Icons.edit : Icons.preview),
-            tooltip: _isPreviewMode ? l10n.editArticle : l10n.preview,
-            onPressed: isSaving
-                ? null
-                : () => setState(() => _isPreviewMode = !_isPreviewMode),
-          ),
-          if (!_isPreviewMode && state.canEditContent)
-            isSaving
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  )
-                : IconButton(
-                    icon: const Icon(Icons.save),
-                    tooltip: l10n.save,
-                    onPressed: () => context
-                        .read<ArticleEditBloc>()
-                        .add(const SaveArticle()),
-                  ),
-        ],
-      ],
-    );
-  }
-
   Widget _buildBody(ArticleEditState state, AppLocalizations l10n) {
     if (state is ArticleEditLoading ||
         state is ArticleEditInitial ||
         state is ArticleEditDraftFound) {
       return const Center(child: CircularProgressIndicator());
     } else if (state is ArticleEditLoaded) {
-      final bool isSaving = state.isSaving;
-
-      return Stack(
-        children: [
-          _isPreviewMode
-              ? ArticlePreview(
-                  state: state,
-                  l10n: l10n,
-                  scrollController: _previewScrollController,
-                  titleController: _titleController,
-                  titleFocusNode: _titleFocusNode,
-                  titleScrollController: _titleScrollController,
-                  abstractController: _abstractController,
-                  abstractFocusNode: _abstractFocusNode,
-                  abstractScrollController: _abstractScrollController,
-                )
-              : buildForm(context, state, l10n),
-          if (isSaving)
-            Container(
-              color: Colors.black26,
-              child: const Center(
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text('Guardando artículo...'),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      );
+      return _isPreviewMode
+          ? ArticlePreview(
+              state: state,
+              l10n: l10n,
+              scrollController: _previewScrollController,
+              titleController: _titleController,
+              titleFocusNode: _titleFocusNode,
+              titleScrollController: _titleScrollController,
+              abstractController: _abstractController,
+              abstractFocusNode: _abstractFocusNode,
+              abstractScrollController: _abstractScrollController,
+            )
+          : buildForm(context, state, l10n);
     } else if (state is ArticleEditFailure) {
       return Center(child: Text(state.message));
     }
@@ -325,15 +352,17 @@ class _ArticleEditViewState extends State<ArticleEditView> {
   }
 
   Widget buildForm(
-    BuildContext context,
-    ArticleEditLoaded state,
-    AppLocalizations l10n,
-  ) {
-    final bool isEditingEnabled = state.canEditContent;
+      BuildContext context, ArticleEditLoaded state, AppLocalizations l10n) {
+    // La edición está habilitada si estamos creando un nuevo artículo O si el estado es 'En redacción'.
+    final bool isEditingEnabled =
+        state.isCreating || state.status == ArticleStatus.redaccion;
 
-    _titleController.readOnly = !isEditingEnabled;
-    _abstractController.readOnly = !isEditingEnabled;
+    _titleController.readOnly =
+        !isEditingEnabled; // Actualizar el modo de solo lectura
+    _abstractController.readOnly =
+        !isEditingEnabled; // Actualizar el modo de solo lectura
 
+    // double parIconSize = 10.0;
     double parIconButtonFactor = 1.0;
 
     return Form(
@@ -344,21 +373,20 @@ class _ArticleEditViewState extends State<ArticleEditView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Portada ──────────────────────────────────────────────────
             CoverImagePicker(
-              key: ValueKey('cover_picker_$isEditingEnabled'),
-              isEnabled: isEditingEnabled,
+              key: ValueKey(
+                  'cover_picker_$isEditingEnabled'), // Añadir una clave única
+              isEnabled: isEditingEnabled, // Pasamos el estado de habilitación
               currentCoverUrl: state.article.coverUrl,
               newImageBytes: state.newCoverImageBytes,
               onImageSelected: (bytes) {
                 context.read<ArticleEditBloc>().add(UpdateCoverImage(bytes));
               },
-              onImageCleared: () => context
-                  .read<ArticleEditBloc>()
-                  .add(const UpdateCoverImage(null)),
+              onImageCleared: () =>
+                  context // Al borrar, enviamos el marcador especial
+                      .read<ArticleEditBloc>()
+                      .add(const UpdateCoverImage(null)),
             ),
-
-            // ── Título ───────────────────────────────────────────────────
             BlocSelector<ArticleEditBloc, ArticleEditState, int>(
               selector: (state) =>
                   (state is ArticleEditLoaded) ? _titleCharCount : 0,
@@ -378,8 +406,6 @@ class _ArticleEditViewState extends State<ArticleEditView> {
               },
             ),
             const SizedBox(height: 16),
-
-            // ── Resumen ──────────────────────────────────────────────────
             BlocSelector<ArticleEditBloc, ArticleEditState, int>(
               selector: (state) =>
                   (state is ArticleEditLoaded) ? _abstractCharCount : 0,
@@ -399,8 +425,6 @@ class _ArticleEditViewState extends State<ArticleEditView> {
               },
             ),
             const SizedBox(height: 24),
-
-            // ── Categoría / Subcategoría ─────────────────────────────────
             CategorySelectorSection(
               isEnabled: isEditingEnabled,
               categoryId: state.article.categoryId,
@@ -410,8 +434,6 @@ class _ArticleEditViewState extends State<ArticleEditView> {
               l10n: l10n,
             ),
             const SizedBox(height: 24),
-
-            // ── Estado ───────────────────────────────────────────────────
             BlocSelector<ArticleEditBloc, ArticleEditState, ArticleStatus>(
               selector: (state) => (state is ArticleEditLoaded)
                   ? state.status
@@ -425,8 +447,6 @@ class _ArticleEditViewState extends State<ArticleEditView> {
               },
             ),
             const SizedBox(height: 24),
-
-            // ── Fechas ───────────────────────────────────────────────────
             DatePickerSection(
               isEnabled: isEditingEnabled,
               publishDate: state.article.publishDate,
@@ -434,14 +454,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
               expirationDate: state.article.expirationDate,
               l10n: l10n,
             ),
-            const SizedBox(height: 24),
-
-            // ✨ NUEVO: Documento enlazado al artículo ────────────────────
-            _buildArticleDocumentSection(
-                context, state, isEditingEnabled, l10n),
             const SizedBox(height: 32),
-
-            // ── Secciones ────────────────────────────────────────────────
             Text('--- ${l10n.sections.toUpperCase()} ---',
                 textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -459,73 +472,5 @@ class _ArticleEditViewState extends State<ArticleEditView> {
         ),
       ),
     );
-  }
-
-  // ✨ NUEVO: sección de documento a nivel de artículo
-  Widget _buildArticleDocumentSection(
-    BuildContext context,
-    ArticleEditLoaded state,
-    bool isEditingEnabled,
-    AppLocalizations l10n,
-  ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.linkDocument,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Documento adjunto al artículo completo',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            DocumentPickerWidget(
-              currentDocumentLink: state.article.documentLink,
-              isEnabled: isEditingEnabled,
-              onDocumentSelected: (DocumentLinkEntity? link) {
-                context
-                    .read<ArticleEditBloc>()
-                    .add(UpdateArticleDocumentLink(link));
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showExitConfirmationDialog(
-    BuildContext context,
-    AppLocalizations l10n,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.unsavedChanges),
-        content: Text(l10n.unsavedChangesMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child:
-                Text(l10n.discard, style: const TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true && context.mounted) context.pop();
   }
 }

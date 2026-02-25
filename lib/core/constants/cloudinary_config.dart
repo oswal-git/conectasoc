@@ -1,16 +1,26 @@
 class CloudinaryConfig {
   // ⚠️ REEMPLAZA ESTOS VALORES CON LOS DE TU CUENTA CLOUDINARY
   static const String cloudName = 'dcxhxr6de'; // Ejemplo: 'dq2xgf7zk'
-  static const String uploadPreset =
-      'conectasoc_preset'; // El preset que creaste
+
+  static const String uploadPresetImagen =
+      'conectasoc_imagen_preset'; // El preset que creaste
+  static const String uploadPresetPdf =
+      'conectasoc_pdf_preset'; // El preset que creaste
+  static const String uploadPresetWord =
+      'conectasoc_word_preset'; // El preset que creaste
+  static const String uploadPresetExcel =
+      'conectasoc_excel_preset'; // El preset que creaste
+
   static const String apiKey =
       '131463626424237'; // Solo para operaciones autenticadas
   static const String apiSecret =
       '5PEf5Dtow5AK4qxcUiJylQS7l8Q'; // ¡NUNCA expongas en producción!
 
   // URLs de la API
-  static String get uploadUrl =>
+  static String get uploadUrlImage =>
       'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
+  static String get uploadUrlDoc =>
+      'https://api.cloudinary.com/v1_1/$cloudName/raw/upload';
   static String get destroyUrl =>
       'https://api.cloudinary.com/v1_1/$cloudName/image/destroy';
 

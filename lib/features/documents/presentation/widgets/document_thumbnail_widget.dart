@@ -32,6 +32,9 @@ class DocumentThumbnailWidget extends StatelessWidget {
                 fit: BoxFit.cover,
                 placeholder: (_, __) => _buildPlaceholder(context),
                 errorWidget: (_, __, ___) => _buildIconFallback(context),
+                httpHeaders: {
+                  'Cache-Control': 'max-age=86400', // 24 horas
+                },
               )
             : _buildIconFallback(context),
       ),

@@ -106,9 +106,11 @@ service cloud.firestore {
       // Leer:
       // 1. CUALQUIERA (autenticado o no) puede leer artículos públicos que sean genéricos (sin asociación).
       // 2. Los usuarios autenticados pueden leer artículos públicos de sus asociaciones.
-      // 3. Los superadmins pueden leer todo.
+      // 3. Los admins y editores pueden leer TODO de sus asociaciones (necesario para modo edición/borradores).
+      // 4. Los superadmins pueden leer todo.
       allow read, list: if (isPublicArticle() && resource.data.assocId == '') ||
                           (isSignedIn() && isPublicArticle() && isMemberOf(resource.data.assocId)) ||
+                          (isSignedIn() && (isAdmin(resource.data.assocId) || isEditor(resource.data.assocId))) ||
                           isSuperAdmin();
 
       // Crear: debe tener rol apropiado Y pertenecer a la asociación
@@ -134,7 +136,7 @@ service cloud.firestore {
           // Validación de tipos
           data.title is string && data.title.size() > 0 &&
           data.abstractContent is string && data.abstractContent.size() > 0 &&
-          data.coverUrl is string && data.coverUrl.size() > 0 &&
+          data.coverUrl is string &&
           data.categoryId is string && data.categoryId.size() > 0 &&
           data.subcategoryId is string && data.subcategoryId.size() > 0 &&
           data.publishDate is timestamp &&
@@ -148,7 +150,7 @@ service cloud.firestore {
           data.originalLanguage is string &&
           data.createdAt is timestamp &&
           data.modifiedAt is timestamp &&
-          data.searchText is string &&
+          data.searchText is list &&
           // Usuario debe ser miembro de la asociación del artículo
           (data.assocId == '' || data.assocId in getUserData().memberships) &&
           // Validación de fechas (opcional - puede estar en cliente)
@@ -171,6 +173,26 @@ service cloud.firestore {
         isSuperAdmin() ||
         isAdmin(resource.data.assocId)
       );
+    }
+    
+    // =========================================
+    // COLECCIÓN: documents
+    // =========================================
+    match /documents/{documentId} {
+      // Leer: superadmin o miembro de la asociación
+      allow read: if isSuperAdmin() || isMemberOf(resource.data.associationId);
+      
+      // Escribir: superadmin, admin de asociación o editor de asociación
+      allow create: if isSuperAdmin() || 
+                      isAdmin(request.resource.data.associationId) || 
+                      isEditor(request.resource.data.associationId);
+      
+      allow update: if isSuperAdmin() || 
+                      isAdmin(resource.data.associationId) || 
+                      isEditor(resource.data.associationId);
+
+      allow delete: if isSuperAdmin() || 
+                      isAdmin(resource.data.associationId);
     }
     
     // =========================================
