@@ -47,3 +47,9 @@ app.dSYM/
 /macos/flutter/ephemeral/
 /windows/flutter/ephemeral/
 tareas_gemini/
+
+.flutter-plugins-dependencies
+pubspec.lock
+macos\flutter\generated_plugin_registrant.swift
+windows\flutter\generated_plugin_registrant.cc
+windows\flutter\generated_plugins.cmake
