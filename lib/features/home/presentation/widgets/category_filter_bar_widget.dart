@@ -91,9 +91,10 @@ class CategoryFilterBarWidget extends StatelessWidget {
     CategoryEntity? selectedItem,
   }) {
     return SizedBox(
-      height: 30,
+      height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 8),
         children: items.map((item) {
           return Padding(
@@ -118,9 +119,10 @@ class CategoryFilterBarWidget extends StatelessWidget {
     SubcategoryEntity? selectedItem,
   }) {
     return SizedBox(
-      height: 30,
+      height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 8),
         children: [
           // Botón de flecha para volver atrás

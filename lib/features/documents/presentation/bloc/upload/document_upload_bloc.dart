@@ -34,7 +34,8 @@ class DocumentUploadBloc
   ) async {
     try {
       // Load categories
-      final categoriesResult = await getCategoriesUseCase();
+      final categoriesResult =
+          await getCategoriesUseCase(assocId: event.associationId);
 
       await categoriesResult.fold(
         (failure) async {
@@ -43,8 +44,9 @@ class DocumentUploadBloc
         (categories) async {
           // Load subcategories if category is provided
           if (event.categoryId.isNotEmpty) {
-            final subcategoriesResult =
-                await getSubcategoriesUseCase(event.categoryId);
+            final subcategoriesResult = await getSubcategoriesUseCase(
+                event.categoryId,
+                assocId: event.associationId);
 
             subcategoriesResult.fold(
               (failure) {
@@ -88,7 +90,7 @@ class DocumentUploadBloc
       // Validate file type
       if (!CloudinaryDocumentService.isSupportedDocument(event.fileName)) {
         emit(const DocumentUploadFailure(
-            'Tipo de archivo no soportado. Use PDF, Word, Excel o PowerPoint.'));
+            'Tipo de archivo no soportado. Use PDF, Word, Excel, PowerPoint o imágenes (JPG/PNG).'));
         // Return to ready state after error
         emit(currentState);
         return;
@@ -130,9 +132,9 @@ class DocumentUploadBloc
     if (state is DocumentUploadReady) {
       final currentState = state as DocumentUploadReady;
 
-      // Load subcategories for the new category
-      final subcategoriesResult =
-          await getSubcategoriesUseCase(event.categoryId);
+      final subcategoriesResult = await getSubcategoriesUseCase(
+          event.categoryId,
+          assocId: currentState.associationId);
 
       subcategoriesResult.fold(
         (failure) {
@@ -185,10 +187,10 @@ class DocumentUploadBloc
     }
 
     try {
-      emit(const DocumentUploadInProgress(0.0));
+      emit(const DocumentUploadInProgress(0.1));
 
       // Upload to Cloudinary
-      emit(const DocumentUploadInProgress(0.3));
+      emit(const DocumentUploadInProgress(0.2));
       final cloudinaryResponse = await CloudinaryDocumentService.uploadDocument(
         fileBytes: currentState.selectedFileBytes!,
         filename: currentState.selectedFileName!,
@@ -237,6 +239,7 @@ class DocumentUploadBloc
           emit(currentState);
         },
         (savedDocument) {
+          emit(const DocumentUploadInProgress(1.0));
           emit(DocumentUploadSuccess(savedDocument));
         },
       );

@@ -6,13 +6,19 @@ abstract class SettingsEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadSettingsData extends SettingsEvent {}
+class LoadSettingsData extends SettingsEvent {
+  final String? assocId;
+  const LoadSettingsData({this.assocId});
+  @override
+  List<Object> get props => assocId != null ? [assocId!] : [];
+}
 
 class AddCategory extends SettingsEvent {
   final String name;
-  const AddCategory(this.name);
+  final String assocId;
+  const AddCategory(this.name, this.assocId);
   @override
-  List<Object> get props => [name];
+  List<Object> get props => [name, assocId];
 }
 
 class UpdateCategory extends SettingsEvent {
@@ -33,9 +39,10 @@ class DeleteCategory extends SettingsEvent {
 class AddSubcategory extends SettingsEvent {
   final String name;
   final String categoryId;
-  const AddSubcategory(this.name, this.categoryId);
+  final String assocId;
+  const AddSubcategory(this.name, this.categoryId, this.assocId);
   @override
-  List<Object> get props => [name, categoryId];
+  List<Object> get props => [name, categoryId, assocId];
 }
 
 class UpdateSubcategory extends SettingsEvent {

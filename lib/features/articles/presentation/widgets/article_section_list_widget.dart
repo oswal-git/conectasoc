@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
-import 'article_section_editor.dart';
+import 'article_section_editor_widget.dart';
 
-class SectionList extends StatelessWidget {
+class ArticleSectionListWidget extends StatelessWidget {
   final bool isEditingEnabled;
 
-  const SectionList({
+  const ArticleSectionListWidget({
     super.key,
     required this.isEditingEnabled,
   });
@@ -45,7 +45,7 @@ class SectionList extends StatelessWidget {
                 context.read<ArticleEditBloc>().state as ArticleEditLoaded;
             final section = state.article.sections[index];
 
-            return ArticleSectionEditor(
+            return ArticleSectionEditorWidget(
               key: ValueKey(sectionId),
               section: section,
               index: index,

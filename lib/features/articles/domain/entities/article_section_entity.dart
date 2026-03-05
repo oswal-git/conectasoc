@@ -46,7 +46,7 @@ class ArticleSection extends Equatable {
   }) {
     return ArticleSection(
       id: id ?? this.id,
-      imageUrl: imageUrl ?? this.imageUrl,
+      imageUrl: clearImageUrl ? null : (imageUrl ?? this.imageUrl),
       richTextContent: clearRichTextContent
           ? null
           : (richTextContent ?? this.richTextContent),

@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:flutter/foundation.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:translator/translator.dart';
 
@@ -11,45 +11,56 @@ class TranslationService {
   /// Translates the content of an ArticleEntity if the target language is different.
   Future<ArticleEntity> translateArticle(
       ArticleEntity article, String targetLang) async {
-    if (article.originalLanguage == targetLang) {
+    if (article.originalLanguage == targetLang || kIsWeb) {
+      debugPrint(
+          'Translation: Skipping (same language or web targetLang=$targetLang)');
       return article;
     }
 
-    final translatedTitle = await _translateQuillJson(article.title,
-        from: article.originalLanguage, to: targetLang);
-    final translatedAbstract = await _translateQuillJson(
-        article.abstractContent,
-        from: article.originalLanguage,
-        to: targetLang);
-    final translatedCategory = await _translateString(article.categoryName,
-        from: article.originalLanguage, to: targetLang);
-    final translatedSubcategory = await _translateString(
-        article.subcategoryName,
-        from: article.originalLanguage,
-        to: targetLang);
+    try {
+      debugPrint(
+          'Translation: Translating article ${article.id} to $targetLang');
 
-    final translatedSections = <ArticleSection>[];
-    for (final section in article.sections) {
-      final translatedContent = section.richTextContent != null
-          ? await _translateQuillJson(section.richTextContent!,
-              from: article.originalLanguage, to: targetLang)
-          : null;
-      translatedSections
-          .add(section.copyWith(richTextContent: translatedContent));
+      final translatedTitle = await _translateQuillJson(article.title,
+          from: article.originalLanguage, to: targetLang);
+      final translatedAbstract = await _translateQuillJson(
+          article.abstractContent,
+          from: article.originalLanguage,
+          to: targetLang);
+      final translatedCategory = await _translateString(article.categoryName,
+          from: article.originalLanguage, to: targetLang);
+      final translatedSubcategory = await _translateString(
+          article.subcategoryName,
+          from: article.originalLanguage,
+          to: targetLang);
+
+      final translatedSections = <ArticleSection>[];
+      for (final section in article.sections) {
+        final translatedContent = section.richTextContent != null
+            ? await _translateQuillJson(section.richTextContent!,
+                from: article.originalLanguage, to: targetLang)
+            : null;
+        translatedSections
+            .add(section.copyWith(richTextContent: translatedContent));
+      }
+
+      return article.copyWith(
+        title: translatedTitle,
+        abstractContent: translatedAbstract,
+        sections: translatedSections,
+        categoryName: translatedCategory,
+        subcategoryName: translatedSubcategory,
+      );
+    } catch (e) {
+      debugPrint('Translation error: $e');
+      return article; // Return original on error
     }
-
-    return article.copyWith(
-      title: translatedTitle,
-      abstractContent: translatedAbstract,
-      sections: translatedSections,
-      categoryName: translatedCategory,
-      subcategoryName: translatedSubcategory,
-    );
   }
 
 // Translates a CategoryEntity name to the target language
   Future<CategoryEntity> translateCategory(
       CategoryEntity category, String targetLang) async {
+    if (kIsWeb) return category;
     final translatedName = await _translateString(
       category.name,
       from: 'auto',
@@ -62,6 +73,7 @@ class TranslationService {
   /// Translates a list of CategoryEntity names to the target language
   Future<List<CategoryEntity>> translateCategories(
       List<CategoryEntity> categories, String targetLang) async {
+    if (kIsWeb) return categories;
     return Future.wait(
       categories.map((category) => translateCategory(category, targetLang)),
     );
@@ -70,6 +82,7 @@ class TranslationService {
   /// Translates a SubcategoryEntity name to the target language
   Future<SubcategoryEntity> translateSubcategory(
       SubcategoryEntity subcategory, String targetLang) async {
+    if (kIsWeb) return subcategory;
     final translatedName = await _translateString(
       subcategory.name,
       from: 'auto',
@@ -82,6 +95,7 @@ class TranslationService {
   /// Translates a list of SubcategoryEntity names to the target language
   Future<List<SubcategoryEntity>> translateSubcategories(
       List<SubcategoryEntity> subcategories, String targetLang) async {
+    if (kIsWeb) return subcategories;
     return Future.wait(
       subcategories
           .map((subcategory) => translateSubcategory(subcategory, targetLang)),

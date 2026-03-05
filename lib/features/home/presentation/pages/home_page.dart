@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:conectasoc/injection_container.dart';
 
 class HomePage extends StatelessWidget {
@@ -16,7 +17,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
 
-    UserEntity? user;
+    IUser? user;
     MembershipEntity? membership;
     bool canEdit = false;
 
@@ -25,6 +26,8 @@ class HomePage extends StatelessWidget {
       membership = authState.currentMembership;
       // La propiedad `canEditContent` ya encapsula la lógica de permisos.
       canEdit = user.canEditContent;
+    } else if (authState is AuthLocalUser) {
+      user = authState.localUser;
     }
 
     return BlocProvider(

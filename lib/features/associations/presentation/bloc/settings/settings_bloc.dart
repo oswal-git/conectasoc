@@ -45,16 +45,18 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       LoadSettingsData event, Emitter<SettingsState> emit) async {
     emit(SettingsLoading());
     try {
-      final categoriesResult = await _getCategoriesUseCase();
+      final categoriesResult =
+          await _getCategoriesUseCase(assocId: event.assocId);
       await categoriesResult.fold(
         (failure) async => emit(SettingsError(failure.message)),
         (categories) async {
           final subcategoriesMap = <String, List<SubcategoryEntity>>{};
           for (final category in categories) {
-            final subcategoriesResult =
-                await _getSubcategoriesUseCase(category.id);
+            final subcategoriesResult = await _getSubcategoriesUseCase(
+                category.id,
+                assocId: event.assocId);
             subcategoriesResult.fold(
-              (failure) => emit(SettingsError(
+              (failure) => emit(const SettingsError(
                   'Error cargando subcategorías')), // Simplified error
               (subcategories) {
                 subcategoriesMap[category.id] = subcategories;
@@ -62,7 +64,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
             );
           }
           emit(SettingsLoaded(
-              categories: categories, subcategoriesMap: subcategoriesMap));
+            categories: categories,
+            subcategoriesMap: subcategoriesMap,
+            assocId: event.assocId,
+          ));
         },
       );
     } catch (e) {
@@ -72,10 +77,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   Future<void> _onAddCategory(
       AddCategory event, Emitter<SettingsState> emit) async {
-    final result = await _createCategoryUseCase(event.name);
+    final result = await _createCategoryUseCase(event.name, event.assocId);
     result.fold(
       (failure) => emit(SettingsError(failure.message)),
-      (_) => add(LoadSettingsData()),
+      (_) => add(LoadSettingsData(assocId: event.assocId)),
     );
   }
 
@@ -89,26 +94,28 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         await _updateCategoryUseCase(category.copyWith(name: event.newName));
     result.fold(
       (failure) => emit(SettingsError(failure.message)),
-      (_) => add(LoadSettingsData()),
+      (_) => add(LoadSettingsData(assocId: currentState.assocId)),
     );
   }
 
   Future<void> _onDeleteCategory(
       DeleteCategory event, Emitter<SettingsState> emit) async {
+    if (state is! SettingsLoaded) return;
+    final currentState = state as SettingsLoaded;
     final result = await _deleteCategoryUseCase(event.id);
     result.fold(
       (failure) => emit(SettingsError(failure.message)),
-      (_) => add(LoadSettingsData()),
+      (_) => add(LoadSettingsData(assocId: currentState.assocId)),
     );
   }
 
   Future<void> _onAddSubcategory(
       AddSubcategory event, Emitter<SettingsState> emit) async {
-    final result =
-        await _createSubcategoryUseCase(event.name, event.categoryId);
+    final result = await _createSubcategoryUseCase(
+        event.name, event.categoryId, event.assocId);
     result.fold(
       (failure) => emit(SettingsError(failure.message)),
-      (_) => add(LoadSettingsData()),
+      (_) => add(LoadSettingsData(assocId: event.assocId)),
     );
   }
 
@@ -135,16 +142,18 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         subcategory.copyWith(name: event.newName));
     result.fold(
       (failure) => emit(SettingsError(failure.message)),
-      (_) => add(LoadSettingsData()),
+      (_) => add(LoadSettingsData(assocId: currentState.assocId)),
     );
   }
 
   Future<void> _onDeleteSubcategory(
       DeleteSubcategory event, Emitter<SettingsState> emit) async {
+    if (state is! SettingsLoaded) return;
+    final currentState = state as SettingsLoaded;
     final result = await _deleteSubcategoryUseCase(event.id);
     result.fold(
       (failure) => emit(SettingsError(failure.message)),
-      (_) => add(LoadSettingsData()),
+      (_) => add(LoadSettingsData(assocId: currentState.assocId)),
     );
   }
 }

@@ -15,6 +15,9 @@ import 'package:flutter/foundation.dart'
 /// );
 /// ```
 class DefaultFirebaseOptions {
+  static const String vapidKey =
+      'BK93JhfGpLWhpJWMQqm3lHUljTCA2mafcPd5VCBtVJ3pEf2CAdV7THF6XLGBii4Kr3XAC29l4GhM5wEa6tr_s94';
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;

@@ -5,6 +5,7 @@ import 'package:dartz/dartz.dart';
 class CreateSubcategoryUseCase {
   final SettingsRepository repository;
   CreateSubcategoryUseCase(this.repository);
-  Future<Either<Failure, void>> call(String name, String categoryId) =>
-      repository.createSubcategory(name, categoryId);
+  Future<Either<Failure, void>> call(
+          String name, String categoryId, String assocId) =>
+      repository.createSubcategory(name, categoryId, assocId);
 }

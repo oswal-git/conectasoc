@@ -6,6 +6,8 @@ class CategoryModel extends CategoryEntity {
     required super.id,
     required super.name,
     required super.order,
+    super.assocId,
+    super.isSystem,
   });
 
   factory CategoryModel.fromFirestore(
@@ -15,11 +17,23 @@ class CategoryModel extends CategoryEntity {
       id: doc.id,
       name: data['name'] ?? '',
       order: data['order'] ?? 0,
+      assocId: data['assocId'],
+      isSystem: data['isSystem'] ?? false,
     );
   }
 
+  Map<String, dynamic> toFirestore() {
+    return {
+      'name': name,
+      'order': order,
+      'assocId': assocId,
+      'isSystem': isSystem,
+    };
+  }
+
   CategoryEntity toEntity() {
-    return CategoryEntity(id: id, name: name, order: order);
+    return CategoryEntity(
+        id: id, name: name, order: order, assocId: assocId, isSystem: isSystem);
   }
 }
 
@@ -28,6 +42,8 @@ class SubcategoryModel extends SubcategoryEntity {
     required super.id,
     required super.name,
     required super.order,
+    super.assocId,
+    super.isSystem,
     required super.categoryId,
   });
 
@@ -39,11 +55,29 @@ class SubcategoryModel extends SubcategoryEntity {
       name: data['name'] ?? '',
       order: data['order'] ?? 0,
       categoryId: data['categoryId'] ?? '',
+      assocId: data['assocId'],
+      isSystem: data['isSystem'] ?? false,
     );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'name': name,
+      'order': order,
+      'categoryId': categoryId,
+      'assocId': assocId,
+      'isSystem': isSystem,
+    };
   }
 
   SubcategoryEntity toEntity() {
     return SubcategoryEntity(
-        id: id, name: name, order: order, categoryId: categoryId);
+      id: id,
+      name: name,
+      order: order,
+      categoryId: categoryId,
+      assocId: assocId,
+      isSystem: isSystem,
+    );
   }
 }

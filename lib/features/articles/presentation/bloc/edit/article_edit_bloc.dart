@@ -93,7 +93,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     }
 
     try {
-      final categoriesResult = await _getCategoriesUseCase();
+      final assocId = currentMembership?.associationId;
+      final categoriesResult = await _getCategoriesUseCase(assocId: assocId);
       ArticleEntity? newArticle;
 
       categoriesResult.fold(
@@ -102,8 +103,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
           newArticle = ArticleEntity.empty().copyWith(
             userId: user.uid,
             authorName: user.fullName,
-            assocId: currentMembership?.associationId ?? '',
-            associationShortName: currentMembership?.associationId ?? '',
+            assocId: assocId ?? '',
+            associationShortName: assocId ?? '',
             status: ArticleStatus.redaccion,
             sections: const [], // Empezar sin secciones
           );
@@ -154,19 +155,15 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
   ) async {
     emit(ArticleEditLoading());
     try {
-      // Cargar el artículo, las categorías y las subcategorías en paralelo
-      final results = await Future.wait([
-        _getArticleByIdUseCase(event.articleId),
-        _getCategoriesUseCase(),
-      ]);
+      // First get the article to know its association
+      final articleResult = await _getArticleByIdUseCase(event.articleId);
 
-      final articleResult = results[0];
-      final categoriesResult = results[1];
+      final article = articleResult.fold((l) => throw l, (r) => r);
 
-      final article = (articleResult as dynamic)
-          .fold((l) => throw l, (r) => r as ArticleEntity);
-      final categories =
-          (categoriesResult as dynamic).fold((l) => throw l, (r) => r);
+      // Now fetch categories with the article's assocId
+      final categoriesResult =
+          await _getCategoriesUseCase(assocId: article.assocId);
+      final categories = categoriesResult.fold((l) => throw l, (r) => r);
 
       // --- Security Check: RBAC ---
       final authState = _authBloc.state;
@@ -182,8 +179,9 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       }
       // ----------------------------
 
-      final subcategoriesResult =
-          await _getSubcategoriesUseCase(article.categoryId);
+      final subcategoriesResult = await _getSubcategoriesUseCase(
+          article.categoryId,
+          assocId: article.assocId);
       final subcategories = subcategoriesResult.fold((l) => throw l, (r) => r);
       final titleCharCount = quillJsonToPlainText(article.title).length;
       final abstractCharCount =
@@ -432,8 +430,8 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     final currentState = state as ArticleEditLoaded;
 
     // 1. Cargar las nuevas subcategorías de forma asíncrona.
-    final subcategoriesResult =
-        await _getSubcategoriesUseCase(event.categoryId);
+    final subcategoriesResult = await _getSubcategoriesUseCase(event.categoryId,
+        assocId: currentState.article.assocId);
 
     // 2. Usar 'fold' para manejar el éxito o el fallo de la carga.
     subcategoriesResult.fold(
@@ -654,12 +652,14 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       // To restore, we just need to emit an ArticleEditLoaded state with the draft article.
       // We need to fetch categories/subcategories again for the draft.
       final List<SubcategoryEntity> subcategories;
-      final categoriesResult = await _getCategoriesUseCase();
+      final categoriesResult = await _getCategoriesUseCase(
+          assocId: currentState.draftArticle.assocId);
 
       // Only fetch subcategories if a category is actually selected in the draft
       if (currentState.draftArticle.categoryId.isNotEmpty) {
         final subcategoriesResult = await _getSubcategoriesUseCase(
-            currentState.draftArticle.categoryId);
+            currentState.draftArticle.categoryId,
+            assocId: currentState.draftArticle.assocId);
         subcategories = subcategoriesResult.getOrElse(() => []);
       } else {
         subcategories = [];

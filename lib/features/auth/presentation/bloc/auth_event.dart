@@ -45,12 +45,16 @@ class AuthCheckRequested extends AuthEvent {}
 class AuthSaveLocalUser extends AuthEvent {
   final String displayName;
   final String associationId;
+  final String language;
 
-  const AuthSaveLocalUser(
-      {required this.displayName, required this.associationId});
+  const AuthSaveLocalUser({
+    required this.displayName,
+    required this.associationId,
+    required this.language,
+  });
 
   @override
-  List<Object> get props => [displayName, associationId];
+  List<Object> get props => [displayName, associationId, language];
 }
 
 class AuthSignInRequested extends AuthEvent {
@@ -136,6 +140,14 @@ class AuthUserChanged extends AuthEvent {
 }
 
 /// Requests to refresh the current user's data from the repository without triggering global navigation.
+class AuthSetLocale extends AuthEvent {
+  final String language;
+  const AuthSetLocale(this.language);
+
+  @override
+  List<Object> get props => [language];
+}
+
 class AuthUserRefreshRequested extends AuthEvent {}
 
 /// Evento que se dispara internamente después de un registro exitoso para

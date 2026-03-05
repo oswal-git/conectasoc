@@ -12,6 +12,7 @@ class SaveLocalUserUseCase {
   Future<Either<Failure, void>> call({
     required String displayName,
     required String associationId,
+    required String language,
   }) async {
     if (displayName.isEmpty) {
       return const Left(ValidationFailure('El nombre es requerido'));
@@ -21,9 +22,14 @@ class SaveLocalUserUseCase {
       return const Left(ValidationFailure('Debe seleccionar una asociación'));
     }
 
+    if (language.isEmpty) {
+      return const Left(ValidationFailure('El idioma es requerido'));
+    }
+
     return await repository.saveLocalUser(
       displayName: displayName,
       associationId: associationId,
+      language: language,
     );
   }
 }

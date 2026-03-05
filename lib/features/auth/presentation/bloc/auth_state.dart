@@ -42,10 +42,12 @@ class AuthAuthenticated extends AuthState {
 // Sin autenticación (ni local ni Firebase)
 class AuthUnauthenticated extends AuthState {
   final String? message;
-  const AuthUnauthenticated({this.message});
+  final String? language;
+
+  const AuthUnauthenticated({this.message, this.language});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, language];
 }
 
 // Error

@@ -399,6 +399,7 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
                 ),
               ),
             ),
+            const SizedBox(height: 40),
           ],
         ),
       ),

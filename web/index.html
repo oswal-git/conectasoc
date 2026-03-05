@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
         <!--
@@ -36,16 +36,28 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     </head>
     <body>
-  <script src='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs' type='module'></script>
-  <script type='module'>
-  var { pdfjsLib } = globalThis;
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.worker.mjs';
+        <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs" type="module"></script>
+        <script type="module">
+            var { pdfjsLib } = globalThis;
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.worker.mjs';
 
-  var pdfRenderOptions = {
-    cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/cmaps/',
-    cMapPacked: true,
-  }
-  </script>
+            var pdfRenderOptions = {
+                cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/cmaps/',
+                cMapPacked: true
+            };
+        </script>
         <script src="flutter_bootstrap.js" async></script>
+
+        <script>
+            <!-- Registro del Service Worker para FCM -->
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('flutter-first-frame', function () {
+                    navigator.serviceWorker
+                        .register('firebase-messaging-sw.js')
+                        .then((reg) => console.log('Service Worker registrado:', reg))
+                        .catch((err) => console.error('Error al registrar SW:', err));
+                });
+            }
+        </script>
     </body>
 </html>

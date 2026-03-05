@@ -12,14 +12,14 @@ import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'section_image.dart';
 
-class ArticleSectionEditor extends StatefulWidget {
+class ArticleSectionEditorWidget extends StatefulWidget {
   final ArticleSection section;
   final int index;
   final VoidCallback onRemove;
   final bool isEditingEnabled;
   final bool showDragHandle;
 
-  const ArticleSectionEditor({
+  const ArticleSectionEditorWidget({
     super.key,
     required this.section,
     required this.index,
@@ -29,10 +29,12 @@ class ArticleSectionEditor extends StatefulWidget {
   });
 
   @override
-  State<ArticleSectionEditor> createState() => _ArticleSectionEditorState();
+  State<ArticleSectionEditorWidget> createState() =>
+      _ArticleSectionEditorWidgetState();
 }
 
-class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
+class _ArticleSectionEditorWidgetState
+    extends State<ArticleSectionEditorWidget> {
   late quill.QuillController _quillController;
   late FocusNode _focusNode;
   late ScrollController _scrollController;
@@ -52,10 +54,15 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
   }
 
   @override
-  void didUpdateWidget(covariant ArticleSectionEditor oldWidget) {
+  void didUpdateWidget(covariant ArticleSectionEditorWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.section.richTextContent != widget.section.richTextContent) {
-      _loadContent();
+      // Prevenir recarga del editor (y reseteo del cursor) si el cambio proviene de nosotros mismos
+      final currentJson =
+          jsonEncode(_quillController.document.toDelta().toJson());
+      if (currentJson != widget.section.richTextContent) {
+        _loadContent();
+      }
     }
     if (oldWidget.isEditingEnabled != widget.isEditingEnabled) {
       _quillController.readOnly = !widget.isEditingEnabled;
@@ -106,6 +113,35 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
     }
   }
 
+  Future<void> _removeImage() async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n
+            .removeSection), // Usar un texto adecuado, o crear uno nuevo si existe para imagen. Usamos el de borrar por ahora. O mejor texto genérico.
+        content: const Text(
+            '¿Estás seguro de que quieres eliminar esta imagen?'), // TODO: move to l10n if needed
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      context.read<ArticleEditBloc>().add(
+            UpdateSectionImage(widget.section.id, null),
+          );
+    }
+  }
+
   void _onDocumentSelected(DocumentLinkEntity? documentLink) {
     context.read<ArticleEditBloc>().add(
           UpdateSectionDocumentLink(widget.section.id, documentLink),
@@ -142,13 +178,7 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
     final l10n = AppLocalizations.of(context);
     final section = widget.section;
 
-    // ── Lógica de incompatibilidad ─────────────────────────────────────────
-    // Si hay documento enlazado → los controles de imagen/texto se deshabilitan
-    // Si hay imagen o texto     → el picker de documento se deshabilita
     final hasDocument = section.hasDocument;
-    final hasContent = section.hasContent;
-    final contentControlsEnabled = widget.isEditingEnabled && !hasDocument;
-    final documentPickerEnabled = widget.isEditingEnabled && !hasContent;
 
     // Using BlocSelector for image bytes to prevent rebuilding for other state changes.
     return BlocSelector<ArticleEditBloc, ArticleEditState, Uint8List?>(
@@ -159,6 +189,15 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
         return null;
       },
       builder: (context, imageBytes) {
+        // Usamos el controlador para saber de forma precisa si el editor está vacío.
+        // Convertimos a texto plano y limpiamos espacios para ignorar saltos de línea y formato vacío.
+        final hasTextContent =
+            _quillController.document.toPlainText().trim().isNotEmpty;
+        final hasContent =
+            (section.imageUrl != null && section.imageUrl!.isNotEmpty) ||
+                hasTextContent ||
+                imageBytes != null;
+
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
           child: Padding(
@@ -175,19 +214,13 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
                     if (widget.isEditingEnabled)
                       Row(
                         children: [
-                          // Imagen: deshabilitada si hay documento
-                          IconButton(
-                            onPressed:
-                                contentControlsEnabled ? _pickImage : null,
-                            icon: Icon(
-                              Icons.image,
-                              color: contentControlsEnabled
-                                  ? null
-                                  : Colors.grey.shade400,
+                          // Imagen: Oculta si hay documento
+                          if (!hasDocument)
+                            IconButton(
+                              onPressed: _pickImage,
+                              icon: const Icon(Icons.image),
+                              tooltip: 'Añadir imagen',
                             ),
-                            tooltip:
-                                hasDocument ? l10n.documentIncompatible : null,
-                          ),
                           // Eliminar sección
                           IconButton(
                             onPressed: _confirmRemoveSection,
@@ -207,10 +240,16 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
                   SectionImage(
                     imageBytes: imageBytes,
                     imageUrl: section.imageUrl,
+                    onRemove: widget.isEditingEnabled &&
+                            (imageBytes != null ||
+                                (section.imageUrl != null &&
+                                    section.imageUrl!.isNotEmpty))
+                        ? _removeImage
+                        : null,
                   ),
                 // ── Editor de texto enriquecido ──────────────────────────
                 if (!hasDocument) ...[
-                  if (contentControlsEnabled)
+                  if (widget.isEditingEnabled)
                     quill.QuillSimpleToolbar(
                       controller: _quillController,
                       config: quill.QuillSimpleToolbarConfig(
@@ -269,61 +308,20 @@ class _ArticleSectionEditorState extends State<ArticleSectionEditor> {
                   ),
                 ],
 
-                // ── Separador ────────────────────────────────────────────
-                if (widget.isEditingEnabled) ...[
-                  const SizedBox(height: 12),
-                  _buildIncompatibilityHint(
-                      context, l10n, hasDocument, hasContent),
-                  const SizedBox(height: 8),
-                ],
-
                 // ── DocumentPickerWidget ─────────────────────────────────
-                DocumentPickerWidget(
-                  currentDocumentLink: section.documentLink,
-                  isEnabled: documentPickerEnabled,
-                  onDocumentSelected: _onDocumentSelected,
-                ),
+                if (!hasContent) ...[
+                  if (widget.isEditingEnabled) const SizedBox(height: 8),
+                  DocumentPickerWidget(
+                    currentDocumentLink: section.documentLink,
+                    isEnabled: widget.isEditingEnabled,
+                    onDocumentSelected: _onDocumentSelected,
+                  ),
+                ]
               ],
             ),
           ),
         );
       },
-    );
-  }
-
-  /// Muestra un aviso sutil cuando uno de los modos está bloqueado
-  Widget _buildIncompatibilityHint(
-    BuildContext context,
-    AppLocalizations l10n,
-    bool hasDocument,
-    bool hasContent,
-  ) {
-    if (!hasDocument && !hasContent) return const SizedBox.shrink();
-
-    final message = hasDocument
-        ? l10n
-            .documentIncompatible // "No se puede añadir imagen/texto si hay documento"
-        : l10n.documentIncompatible; // Mismo mensaje en sentido contrario
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.amber.shade50,
-        border: Border.all(color: Colors.amber.shade300),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, size: 16, color: Colors.amber.shade800),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(fontSize: 12, color: Colors.amber.shade900),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

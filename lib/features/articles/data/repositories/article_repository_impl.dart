@@ -82,8 +82,10 @@ class ArticleRepositoryImpl implements ArticleRepository {
             case null: // No logueado
               query = query.where('assocId', isEqualTo: '');
               break;
-            case LocalUserEntity _: // Usuario local (solo lectura)
-              query = query.where('assocId', isEqualTo: '');
+            case LocalUserEntity localUser: // Usuario local (solo lectura)
+              final userAssociationIds = localUser.associationIds;
+              final assocIds = ['', ...userAssociationIds];
+              query = query.where('assocId', whereIn: assocIds);
               break;
             case UserEntity authUser: // Usuario autenticado normal
               final userAssociationIds = authUser.associationIds;
@@ -419,10 +421,18 @@ class ArticleRepositoryImpl implements ArticleRepository {
   }
 
   @override
-  Future<Either<Failure, List<CategoryEntity>>> getCategories() async {
+  Future<Either<Failure, List<CategoryEntity>>> getCategories(
+      {String? assocId}) async {
     try {
-      final snapshot =
-          await firestore.collection('categories').orderBy('order').get();
+      Query query = firestore.collection('categories').orderBy('order');
+
+      if (assocId != null) {
+        query = query.where('assocId', whereIn: ['system', assocId]);
+      } else {
+        query = query.where('isSystem', isEqualTo: true);
+      }
+
+      final snapshot = await query.get();
       final categories = snapshot.docs
           .map((doc) => CategoryModel.fromFirestore(
               doc as DocumentSnapshot<Map<String, dynamic>>))
@@ -430,18 +440,27 @@ class ArticleRepositoryImpl implements ArticleRepository {
           .toList();
       return Right(categories);
     } catch (e) {
+      debugPrint('🗑️ ArticleRepositoryImpl: getCategories ➡️ EXCEPTION: $e');
       return Left(ServerFailure('Error al obtener las categorías: $e'));
     }
   }
 
   @override
   Future<Either<Failure, List<SubcategoryEntity>>> getSubcategories(
-      String categoryId) async {
+      String categoryId,
+      {String? assocId}) async {
     try {
-      final snapshot = await firestore
+      Query query = firestore
           .collection('subcategories')
-          .where('categoryId', isEqualTo: categoryId)
-          .get();
+          .where('categoryId', isEqualTo: categoryId);
+
+      if (assocId != null) {
+        query = query.where('assocId', whereIn: ['system', assocId]);
+      } else {
+        query = query.where('isSystem', isEqualTo: true);
+      }
+
+      final snapshot = await query.get();
       final subcategories = snapshot.docs
           .map((doc) => SubcategoryModel.fromFirestore(
               doc as DocumentSnapshot<Map<String, dynamic>>))
@@ -451,6 +470,8 @@ class ArticleRepositoryImpl implements ArticleRepository {
       subcategories.sort((a, b) => a.order.compareTo(b.order));
       return Right(subcategories);
     } catch (e) {
+      debugPrint(
+          '🗑️ ArticleRepositoryImpl: getSubcategories ➡️ EXCEPTION: $e');
       return Left(ServerFailure('Error al obtener las subcategorías: $e'));
     }
   }

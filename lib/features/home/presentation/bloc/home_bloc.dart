@@ -10,6 +10,7 @@ import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetArticlesUseCase getArticlesUseCase;
@@ -55,10 +56,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     try {
+      final authState = authBloc.state;
+      String? assocId = event.membership?.associationId;
+      if (assocId == null) {
+        if (authState is AuthAuthenticated) {
+          assocId = authState.currentMembership?.associationId;
+        } else if (authState is AuthLocalUser) {
+          assocId = authState.localUser.associationId;
+        }
+      }
+
       // Carga de artículos y categorías siempre se hace al inicio.
       final articlesResult = await getArticlesUseCase(
           user: event.user, isEditMode: event.isEditMode, lastDocument: null);
-      final categoriesResult = await getCategoriesUseCase();
+      final categoriesResult = await getCategoriesUseCase(assocId: assocId);
 
       // Lógica para recargar las asociaciones solo cuando es necesario.
       final List<AssociationEntity> associations;
@@ -84,10 +95,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       List<CategoryEntity> categoriesToDisplay = categoriesOriginal;
 
       // Obtener el idioma del usuario
-      final authState = authBloc.state;
       String targetLang = 'es'; // Idioma por defecto
       if (authState is AuthAuthenticated) {
         targetLang = authState.user.language;
+      } else if (authState is AuthLocalUser) {
+        targetLang = authState.localUser.language;
+      } else if (authState is AuthUnauthenticated &&
+          authState.language != null) {
+        targetLang = authState.language!;
       }
 
       // Si no estamos en modo edición, traducir los artículos
@@ -165,17 +180,30 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(currentState.copyWith(isLoading: true));
 
     final authState = authBloc.state;
-    final user =
-        event.user ?? (authState is AuthAuthenticated ? authState.user : null);
+    IUser? user = event.user;
+    if (user == null) {
+      if (authState is AuthAuthenticated) {
+        user = authState.user;
+      } else if (authState is AuthLocalUser) {
+        user = authState.localUser;
+      }
+    }
 
     debugPrint(
         'DEBUG: ToggleEditMode - Calling getArticlesUseCase for newEditMode=$newEditMode with user=${user?.uid}');
+    String? assocId;
+    if (authState is AuthAuthenticated) {
+      assocId = authState.currentMembership?.associationId;
+    } else if (authState is AuthLocalUser) {
+      assocId = authState.localUser.associationId;
+    }
+
     // Volvemos a cargar los artículos desde el principio con el nuevo modo de edición
     final articlesResult =
         await getArticlesUseCase(user: user, isEditMode: newEditMode);
 
     // Obtenemos las categorías actuales (sin traducir)
-    final categoriesResult = await getCategoriesUseCase();
+    final categoriesResult = await getCategoriesUseCase(assocId: assocId);
 
     await articlesResult.fold(
       (failure) async => emit(HomeError(failure.message)),
@@ -191,14 +219,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         List<CategoryEntity> categoriesToDisplay = categoriesOriginal;
 
         // Si salimos del modo edición, traducimos los artículos
-        if (!newEditMode && user != null) {
+        if (!newEditMode) {
+          String targetLang = 'es';
+          if (authState is AuthAuthenticated) {
+            targetLang = authState.user.language;
+          } else if (authState is AuthLocalUser) {
+            targetLang = authState.localUser.language;
+          } else if (authState is AuthUnauthenticated &&
+              authState.language != null) {
+            targetLang = authState.language!;
+          }
+
           articlesToDisplay = await Future.wait(_originalArticles
               .map((article) =>
-                  translationService.translateArticle(article, user.language))
+                  translationService.translateArticle(article, targetLang))
               .toList());
 
           categoriesToDisplay = await translationService.translateCategories(
-              categoriesOriginal, user.language);
+              categoriesOriginal, targetLang);
         }
 
         debugPrint(
@@ -243,7 +281,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     debugPrint(
         'DEBUG: CategorySelected - isEditMode=${currentState.isEditMode}');
 
-    final result = await getSubcategoriesUseCase(event.category.id);
+    final authState = authBloc.state;
+    String? assocId;
+    if (authState is AuthAuthenticated) {
+      assocId = authState.currentMembership?.associationId;
+    } else if (authState is AuthLocalUser) {
+      assocId = authState.localUser.associationId;
+    }
+
+    final result =
+        await getSubcategoriesUseCase(event.category.id, assocId: assocId);
 
     await result.fold(
       (failure) async {
@@ -258,10 +305,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         // Si no estamos en modo edición, traducir las subcategorías
         if (!currentState.isEditMode) {
-          final authState = authBloc.state;
           String targetLang = 'es'; // Idioma por defecto
           if (authState is AuthAuthenticated) {
             targetLang = authState.user.language;
+          } else if (authState is AuthLocalUser) {
+            targetLang = authState.localUser.language;
           }
 
           debugPrint(

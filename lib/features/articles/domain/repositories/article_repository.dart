@@ -21,10 +21,12 @@ abstract class ArticleRepository {
     int limit = 20,
   });
 
-  Future<Either<Failure, List<CategoryEntity>>> getCategories();
+  Future<Either<Failure, List<CategoryEntity>>> getCategories(
+      {String? assocId});
 
   Future<Either<Failure, List<SubcategoryEntity>>> getSubcategories(
-      String categoryId);
+      String categoryId,
+      {String? assocId});
 
   Future<Either<Failure, ArticleEntity>> createArticle(
     ArticleEntity article,

@@ -15,6 +15,7 @@ enum UserStatus {
 }
 
 class UserEntity extends Equatable implements IUser {
+  @override
   final String uid;
   final String email;
   final String firstName;
@@ -23,6 +24,7 @@ class UserEntity extends Equatable implements IUser {
   final String? avatarUrl;
   final Map<String, String> memberships;
   final UserStatus status;
+  @override
   final String language;
   final DateTime dateCreated;
   final DateTime dateUpdated;

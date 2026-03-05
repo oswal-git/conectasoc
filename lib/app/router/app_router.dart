@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/presentation/pages/pages.dart';
 import 'package:conectasoc/features/associations/presentation/pages/pages.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
@@ -118,6 +119,22 @@ class AppRouter {
             path: '/articles/:articleId',
             builder: (context, state) {
               final articleId = state.pathParameters['articleId']!;
+
+              // Si recibimos el set de artículos en el extra, usamos el Pager
+              if (state.extra != null && state.extra is Map<String, dynamic>) {
+                final extra = state.extra as Map<String, dynamic>;
+                if (extra.containsKey('articles') &&
+                    extra.containsKey('initialId')) {
+                  final List<ArticleEntity> articles = extra['articles'];
+                  final String initialId = extra['initialId'];
+
+                  return ArticlePagerPage(
+                    articles: articles,
+                    initialArticleId: initialId,
+                  );
+                }
+              }
+
               return ArticleDetailPage(articleId: articleId);
             },
           ),
@@ -159,8 +176,8 @@ class AppRouter {
     redirect: (BuildContext context, GoRouterState state) async {
       final authState = authBloc.state;
       final location = state.uri.toString();
-      logger.t("➡️ AppRouter-redirect: authState = ${authState.runtimeType}");
-      logger.t("➡️ AppRouter-redirect: location = $location");
+      logger.t(
+          "➡️ AppRouter-redirect: authState = ${authState.runtimeType} (hash: ${identityHashCode(authState)}), Location = $location");
 
       // Esperar a que el estado se resuelva
       // /*********************************************************
@@ -194,9 +211,14 @@ class AppRouter {
       // Desde splash, redirigir según el estado
       if (location == RouteNames.splash) {
         logger.t("3 ➡️ AppRouter-redirect: $location == ${RouteNames.splash}");
-        if (authState is AuthAuthenticated || authState is AuthLocalUser) {
+        final isAuthenticated = authState is AuthAuthenticated ||
+            authState is AuthLocalUser ||
+            authState.runtimeType.toString() == 'AuthLocalUser' ||
+            authState.runtimeType.toString() == 'AuthAuthenticated';
+
+        if (isAuthenticated) {
           logger.t(
-              "3.1 ➡️ AppRouter-redirect: authState is AuthAuthenticated || authState is AuthLocalUser -> ${RouteNames.home}");
+              "3.1 ➡️ AppRouter-redirect: user is authenticated -> ${RouteNames.home}");
           return RouteNames.home;
         } else if (authState is AuthUnauthenticated) {
           logger.t(
@@ -209,18 +231,23 @@ class AppRouter {
       // /************  AuthAuthenticated  AuthLocalUser *********
       // /****************************************************************************
       // Usuario autenticado no puede acceder a páginas de auth
-      if (authState is AuthAuthenticated || authState is AuthLocalUser) {
-        logger.t(
-            "4 ➡️ AppRouter-redirect: authState is AuthAuthenticated || authState is AuthLocalUser");
-        final authRoutes = [
-          RouteNames.welcome,
-          RouteNames.login,
-          RouteNames.register,
-          RouteNames.verification,
-        ];
-        if (authRoutes.contains(location)) {
+      // Log de diagnóstico si estamos en una ruta de auth y somos local user
+      final authRoutes = [
+        RouteNames.welcome,
+        RouteNames.login,
+        RouteNames.register,
+        RouteNames.verification,
+      ];
+
+      if (authRoutes.contains(location)) {
+        final isAuth = authState is AuthAuthenticated ||
+            authState is AuthLocalUser ||
+            authState.runtimeType.toString() == 'AuthLocalUser' ||
+            authState.runtimeType.toString() == 'AuthAuthenticated';
+
+        if (isAuth) {
           logger.t(
-              "4.1 ➡️ AppRouter-redirect: authState is AuthAuthenticated || authState is AuthLocalUser -> !authRoutes.contains(location) = ${!authRoutes.contains(location)}");
+              "4 ➡️ AppRouter-redirect: Authenticated user (Type: ${authState.runtimeType}) on auth route -> Redirecting to ${RouteNames.home}");
           return RouteNames.home;
         }
       }

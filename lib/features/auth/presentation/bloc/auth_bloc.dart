@@ -56,6 +56,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthRegistrationCompleted>(_onRegistrationCompleted);
     on<AuthUserRefreshRequested>(_onUserRefreshRequested);
     on<AuthUserChanged>(_onAuthUserChanged);
+    on<AuthSetLocale>(_onSetLocale);
+  }
+
+  void _onSetLocale(AuthSetLocale event, Emitter<AuthState> emit) {
+    final currentState = state;
+    if (currentState is AuthUnauthenticated) {
+      emit(AuthUnauthenticated(
+        message: currentState.message,
+        language: event.language,
+      ));
+    }
   }
 
   @override
@@ -328,6 +339,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await saveLocalUserUseCase(
       displayName: event.displayName,
       associationId: event.associationId,
+      language: event.language,
     );
 
     if (result.isLeft()) {

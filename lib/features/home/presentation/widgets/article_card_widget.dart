@@ -13,8 +13,13 @@ import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
 
 class ArticleCardWidget extends StatelessWidget {
   final ArticleEntity article;
+  final Function(String articleId)? onDetailNavigated;
 
-  const ArticleCardWidget({super.key, required this.article});
+  const ArticleCardWidget({
+    super.key,
+    required this.article,
+    this.onDetailNavigated,
+  });
 
   // Determine background color based on article status
   Color _getBackgroundColor(ArticleStatus status) {
@@ -69,8 +74,23 @@ class ArticleCardWidget extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          onTap: () => context.pushNamed(RouteNames.articleDetail,
-              pathParameters: {'articleId': article.id}),
+          onTap: () async {
+            final homeState = context.read<HomeBloc>().state;
+            if (homeState is! HomeLoaded) return;
+
+            final result = await context.pushNamed<String>(
+              RouteNames.articleDetail,
+              pathParameters: {'articleId': article.id},
+              extra: {
+                'articles': homeState.filteredArticles,
+                'initialId': article.id,
+              },
+            );
+
+            if (result != null && onDetailNavigated != null) {
+              onDetailNavigated!(result);
+            }
+          },
           child: Padding(
             padding: const EdgeInsets.all(6.0),
             child: Row(
@@ -78,31 +98,36 @@ class ArticleCardWidget extends StatelessWidget {
               children: [
                 // Imagen principal a la izquierda
                 if (article.coverUrl.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6.0),
-                    child: Container(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.grey.shade300, // Color del borde
-                          width: 1.5, // Grosor del borde
-                        ),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: CachedNetworkImage(
-                          imageUrl: article.coverUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              const Center(child: CircularProgressIndicator()),
-                          errorWidget: (context, url, error) => const Icon(
-                              Icons.image_not_supported,
-                              color: Colors.grey),
+                  CachedNetworkImage(
+                    imageUrl: article.coverUrl,
+                    imageBuilder: (context, imageProvider) => Padding(
+                      padding: const EdgeInsets.only(right: 6.0),
+                      child: Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(12.0),
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
+                    placeholder: (context, url) => const Padding(
+                      padding: EdgeInsets.only(right: 6.0),
+                      child: SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) =>
+                        const SizedBox.shrink(),
                   ),
                 // Columna de contenido a la derecha
                 Expanded(

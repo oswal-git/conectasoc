@@ -28,6 +28,8 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
   void initState() {
     super.initState();
     _isExpanded = widget.showDetailsInitially;
+    debugPrint(
+        '🧪 UserFriendlyErrorWidget: initState ✅ errorMessage: ${widget.errorMessage}');
   }
 
   @override

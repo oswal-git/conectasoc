@@ -71,9 +71,9 @@ class CloudinaryDocumentService {
       // Construir la ruta del folder
       final folder = '$associationId/$categoryId/$subcategoryId';
 
-      // PDFs se suben como resource_type=image para poder generar thumbnails
-      // con transformaciones (pg_1). El resto de documentos van como raw.
+      final isImage = ['jpg', 'jpeg', 'png'].contains(extension);
       final isPdf = extension == 'pdf';
+      final isImageOrPdf = isImage || isPdf;
 
       debugPrint(
           '🧪 CloudinaryDocumentService: uploadDocument ✅ extension: $extension');
@@ -86,7 +86,7 @@ class CloudinaryDocumentService {
           '🧪 CloudinaryDocumentService: uploadDocument ✅ folder: $folder');
 
       final CloudinaryDocumentResponse documentResponse;
-      if (isPdf) {
+      if (isImageOrPdf) {
         debugPrint(
             '🧪 CloudinaryDocumentService: uploadDocument ✅ _uploadToCloudinaryImage');
         documentResponse = await _uploadToCloudinaryImage(
@@ -116,25 +116,38 @@ class CloudinaryDocumentService {
       // Thumbnail:
       // - PDF y Office → construir URL dinámica y persistirla en Cloudinary
       // - Otros        → placeholder estático
-      final isOffice = _isOfficeDocument(extension);
       debugPrint(
-          '🧪 CloudinaryDocumentService: uploadDocument ✅ isOffice: $isOffice');
+          '🧪 CloudinaryDocumentService: uploadDocument ✅ documentResponse.urlDoc!: ${documentResponse.urlDoc!}');
+
+      final isOffice = _isOfficeDocument(extension);
+
       String thumbUrl;
       if ((isPdf || isOffice) && documentResponse.publicId != null) {
         debugPrint(
-            '🧪 CloudinaryDocumentService: uploadDocument ✅ _buildPdfThumbnailUrl');
+            '🧪 CloudinaryDocumentService: uploadDocument ✅ Iniciando persistencia de miniatura...');
         thumbUrl = await _persistThumbnail(
           publicId: documentResponse.publicId!,
           originalExtension: extension,
           folder: folder,
         );
-      } else {
+      } else if (isImage && documentResponse.urlDoc != null) {
+        // Para imágenes subidas directamente, usamos la URL tal cual limitando tamaño (opcional)
+        final urlComps = documentResponse.urlDoc!.split('/upload/');
+        if (urlComps.length == 2) {
+          thumbUrl = '${urlComps[0]}/upload/c_scale,w_400/${urlComps[1]}';
+        } else {
+          thumbUrl = documentResponse.urlDoc!;
+        }
         debugPrint(
-            '🧪 CloudinaryDocumentService: uploadDocument ✅ _getDefaultThumbnail');
+            '🧪 CloudinaryDocumentService: uploadDocument ✅ Usando thumb de imagen generada en vuelo: $thumbUrl');
+      } else {
         thumbUrl = _getDefaultThumbnail(filename);
         debugPrint(
-            '🧪 CloudinaryDocumentService: uploadDocument ✅ thumbUrl: $thumbUrl');
+            '🧪 CloudinaryDocumentService: uploadDocument ✅ Usando thumb por defecto: $thumbUrl');
       }
+
+      debugPrint(
+          '🧪 CloudinaryDocumentService: uploadDocument ✅ Finalizado. thumbUrl: $thumbUrl');
 
       debugPrint(
           '🧪 CloudinaryDocumentService: uploadDocument ✅ documentResponse.urlDoc!: ${documentResponse.urlDoc!}');
@@ -289,25 +302,21 @@ class CloudinaryDocumentService {
     required String originalExtension,
     required String folder,
   }) async {
+    // URL dinámica de la primera página:
+    // PDF:    image/upload/c_limit,w_2000,f_jpg,pg_1/{publicId}
+    //         (Importante: No añadir .pdf si ya se subió como image)
+    // Office: image/upload/c_limit,w_2000,f_jpg,pg_1/{publicId}.pdf
     final cloudName = CloudinaryConfig.cloudName;
     final isPdf = originalExtension == 'pdf';
 
-    // El publicId de Cloudinary incluye la extensión del archivo original
-    // (ej: "Borrador_eopz4q.doc"). Para construir la URL del PDF generado
-    // por Aspose hay que quitarla, porque Aspose añade .{ext}.pdf al publicId base.
-    // Ejemplo: publicId="name.doc" → Aspose genera "name.doc.pdf"
-    //          pero si ya incluye la ext, quedaria "name.doc.doc.pdf" ❌
-    // Solución: usar el publicId tal cual — Cloudinary/Aspose genera {publicId}.pdf
-    // sin duplicar la extensión.
-    //
-    // URL dinámica de la primera página:
-    // PDF:    image/upload/c_limit,w_2000,f_jpg,pg_1/{publicId}.pdf
-    //         (el PDF subido como image ya tiene .pdf, no hace falta añadir)
-    // Office: image/upload/c_limit,w_2000,f_jpg,pg_1/{publicId}.pdf
-    //         (Aspose crea el PDF con el mismo publicId + .pdf al final)
-    final dynamicThumbUrl =
-        'https://res.cloudinary.com/$cloudName/image/upload/'
-        'c_limit,w_2000,f_jpg,pg_1/$publicId.pdf';
+    String dynamicThumbUrl;
+    if (isPdf) {
+      dynamicThumbUrl = 'https://res.cloudinary.com/$cloudName/image/upload/'
+          'c_limit,w_2000,f_jpg,pg_1/$publicId';
+    } else {
+      dynamicThumbUrl = 'https://res.cloudinary.com/$cloudName/image/upload/'
+          'c_limit,w_2000,f_jpg,pg_1/$publicId.pdf';
+    }
 
     debugPrint(
         '🖼️ CloudinaryDocumentService: _persistThumbnail ➡️ publicId: $publicId');
@@ -486,7 +495,10 @@ class CloudinaryDocumentService {
       'xls',
       'xlsx',
       'ppt',
-      'pptx'
+      'pptx',
+      'jpg',
+      'jpeg',
+      'png'
     ];
     return supportedExtensions.contains(extension);
   }
@@ -510,6 +522,11 @@ class CloudinaryDocumentService {
         return 'application/vnd.ms-powerpoint';
       case 'pptx':
         return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
       default:
         return 'application/octet-stream';
     }

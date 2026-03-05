@@ -2,6 +2,12 @@
 /// Define las propiedades y métodos comunes necesarios para la lógica de negocio,
 /// como la gestión de permisos y la obtención de identificadores de asociación.
 abstract class IUser {
+  /// Identificador único del usuario.
+  String get uid;
+
+  /// Idioma preferido del usuario.
+  String get language;
+
   /// Lista de IDs de las asociaciones a las que pertenece el usuario.
   List<String> get associationIds;
 

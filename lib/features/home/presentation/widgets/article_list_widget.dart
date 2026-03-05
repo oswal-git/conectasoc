@@ -1,5 +1,6 @@
 import 'package:conectasoc/core/widgets/user_friendly_error_widget.dart';
 import 'package:conectasoc/features/home/presentation/widgets/article_card_widget.dart';
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -7,6 +8,7 @@ import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class ArticleListWidget extends StatefulWidget {
   const ArticleListWidget({super.key});
@@ -16,18 +18,26 @@ class ArticleListWidget extends StatefulWidget {
 }
 
 class ArticleListWidgetState extends State<ArticleListWidget> {
-  final _scrollController = ScrollController();
+  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
 
   Future<void> _refreshHomeData(bool isEditMode) async {
     final authState = context.read<AuthBloc>().state;
-    UserEntity? user;
+    IUser? user;
     MembershipEntity? membership;
     if (authState is AuthAuthenticated) {
       user = authState.user;
       membership = authState.currentMembership;
+    } else if (authState is AuthLocalUser) {
+      user = authState.localUser;
     }
 
     final homeBloc = context.read<HomeBloc>();
+    // Definimos el future ANTES de añadir el evento para evitar perder el estado.
+    final future = homeBloc.stream.firstWhere((state) =>
+        (state is HomeLoaded && !state.isLoading) || state is HomeError);
+
     homeBloc.add(LoadHomeData(
       user: user,
       membership: membership,
@@ -35,41 +45,61 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
       forceReload: true,
     ));
 
-    await homeBloc.stream
-        .firstWhere((state) => state is! HomeLoaded || !state.isLoading);
+    await future;
   }
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    _itemPositionsListener.itemPositions.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
+    _itemPositionsListener.itemPositions.removeListener(_onScroll);
     super.dispose();
   }
 
   void _onScroll() {
-    if (_isBottom) {
-      final authState = context.read<AuthBloc>().state;
-      UserEntity? user;
-      if (authState is AuthAuthenticated) {
-        user = authState.user;
+    final positions = _itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+
+    // Obtener el índice más alto visible
+    final maxIndex = positions
+        .map((p) => p.index)
+        .reduce((value, element) => value > element ? value : element);
+
+    final homeState = context.read<HomeBloc>().state;
+    if (homeState is HomeLoaded &&
+        maxIndex >= homeState.filteredArticles.length - 2) {
+      if (homeState.hasMore && !homeState.isLoading) {
+        final authState = context.read<AuthBloc>().state;
+        IUser? user;
+        if (authState is AuthAuthenticated) {
+          user = authState.user;
+        } else if (authState is AuthLocalUser) {
+          user = authState.localUser;
+        }
+        context.read<HomeBloc>().add(LoadMoreArticles(user: user));
       }
-      context.read<HomeBloc>().add(LoadMoreArticles(user: user));
     }
   }
 
-  bool get _isBottom {
-    if (!_scrollController.hasClients) return false;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
-    // Trigger loading a bit before reaching the absolute end
-    return currentScroll >= (maxScroll * 0.9);
+  /// Desplaza la lista hasta el artículo con el ID especificado.
+  void scrollToArticle(String articleId) {
+    if (!mounted) return;
+    final state = context.read<HomeBloc>().state;
+    if (state is! HomeLoaded) return;
+
+    final index = state.filteredArticles.indexWhere((a) => a.id == articleId);
+    if (index != -1) {
+      _itemScrollController.scrollTo(
+        index: index,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.3, // Centrar un poco el elemento en pantalla
+      );
+    }
   }
 
   @override
@@ -84,11 +114,13 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
             errorMessage: state.message,
             onRetry: () {
               final authState = context.read<AuthBloc>().state;
-              UserEntity? user;
+              IUser? user;
               MembershipEntity? membership;
               if (authState is AuthAuthenticated) {
                 user = authState.user;
                 membership = authState.currentMembership;
+              } else if (authState is AuthLocalUser) {
+                user = authState.localUser;
               }
               context.read<HomeBloc>().add(LoadHomeData(
                     user: user,
@@ -126,8 +158,9 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
           }
           return RefreshIndicator(
             onRefresh: () => _refreshHomeData(state.isEditMode),
-            child: ListView.builder(
-              controller: _scrollController,
+            child: ScrollablePositionedList.builder(
+              itemScrollController: _itemScrollController,
+              itemPositionsListener: _itemPositionsListener,
               padding: const EdgeInsets.only(bottom: 80), // For FAB
               physics:
                   const AlwaysScrollableScrollPhysics(), // Ensure refresh works even with short lists
@@ -144,7 +177,10 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
                   );
                 }
                 final article = state.filteredArticles[index];
-                return ArticleCardWidget(article: article);
+                return ArticleCardWidget(
+                  article: article,
+                  onDetailNavigated: scrollToArticle,
+                );
               },
             ),
           );

@@ -8,8 +8,8 @@ class GetSubcategoriesUseCase {
 
   GetSubcategoriesUseCase(this.repository);
 
-  Future<Either<Failure, List<SubcategoryEntity>>> call(
-      String categoryId) async {
-    return await repository.getSubcategories(categoryId);
+  Future<Either<Failure, List<SubcategoryEntity>>> call(String categoryId,
+      {String? assocId}) async {
+    return await repository.getSubcategories(categoryId, assocId: assocId);
   }
 }

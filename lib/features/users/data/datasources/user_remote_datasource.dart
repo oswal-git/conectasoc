@@ -5,6 +5,7 @@ import 'package:conectasoc/core/errors/exceptions.dart';
 import 'package:conectasoc/features/auth/data/models/models.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';
+import 'package:flutter/material.dart';
 
 abstract class UserRemoteDataSource {
   Future<void> addMembership(String userId, String associationId, String role);
@@ -82,6 +83,9 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         throw ServerException('Usuario no encontrado.');
       }
     } catch (e) {
+      if (!e.toString().contains('permission-denied')) {
+        debugPrint('UserRemoteDataSourceImpl: getUserById -> Error: $e');
+      }
       throw ServerException('Error obteniendo usuario por ID: ${e.toString()}');
     }
   }
@@ -130,8 +134,12 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         transaction.update(userRef, dataToUpdate);
       });
     } on ConcurrencyException {
+      debugPrint(
+          'UserRemoteDataSourceImpl: updateUserDetails -> El registro ha sido modificado por otro usuario. Por favor, refresca los datos e inténtalo de nuevo.');
       rethrow;
     } catch (e) {
+      debugPrint(
+          'UserRemoteDataSourceImpl: updateUserDetails -> Error al actualizar los detalles del usuario: $e');
       throw ServerException('Error al actualizar los detalles del usuario: $e');
     }
   }
@@ -176,6 +184,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
           'lastName': user.lastname,
           'phone': user.phone,
           'language': user.language,
+          'notificationFrequency': user.notificationFrequency,
           'dateUpdated': FieldValue.serverTimestamp(),
         };
 
@@ -191,6 +200,8 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     } on ConcurrencyException {
       rethrow;
     } catch (e) {
+      debugPrint(
+          'UserRemoteDataSourceImpl: updateUser -> Error al actualizar el usuario: $e');
       throw ServerException('Error al actualizar el usuario: $e');
     }
   }

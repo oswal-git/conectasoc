@@ -69,11 +69,13 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, void>> saveLocalUser({
     required String displayName,
     required String associationId,
+    required String language,
   }) async {
     try {
       final localUser = LocalUserEntity(
         displayName: displayName,
         associationId: associationId,
+        language: language,
       );
 
       await localDataSource.saveLocalUser(localUser);

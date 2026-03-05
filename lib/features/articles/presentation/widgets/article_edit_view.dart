@@ -5,8 +5,6 @@ import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_event.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_state.dart';
 import 'package:conectasoc/features/articles/presentation/widgets/widgets.dart';
-import 'package:conectasoc/features/documents/domain/entities/document_link_entity.dart';
-import 'package:conectasoc/features/documents/presentation/widgets/document_picker_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter/material.dart';
@@ -437,15 +435,15 @@ class _ArticleEditViewState extends State<ArticleEditView> {
             const SizedBox(height: 24),
 
             // ✨ NUEVO: Documento enlazado al artículo ────────────────────
-            _buildArticleDocumentSection(
-                context, state, isEditingEnabled, l10n),
-            const SizedBox(height: 32),
+            // _buildArticleDocumentSection(
+            //     context, state, isEditingEnabled, l10n),
+            // const SizedBox(height: 32),
 
             // ── Secciones ────────────────────────────────────────────────
             Text('--- ${l10n.sections.toUpperCase()} ---',
                 textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            SectionList(isEditingEnabled: isEditingEnabled),
+            ArticleSectionListWidget(isEditingEnabled: isEditingEnabled),
             const SizedBox(height: 16),
             if (isEditingEnabled)
               ElevatedButton.icon(
@@ -462,47 +460,47 @@ class _ArticleEditViewState extends State<ArticleEditView> {
   }
 
   // ✨ NUEVO: sección de documento a nivel de artículo
-  Widget _buildArticleDocumentSection(
-    BuildContext context,
-    ArticleEditLoaded state,
-    bool isEditingEnabled,
-    AppLocalizations l10n,
-  ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.linkDocument,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Documento adjunto al artículo completo',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            DocumentPickerWidget(
-              currentDocumentLink: state.article.documentLink,
-              isEnabled: isEditingEnabled,
-              onDocumentSelected: (DocumentLinkEntity? link) {
-                context
-                    .read<ArticleEditBloc>()
-                    .add(UpdateArticleDocumentLink(link));
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildArticleDocumentSection(
+  //   BuildContext context,
+  //   ArticleEditLoaded state,
+  //   bool isEditingEnabled,
+  //   AppLocalizations l10n,
+  // ) {
+  //   return Card(
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(12),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Text(
+  //             l10n.linkDocument,
+  //             style: Theme.of(context).textTheme.titleSmall?.copyWith(
+  //                   fontWeight: FontWeight.bold,
+  //                 ),
+  //           ),
+  //           const SizedBox(height: 4),
+  //           Text(
+  //             'Documento adjunto al artículo completo',
+  //             style: Theme.of(context)
+  //                 .textTheme
+  //                 .bodySmall
+  //                 ?.copyWith(color: Colors.grey),
+  //           ),
+  //           const SizedBox(height: 12),
+  //           DocumentPickerWidget(
+  //             currentDocumentLink: state.article.documentLink,
+  //             isEnabled: isEditingEnabled,
+  //             onDocumentSelected: (DocumentLinkEntity? link) {
+  //               context
+  //                   .read<ArticleEditBloc>()
+  //                   .add(UpdateArticleDocumentLink(link));
+  //             },
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Future<void> _showExitConfirmationDialog(
     BuildContext context,

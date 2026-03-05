@@ -65,7 +65,17 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
+        allowedExtensions: [
+          'pdf',
+          'doc',
+          'docx',
+          'xls',
+          'xlsx',
+          'ppt',
+          'pptx',
+          'jpg',
+          'jpeg'
+        ],
         withData: true, // Important for web
       );
 
@@ -99,7 +109,10 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
         listener: (context, state) {
           if (state is DocumentUploadSuccess) {
             SnackBarService.showSnackBar(l10n.documentUploaded);
-            Navigator.of(context).pop(true);
+            // Pequeño retardo para que el usuario vea que ha terminado
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (context.mounted) Navigator.of(context).pop(true);
+            });
           } else if (state is DocumentUploadFailure) {
             SnackBarService.showSnackBar(state.error, isError: true);
           }

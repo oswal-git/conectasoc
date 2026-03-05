@@ -36,6 +36,11 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
           String targetLang = 'es'; // Default language
           if (authState is AuthAuthenticated) {
             targetLang = authState.user.language;
+          } else if (authState is AuthLocalUser) {
+            targetLang = authState.localUser.language;
+          } else if (authState is AuthUnauthenticated &&
+              authState.language != null) {
+            targetLang = authState.language!;
           }
 
           // Translate the article if the language differs

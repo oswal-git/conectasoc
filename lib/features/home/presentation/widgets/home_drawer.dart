@@ -137,16 +137,17 @@ class HomeDrawer extends StatelessWidget {
               if (state is AuthAuthenticated)
                 // ── Perfil y asociación ──────────────────────────────────
                 const Divider(indent: 16, endIndent: 16),
-              _buildDrawerItem(
-                context: context,
-                icon: Icons.person_outline,
-                text: AppLocalizations.of(context).myProfile,
-                onTap: () {
-                  GoRouter.of(context).pop();
-                  GoRouter.of(context)
-                      .push('${RouteNames.home}/${RouteNames.profile}');
-                },
-              ),
+              if (state is AuthAuthenticated)
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.person_outline,
+                  text: AppLocalizations.of(context).myProfile,
+                  onTap: () {
+                    GoRouter.of(context).pop();
+                    GoRouter.of(context)
+                        .push('${RouteNames.home}/${RouteNames.profile}');
+                  },
+                ),
               if (state is AuthAuthenticated)
                 _buildDrawerItem(
                   context: context,

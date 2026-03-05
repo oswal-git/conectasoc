@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:conectasoc/services/notification_service.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -11,25 +12,38 @@ import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/core/utils/quill_helpers.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
+import 'package:conectasoc/features/articles/presentation/widgets/widgets.dart';
 import 'package:conectasoc/features/users/presentation/widgets/user_avatar_widget.dart';
 
 class ArticleDetailPage extends StatelessWidget {
   final String articleId;
-  const ArticleDetailPage({super.key, required this.articleId});
+  final VoidCallback? onBackOverride;
+
+  const ArticleDetailPage({
+    super.key,
+    required this.articleId,
+    this.onBackOverride,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<ArticleDetailBloc>(
-        param1: context.read<AuthBloc>(),
-      )..add(LoadArticleDetail(articleId)),
-      child: const ArticleDetailView(),
+      create: (context) {
+        // Al abrir el detalle, intentamos cancelar la notificación local si existe
+        sl<NotificationService>().cancelNotification(articleId.hashCode);
+
+        return sl<ArticleDetailBloc>(
+          param1: context.read<AuthBloc>(),
+        )..add(LoadArticleDetail(articleId));
+      },
+      child: ArticleDetailView(onBackOverride: onBackOverride),
     );
   }
 }
 
 class ArticleDetailView extends StatelessWidget {
-  const ArticleDetailView({super.key});
+  final VoidCallback? onBackOverride;
+  const ArticleDetailView({super.key, this.onBackOverride});
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +51,12 @@ class ArticleDetailView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.articleTitle),
+        leading: onBackOverride != null
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: onBackOverride,
+              )
+            : null,
       ),
       body: BlocBuilder<ArticleDetailBloc, ArticleDetailState>(
         builder: (context, state) {
@@ -116,6 +136,8 @@ class _WebLayout extends StatelessWidget {
                         child: CachedNetworkImage(
                           imageUrl: article.coverUrl,
                           fit: BoxFit.contain,
+                          errorWidget: (context, url, error) =>
+                              const SizedBox.shrink(),
                         ),
                       ),
                     ),
@@ -123,9 +145,23 @@ class _WebLayout extends StatelessWidget {
                 if (article.coverUrl.isNotEmpty) const SizedBox(height: 24),
 
                 // Fila 5: Contenido (Abstract o Secciones)
-                // if (article.sections.isEmpty)
-                _SectionContent(jsonContent: article.abstractContent),
-                // else
+                // Ocultar abstract si alguna sección tiene texto
+                if (!article.sections.any((s) =>
+                    quillJsonToPlainText(s.richTextContent ?? '').isNotEmpty))
+                  _SectionContent(jsonContent: article.abstractContent),
+
+                // Root Document Link
+                if (article.documentLink != null &&
+                    article.documentLink!.documentId.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: SectionDocumentLinkWidget(
+                          documentLink: article.documentLink!),
+                    ),
+                  ),
+
                 ...article.sections.asMap().entries.map((entry) {
                   final index = entry.key;
                   final section = entry.value;
@@ -147,19 +183,21 @@ class _WebLayout extends StatelessWidget {
 
   Widget _buildWebSection(
       BuildContext context, ArticleSection section, bool isOdd) {
-    final imageWidget =
-        (section.imageUrl != null && section.imageUrl!.isNotEmpty)
-            ? Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: section.imageUrl!,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              )
-            : null;
+    // Definir los componentes básicos
+    final imageWidget = (section.imageUrl != null &&
+            section.imageUrl!.isNotEmpty)
+        ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                imageUrl: section.imageUrl!,
+                fit: BoxFit.cover,
+                errorWidget: (context, url, error) => const SizedBox.shrink(),
+              ),
+            ),
+          )
+        : null;
 
     final hasTextContent =
         quillJsonToPlainText(section.richTextContent ?? '').isNotEmpty;
@@ -171,45 +209,64 @@ class _WebLayout extends StatelessWidget {
           )
         : null;
 
-    if (imageWidget == null && textWidget == null) {
-      return const SizedBox.shrink();
+    final docWidget = section.documentLink != null
+        ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child:
+                SectionDocumentLinkWidget(documentLink: section.documentLink!),
+          )
+        : null;
+
+    // COMPOSICIÓN D: Sólo enlace a documento
+    if (docWidget != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: docWidget,
+        ),
+      );
     }
 
-    // Si solo hay una imagen, centrarla con un ancho máximo.
+    // COMPOSICIÓN B: Sólo imagen
     if (imageWidget != null && textWidget == null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-                maxWidth: 600), // Ancho máximo para la imagen
+            constraints: const BoxConstraints(maxWidth: 600),
             child: imageWidget,
           ),
         ),
       );
     }
 
+    // COMPOSICIÓN C: Sólo texto
     if (imageWidget == null && textWidget != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: textWidget,
+        child: textWidget, // Justificado a todo el ancho por defecto del widget
       );
     }
 
-    // ✅ Si hay ambos, usar Row con Expanded dentro de IntrinsicHeight
-    final children = isOdd
-        ? [Expanded(child: imageWidget!), Expanded(child: textWidget!)]
-        : [Expanded(child: textWidget!), Expanded(child: imageWidget!)];
+    // COMPOSICIÓN A: Imagen y texto (Alineación alterna)
+    if (imageWidget != null && textWidget != null) {
+      final children = isOdd
+          ? [Expanded(child: imageWidget), Expanded(child: textWidget)]
+          : [Expanded(child: textWidget), Expanded(child: imageWidget)];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          ),
         ),
-      ),
-    );
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }
 
@@ -258,36 +315,83 @@ class _MobileLayout extends StatelessWidget {
                   imageUrl: article.coverUrl,
                   fit: BoxFit.cover,
                   width: double.infinity,
+                  errorWidget: (context, url, error) => const SizedBox.shrink(),
                 ),
               ),
             ),
 
           // Fila 5: Contenido (Abstract o Secciones)
-          if (article.sections.isEmpty)
-            _SectionContent(jsonContent: article.abstractContent)
-          else
+          // Ocultar abstract si alguna sección tiene texto
+          if (!article.sections.any(
+              (s) => quillJsonToPlainText(s.richTextContent ?? '').isNotEmpty))
+            _SectionContent(jsonContent: article.abstractContent),
+
+          // Root Document Link
+          if (article.documentLink != null &&
+              article.documentLink!.documentId.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: SectionDocumentLinkWidget(
+                    documentLink: article.documentLink!),
+              ),
+            ),
+
+          if (article.sections.isNotEmpty)
             ...article.sections.map((section) {
+              final hasImage =
+                  section.imageUrl != null && section.imageUrl!.isNotEmpty;
+              final hasText =
+                  quillJsonToPlainText(section.richTextContent ?? '')
+                      .isNotEmpty;
+              final hasDoc = section.documentLink != null;
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (section.imageUrl != null &&
-                        section.imageUrl!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
+                    // COMPOSICIÓN A: Imagen arriba, texto debajo
+                    if (hasImage && hasText) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: section.imageUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorWidget: (context, url, error) =>
+                              const SizedBox.shrink(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _SectionContent(jsonContent: section.richTextContent!),
+                    ]
+                    // COMPOSICIÓN B: Sólo imagen (centrado)
+                    else if (hasImage)
+                      Center(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: CachedNetworkImage(
                             imageUrl: section.imageUrl!,
                             fit: BoxFit.cover,
                             width: double.infinity,
+                            errorWidget: (context, url, error) =>
+                                const SizedBox.shrink(),
                           ),
                         ),
+                      )
+                    // COMPOSICIÓN C: Sólo texto (ancho completo)
+                    else if (hasText)
+                      _SectionContent(jsonContent: section.richTextContent!)
+                    // COMPOSICIÓN D: Sólo enlace a documento (izquierda)
+                    else if (hasDoc)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: SectionDocumentLinkWidget(
+                          documentLink: section.documentLink!,
+                        ),
                       ),
-                    if (section.richTextContent != null &&
-                        section.richTextContent!.isNotEmpty)
-                      _SectionContent(jsonContent: section.richTextContent!),
                   ],
                 ),
               );

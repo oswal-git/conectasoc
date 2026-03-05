@@ -1,0 +1,326 @@
+Launching lib\main.dart on sdk gphone64 x86 64 in debug mode...
+√ Built build\app\outputs\flutter-apk\app-debug.apk
+D/FlutterJNI(23921): Beginning load of flutter...
+D/FlutterJNI(23921): flutter (null) was loaded normally!
+I/flutter (23921): [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+I/glos.conectasoc(23921): Background concurrent mark compact GC freed 3847KB AllocSpace bytes, 16(376KB) LOS objects, 49% free, 3231KB/6463KB, paused 1.010ms,1.474ms total 144.231ms
+D/FLTFireContextHolder(23921): received application context.
+D/CompatChangeReporter(23921): Compat change id reported: 377864165; UID 10217; state: ENABLED
+Connecting to VM Service at ws://127.0.0.1:50802/nYCvrktwslI=/ws
+Connected to the VM Service.
+W/glos.conectasoc(23921): Verification of void io.flutter.plugins.imagepicker.ImagePickerDelegate$2.getFullImagePath(android.net.Uri, io.flutter.plugins.imagepicker.ImagePickerDelegate$OnPathReadyListener) took 153.269ms (163.11 bytecodes/s) (0B arena alloc)
+I/glos.conectasoc(23921): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported,test-api) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+I/glos.conectasoc(23921): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+I/glos.conectasoc(23921): hiddenapi: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+I/glos.conectasoc(23921): hiddenapi: Accessing hidden method Landroid/util/LongArray;->get(I)J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+I/FA      (23921): Tag Manager is not found and thus will not be used
+W/HWUI    (23921): Unknown dataspace 0
+D/ProfileInstaller(23921): Installing profile for es.eglos.conectasoc
+I/Choreographer(23921): Skipped 82 frames!  The application may be doing too much work on its main thread.
+I/glos.conectasoc(23921): Compiler allocated 5042KB to compile void android.view.ViewRootImpl.performTraversals()
+W/glos.conectasoc(23921): Verification of androidx.window.layout.adapter.WindowBackend androidx.window.layout.WindowInfoTracker$Companion$extensionBackend$2.invoke() took 261.784ms (255.94 bytecodes/s) (0B arena alloc)
+I/WindowExtensionsImpl(23921): Initializing Window Extensions, vendor API level=9, activity embedding enabled=true
+I/Choreographer(23921): Skipped 1404 frames!  The application may be doing too much work on its main thread.
+D/WindowLayoutComponentImpl(23921): Register WindowLayoutInfoListener on Context=es.eglos.conectasoc.MainActivity@70152b6, of which baseContext=android.app.ContextImpl@fccb3fb
+I/FLTFireBGExecutor(23921): Creating background FlutterEngine instance, with args: [--start-paused, --enable-dart-profiling]
+D/FLTFireContextHolder(23921): received application context.
+I/flutter (23921): [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+I/Choreographer(23921): Skipped 106 frames!  The application may be doing too much work on its main thread.
+[GoRouter] setting initial location /
+[GoRouter] Full paths for routes:
+           ├─/ (SplashPage)
+           ├─/welcome (WelcomePage)
+           ├─/login (LoginPage)
+           ├─/register (RegisterPage)
+           ├─/local-user-setup (LocalUserSetupPage)
+           ├─/verification (EmailVerificationPage)
+           ├─/home (HomePage)
+           │ ├─/home/joinAssociation (JoinAssociationPage)
+           │ ├─/home/profile (BlocProvider<ProfileBloc>)
+           │ ├─/home/associations (AssociationListPage)
+           │ ├─/home/associations/edit (AssociationEditPage)
+           │ ├─/home/associations/edit/:id (AssociationEditPage)
+           │ ├─/home/users-list (UserListPage)
+           │ ├─/home/user-edit (UserEditPage)
+           │ ├─/home/user-edit/:id (UserEditPage)
+           │ ├─/home/articles/create (ArticleEditPage)
+           │ ├─/home/articles/:articleId (ArticleDetailPage)
+           │ ├─/home/settings (SettingsPage)
+           │ ├─/home/document-upload (DocumentUploadPage)
+           │ ├─/home/document-list (DocumentListPage)
+           │ └─/home/document-view/:documentId (DocumentViewPage)
+           └─/articles/:id/edit (ArticleEditPage)
+           known full paths for route names:
+             articleCreate => /home/articles/create
+             articleDetail => /home/articles/:articleId
+             settings => /home/settings
+             document-upload => /home/document-upload
+             document-list => /home/document-list
+             document-view/:documentId => /home/document-view/:documentId
+             articleEdit => /articles/:id/edit
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AppRouter.router.<anonymous closure> (package:conectasoc/app/router/app_router.dart:162:14)
+I/flutter (23921): │ #1   RouteConfiguration.applyTopLegacyRedirect.<anonymous closure> (package:go_router/src/configuration.dart:510:45)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ➡️ AppRouter-redirect: authState = AuthInitial (hash: 41118503), Location = /
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AppRouter.router.<anonymous closure> (package:conectasoc/app/router/app_router.dart:170:16)
+I/flutter (23921): │ #1   RouteConfiguration.applyTopLegacyRedirect.<anonymous closure> (package:go_router/src/configuration.dart:510:45)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  1 ➡️ AppRouter-redirect: authState is AuthInitial || authState is AuthLoading -> null
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthCheckRequested (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:232:12)
+I/flutter (23921): │ #1   Bloc.on.<anonymous closure>.handleEvent (package:bloc/src/bloc.dart:226:26)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ➡️ AuthBloc-_onAuthCheckRequested: emit(AuthLoading)
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthCheckRequested (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:238:14)
+I/flutter (23921): │ #1   Bloc.on.<anonymous closure>.handleEvent (package:bloc/src/bloc.dart:226:26)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  🎯 AuthBloc-_onAuthCheckRequested: Iniciando authStateChanges _userSubscription listener
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): 📡 authStateChanges getter called
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AppRouter.router.<anonymous closure> (package:conectasoc/app/router/app_router.dart:162:14)
+I/flutter (23921): │ #1   RouteConfiguration.applyTopLegacyRedirect.<anonymous closure> (package:go_router/src/configuration.dart:510:45)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ➡️ AppRouter-redirect: authState = AuthLoading (hash: 299934284), Location = /
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AppRouter.router.<anonymous closure> (package:conectasoc/app/router/app_router.dart:170:16)
+I/flutter (23921): │ #1   RouteConfiguration.applyTopLegacyRedirect.<anonymous closure> (package:go_router/src/configuration.dart:510:45)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  1 ➡️ AppRouter-redirect: authState is AuthInitial || authState is AuthLoading -> null
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthCheckRequested.<anonymous closure> (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:241:16)
+I/flutter (23921): │ #1   _RootZone.runUnaryGuarded (dart:async/zone.dart:1778:10)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ▶️ AuthBloc-_onAuthCheckRequested: event(AuthUserChanged)
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthUserChanged (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:110:12)
+I/flutter (23921): │ #1   Bloc.on.<anonymous closure>.handleEvent (package:bloc/src/bloc.dart:226:26)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  📥 AuthBloc-_onAuthUserChanged: - isRegistering: false, isLoggingOut: false
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthUserChanged (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:120:12)
+I/flutter (23921): │ #1   Bloc.on.<anonymous closure>.handleEvent (package:bloc/src/bloc.dart:226:26)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ✅ AuthBloc-_onAuthUserChanged: Procesando AuthUserChanged normalmente
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthUserChanged (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:130:14)
+I/flutter (23921): │ #1   Bloc.on.<anonymous closure>.handleEvent (package:bloc/src/bloc.dart:226:26)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ⏸️ AuthBloc-_onAuthUserChanged: _cancelUserDocSubscription
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._cancelUserDocSubscription (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:205:12)
+I/flutter (23921): │ #1   AuthBloc._onAuthUserChanged (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:131:13)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ⏸️ AuthBloc-_cancelUserDocSubscription: cancel _userDocSubscription
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[GoRouter] Using MaterialApp configuration
+I/Choreographer(23921): Skipped 362 frames!  The application may be doing too much work on its main thread.
+W/glos.conectasoc(23921): Verification of com.google.firebase.firestore.local.Persistence com.google.firebase.firestore.core.MemoryComponentProvider.createPersistence(com.google.firebase.firestore.core.ComponentProvider$Configuration) took 124.650ms (296.83 bytecodes/s) (0B arena alloc)
+W/glos.conectasoc(23921): Verification of com.google.firebase.Timestamp com.google.firebase.firestore.bundle.BundleSerializer.decodeTimestamp(java.lang.String) took 151.915ms (1599.58 bytecodes/s) (0B arena alloc)
+W/glos.conectasoc(23921): Verification of void com.google.android.gms.internal.firebase-auth-api.zzafh.zza(com.google.android.gms.common.api.Status) took 328.406ms (624.23 bytecodes/s) (0B arena alloc)
+W/System  (23921): Ignoring header X-Firebase-Locale because its value was null.
+W/glos.conectasoc(23921): Verification of com.google.firebase.firestore.proto.NoDocument com.google.firebase.firestore.local.LocalSerializer.encodeNoDocument(com.google.firebase.firestore.model.Document) took 148.814ms (275.51 bytecodes/s) (0B arena alloc)
+W/DynamiteModule(23921): Local module descriptor class for com.google.android.gms.providerinstaller.dynamite not found.
+W/glos.conectasoc(23921): Verification of int com.google.firebase.Timestamp.compareTo(com.google.firebase.Timestamp) took 143.175ms (160.64 bytecodes/s) (0B arena alloc)
+I/Choreographer(23921): Skipped 176 frames!  The application may be doing too much work on its main thread.
+I/DynamiteModule(23921): Considering local module com.google.android.gms.providerinstaller.dynamite:0 and remote module com.google.android.gms.providerinstaller.dynamite:0
+W/ProviderInstaller(23921): Failed to load providerinstaller module: No acceptable module com.google.android.gms.providerinstaller.dynamite found. Local version is 0 and remote version is 0.
+W/glos.conectasoc(23921): Verification of void com.google.firebase.firestore.local.SQLiteIndexManager.updateEntries(com.google.firebase.firestore.model.Document, java.util.SortedSet, java.util.SortedSet) took 192.597ms (150.57 bytecodes/s) (0B arena alloc)
+D/ApplicationLoaders(23921): Returning zygote-cached class loader: /system/framework/org.apache.http.legacy.jar
+D/ApplicationLoaders(23921): Returning zygote-cached class loader: /system/framework/com.android.location.provider.jar
+D/ApplicationLoaders(23921): Returning zygote-cached class loader: /system/framework/com.android.media.remotedisplay.jar
+D/ApplicationLoaders(23921): Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+D/ApplicationLoaders(23921): Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+W/glos.conectasoc(23921): Loading /data/app/~~_VjyWy4rLJNzMFzeIP-2VA==/com.google.android.gms-mfEIfh8Hk1OwNtGmhu-9Xg==/oat/x86_64/base.odex non-executable as it requires an image which we failed to load
+I/HWUI    (23921): Davey! duration=1121ms; Flags=1, FrameTimelineVsyncId=161769, IntendedVsync=119072267298422, Vsync=119072467298414, InputEventId=0, HandleInputStart=119072474146900, AnimationStart=119072474170700, PerformTraversalsStart=119072474196900, DrawStart=119072592707900, FrameDeadline=119072283965088, FrameStartTime=119072471316900, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=119072851938600, SyncStart=119072882831100, IssueDrawCommandsStart=119072906663900, SwapBuffers=119073284115200, FrameCompleted=119073420108300, DequeueBufferDuration=118768300, QueueBufferDuration=2159800, GpuCompleted=119073328571200, SwapBuffersCompleted=119073420108300, DisplayPresentTime=0, CommandSubmissionCompleted=119073284115200,
+W/glos.conectasoc(23921): Verification of java.lang.Object com.google.firebase.firestore.proto.MaybeDocument.dynamicMethod(com.google.protobuf.GeneratedMessageLite$MethodToInvoke, java.lang.Object, java.lang.Object) took 366.413ms (305.67 bytecodes/s) (0B arena alloc)
+D/nativeloader(23921): Configuring clns-11 for other apk /data/app/~~_VjyWy4rLJNzMFzeIP-2VA==/com.google.android.gms-mfEIfh8Hk1OwNtGmhu-9Xg==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~_VjyWy4rLJNzMFzeIP-2VA==/com.google.android.gms-mfEIfh8Hk1OwNtGmhu-9Xg==/lib/x86_64:/data/app/~~_VjyWy4rLJNzMFzeIP-2VA==/com.google.android.gms-mfEIfh8Hk1OwNtGmhu-9Xg==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+D/InsetsController(23921): hide(ime(), fromIme=false)
+I/ImeTracker(23921): es.eglos.conectasoc:9c768a03: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+D/FirebaseAuth(23921): Notifying id token listeners about user ( wj86GJVNBiQO0eE3LW3k4k6qTR22 ).
+I/glos.conectasoc(23921): Waiting for a blocking GC ClassLinker
+I/glos.conectasoc(23921): Background concurrent mark compact GC freed 2663KB AllocSpace bytes, 15(460KB) LOS objects, 49% free, 5078KB/10157KB, paused 26.516ms,62.223ms total 335ms
+I/glos.conectasoc(23921): WaitForGcToComplete blocked ClassLinker on Background for 209.744ms
+I/fxxm    (23921): Unable to retrieve flag snapshot for com.google.android.gms.providerinstaller#es.eglos.conectasoc, using defaults.
+E/GoogleApiManager(23921): Failed to get service from broker.
+E/GoogleApiManager(23921): java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+E/GoogleApiManager(23921): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3340)
+E/GoogleApiManager(23921): 	at android.os.Parcel.createException(Parcel.java:3324)
+E/GoogleApiManager(23921): 	at android.os.Parcel.readException(Parcel.java:3307)
+E/GoogleApiManager(23921): 	at android.os.Parcel.readException(Parcel.java:3249)
+E/GoogleApiManager(23921): 	at bdxl.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):36)
+E/GoogleApiManager(23921): 	at bdvm.z(:com.google.android.gms@260235038@26.02.35 (260800-862924022):143)
+E/GoogleApiManager(23921): 	at bdbo.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):42)
+E/GoogleApiManager(23921): 	at android.os.Handler.handleCallback(Handler.java:995)
+E/GoogleApiManager(23921): 	at android.os.Handler.dispatchMessage(Handler.java:103)
+E/GoogleApiManager(23921): 	at crvf.mD(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+E/GoogleApiManager(23921): 	at crvf.dispatchMessage(:com.google.android.gms@260235038@26.02.35 (260800-862924022):5)
+E/GoogleApiManager(23921): 	at android.os.Looper.loopOnce(Looper.java:248)
+E/GoogleApiManager(23921): 	at android.os.Looper.loop(Looper.java:338)
+E/GoogleApiManager(23921): 	at android.os.HandlerThread.run(HandlerThread.java:85)
+W/GoogleApiManager(23921): Not showing notification since connectionResult is not user-facing: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagRegistrar(23921): Failed to register com.google.android.gms.providerinstaller#es.eglos.conectasoc
+W/FlagRegistrar(23921): fxxy: 17: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagRegistrar(23921): 	at fxya.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):13)
+W/FlagRegistrar(23921): 	at gvzc.d(:com.google.android.gms@260235038@26.02.35 (260800-862924022):3)
+W/FlagRegistrar(23921): 	at gvze.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):130)
+W/FlagRegistrar(23921): 	at gwbl.execute(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+W/FlagRegistrar(23921): 	at gvzm.f(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+W/FlagRegistrar(23921): 	at gvzm.m(:com.google.android.gms@260235038@26.02.35 (260800-862924022):99)
+W/FlagRegistrar(23921): 	at gvzm.r(:com.google.android.gms@260235038@26.02.35 (260800-862924022):17)
+W/FlagRegistrar(23921): 	at fqmm.hC(:com.google.android.gms@260235038@26.02.35 (260800-862924022):35)
+W/FlagRegistrar(23921): 	at fdqm.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):12)
+W/FlagRegistrar(23921): 	at gwbl.execute(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+W/FlagRegistrar(23921): 	at fdqn.b(:com.google.android.gms@260235038@26.02.35 (260800-862924022):18)
+W/FlagRegistrar(23921): 	at fdrc.b(:com.google.android.gms@260235038@26.02.35 (260800-862924022):34)
+W/FlagRegistrar(23921): 	at fdre.d(:com.google.android.gms@260235038@26.02.35 (260800-862924022):25)
+W/FlagRegistrar(23921): 	at bcyx.c(:com.google.android.gms@260235038@26.02.35 (260800-862924022):9)
+W/FlagRegistrar(23921): 	at bdbm.q(:com.google.android.gms@260235038@26.02.35 (260800-862924022):48)
+W/FlagRegistrar(23921): 	at bdbm.d(:com.google.android.gms@260235038@26.02.35 (260800-862924022):10)
+W/FlagRegistrar(23921): 	at bdbm.g(:com.google.android.gms@260235038@26.02.35 (260800-862924022):191)
+W/FlagRegistrar(23921): 	at bdbm.onConnectionFailed(:com.google.android.gms@260235038@26.02.35 (260800-862924022):2)
+W/FlagRegistrar(23921): 	at bdbo.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):70)
+W/FlagRegistrar(23921): 	at android.os.Handler.handleCallback(Handler.java:995)
+W/FlagRegistrar(23921): 	at android.os.Handler.dispatchMessage(Handler.java:103)
+W/FlagRegistrar(23921): 	at crvf.mD(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+W/FlagRegistrar(23921): 	at crvf.dispatchMessage(:com.google.android.gms@260235038@26.02.35 (260800-862924022):5)
+W/FlagRegistrar(23921): 	at android.os.Looper.loopOnce(Looper.java:248)
+W/FlagRegistrar(23921): 	at android.os.Looper.loop(Looper.java:338)
+W/FlagRegistrar(23921): 	at android.os.HandlerThread.run(HandlerThread.java:85)
+W/FlagRegistrar(23921): Caused by: bcxe: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagRegistrar(23921): 	at bduy.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):15)
+W/FlagRegistrar(23921): 	at bcza.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+W/FlagRegistrar(23921): 	at bcyx.c(:com.google.android.gms@260235038@26.02.35 (260800-862924022):5)
+W/FlagRegistrar(23921): 	... 12 more
+D/nativeloader(23921): Load /data/app/~~_VjyWy4rLJNzMFzeIP-2VA==/com.google.android.gms-mfEIfh8Hk1OwNtGmhu-9Xg==/base.apk!/lib/x86_64/libconscrypt_gmscore_jni.so using class loader ns clns-11 (caller=/data/app/~~_VjyWy4rLJNzMFzeIP-2VA==/com.google.android.gms-mfEIfh8Hk1OwNtGmhu-9Xg==/base.apk): ok
+V/NativeCrypto(23921): Registering com/google/android/gms/org/conscrypt/NativeCrypto's 333 native methods...
+I/glos.conectasoc(23921): hiddenapi: Accessing hidden method Ljava/security/spec/ECParameterSpec;->getCurveName()Ljava/lang/String; (runtime_flags=0, domain=core-platform, api=unsupported) from Lcom/google/android/gms/org/conscrypt/Platform; (domain=app) using reflection: allowed
+I/ProviderInstaller(23921): Installed default security provider GmsCore_OpenSSL
+W/glos.conectasoc(23921): Verification of void com.google.android.gms.tasks.zze.run() took 132.099ms (734.29 bytecodes/s) (0B arena alloc)
+I/glos.conectasoc(23921): hiddenapi: Accessing hidden field Ljava/net/Socket;->impl:Ljava/net/SocketImpl; (runtime_flags=0, domain=core-platform, api=unsupported) from Lcom/google/android/gms/org/conscrypt/Platform; (domain=app) using reflection: allowed
+I/glos.conectasoc(23921): hiddenapi: Accessing hidden method Ljava/security/spec/ECParameterSpec;->setCurveName(Ljava/lang/String;)V (runtime_flags=0, domain=core-platform, api=unsupported) from Lcom/google/android/gms/org/conscrypt/Platform; (domain=app) using reflection: allowed
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthCheckRequested (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:270:14)
+I/flutter (23921): │ #1   <asynchronous suspension>
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ➡️ AuthBloc-_onAuthCheckRequested: emit(AuthAuthenticated)
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthCheckRequested (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:277:16)
+I/flutter (23921): │ #1   <asynchronous suspension>
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ↗️ AuthBloc-_onAuthCheckRequested: _startUserDocListener
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._startUserDocListener (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:175:12)
+I/flutter (23921): │ #1   AuthBloc._onAuthCheckRequested (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:278:9)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  AuthBloc-_startUserDocListener: _userDocSubscription
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AppRouter.router.<anonymous closure> (package:conectasoc/app/router/app_router.dart:162:14)
+I/flutter (23921): │ #1   RouteConfiguration.applyTopLegacyRedirect.<anonymous closure> (package:go_router/src/configuration.dart:510:45)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ➡️ AppRouter-redirect: authState = AuthAuthenticated (hash: 503331394), Location = /
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AppRouter.router.<anonymous closure> (package:conectasoc/app/router/app_router.dart:196:16)
+I/flutter (23921): │ #1   RouteConfiguration.applyTopLegacyRedirect.<anonymous closure> (package:go_router/src/configuration.dart:510:45)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  3 ➡️ AppRouter-redirect: / == /
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AppRouter.router.<anonymous closure> (package:conectasoc/app/router/app_router.dart:203:18)
+I/flutter (23921): │ #1   RouteConfiguration.applyTopLegacyRedirect.<anonymous closure> (package:go_router/src/configuration.dart:510:45)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  3.1 ➡️ AppRouter-redirect: user is authenticated -> /home
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[GoRouter] redirecting to RouteMatchList#c4f91(uri: /home, matches: [RouteMatch#21216(route: GoRoute#c73a0(name: null, path: "/home"))])
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthUserChanged.<anonymous closure> (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:155:20)
+I/flutter (23921): │ #1   Right.fold (package:dartz/src/either.dart:200:64)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  ➡️ AuthBloc-_onAuthUserChanged: emit(AuthAuthenticated)
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._onAuthUserChanged.<anonymous closure> (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:161:22)
+I/flutter (23921): │ #1   Right.fold (package:dartz/src/either.dart:200:64)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  AuthBloc-_onAuthUserChanged: _startUserDocListener
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): │ #0   AuthBloc._startUserDocListener (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:175:12)
+I/flutter (23921): │ #1   AuthBloc._onAuthUserChanged.<anonymous closure> (package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart:162:15)
+I/flutter (23921): ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+I/flutter (23921): │  AuthBloc-_startUserDocListener: _userDocSubscription
+I/flutter (23921): └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+I/flutter (23921): DEBUG: ArticleRepo.getArticles - isEditMode: false, userLoggedIn: true, isSuper: false, canEdit: true
+W/WindowOnBackDispatcher(23921): sendCancelIfRunning: isInProgress=false callback=io.flutter.embedding.android.FlutterActivity$1@16f306b
+D/WM-SystemJobScheduler(23921): Scheduling work ID 1412336c-6bbc-4280-9448-7e95a9504117Job ID 12
+D/WM-Processor(23921): Processor cancelling 1412336c-6bbc-4280-9448-7e95a9504117
+D/WM-Processor(23921): WorkerWrapper could not be found for 1412336c-6bbc-4280-9448-7e95a9504117
+D/WM-GreedyScheduler(23921): Cancelling work ID 1412336c-6bbc-4280-9448-7e95a9504117
+D/WM-SystemJobScheduler(23921): Scheduling work ID 4d8d92af-c3a3-49d3-b821-38bf723e8e0aJob ID 13
+I/flutter (23921): DEBUG: ArticleRepo - QUERY EXECUTED. Documents found: 4
+D/WM-SystemJobScheduler(23921): Scheduling work ID 087d04ce-bfbc-49f9-8388-ebfe172ac409Job ID 14
+I/glos.conectasoc(23921): Background concurrent mark compact GC freed 3435KB AllocSpace bytes, 4(612KB) LOS objects, 49% free, 6224KB/12MB, paused 29.891ms,10.973ms total 567.310ms
+D/WM-Processor(23921): Processor cancelling 087d04ce-bfbc-49f9-8388-ebfe172ac409
+D/WM-Processor(23921): WorkerWrapper could not be found for 087d04ce-bfbc-49f9-8388-ebfe172ac409
+D/WM-GreedyScheduler(23921): Cancelling work ID 087d04ce-bfbc-49f9-8388-ebfe172ac409
+D/WM-SystemJobScheduler(23921): Scheduling work ID d9bcf6cb-50bb-4688-bf56-973a2e8b44b0Job ID 15
+D/WM-SystemJobScheduler(23921): Scheduling work ID 805108ad-6336-40e0-a4bc-1394722bc30aJob ID 16
+D/WM-Processor(23921): Processor cancelling 805108ad-6336-40e0-a4bc-1394722bc30a
+D/WM-Processor(23921): WorkerWrapper could not be found for 805108ad-6336-40e0-a4bc-1394722bc30a
+D/WM-GreedyScheduler(23921): Cancelling work ID 805108ad-6336-40e0-a4bc-1394722bc30a
+D/WM-SystemJobScheduler(23921): Scheduling work ID 56d5733b-f1bb-4742-9291-3495da1350a6Job ID 17
+D/WM-PackageManagerHelper(23921): androidx.work.impl.background.systemalarm.RescheduleReceiver enabled
+E/GoogleApiManager(23921): Failed to get service from broker.
+E/GoogleApiManager(23921): java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+E/GoogleApiManager(23921): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3340)
+E/GoogleApiManager(23921): 	at android.os.Parcel.createException(Parcel.java:3324)
+E/GoogleApiManager(23921): 	at android.os.Parcel.readException(Parcel.java:3307)
+E/GoogleApiManager(23921): 	at android.os.Parcel.readException(Parcel.java:3249)
+E/GoogleApiManager(23921): 	at bdxl.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):36)
+E/GoogleApiManager(23921): 	at bdvm.z(:com.google.android.gms@260235038@26.02.35 (260800-862924022):143)
+E/GoogleApiManager(23921): 	at bdbo.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):42)
+E/GoogleApiManager(23921): 	at android.os.Handler.handleCallback(Handler.java:995)
+E/GoogleApiManager(23921): 	at android.os.Handler.dispatchMessage(Handler.java:103)
+E/GoogleApiManager(23921): 	at crvf.mD(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+E/GoogleApiManager(23921): 	at crvf.dispatchMessage(:com.google.android.gms@260235038@26.02.35 (260800-862924022):5)
+E/GoogleApiManager(23921): 	at android.os.Looper.loopOnce(Looper.java:248)
+E/GoogleApiManager(23921): 	at android.os.Looper.loop(Looper.java:338)
+E/GoogleApiManager(23921): 	at android.os.HandlerThread.run(HandlerThread.java:85)
+E/GoogleApiManager(23921): Failed to get service from broker.
+E/GoogleApiManager(23921): java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+E/GoogleApiManager(23921): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3340)
+E/GoogleApiManager(23921): 	at android.os.Parcel.createException(Parcel.java:3324)
+E/GoogleApiManager(23921): 	at android.os.Parcel.readException(Parcel.java:3307)
+E/GoogleApiManager(23921): 	at android.os.Parcel.readException(Parcel.java:3249)
+E/GoogleApiManager(23921): 	at bdxl.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):36)
+E/GoogleApiManager(23921): 	at bdvm.z(:com.google.android.gms@260235038@26.02.35 (260800-862924022):143)
+E/GoogleApiManager(23921): 	at bdbo.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):42)
+E/GoogleApiManager(23921): 	at android.os.Handler.handleCallback(Handler.java:995)
+E/GoogleApiManager(23921): 	at android.os.Handler.dispatchMessage(Handler.java:103)
+E/GoogleApiManager(23921): 	at crvf.mD(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+E/GoogleApiManager(23921): 	at crvf.dispatchMessage(:com.google.android.gms@260235038@26.02.35 (260800-862924022):5)
+E/GoogleApiManager(23921): 	at android.os.Looper.loopOnce(Looper.java:248)
+E/GoogleApiManager(23921): 	at android.os.Looper.loop(Looper.java:338)
+E/GoogleApiManager(23921): 	at android.os.HandlerThread.run(HandlerThread.java:85)
+W/GoogleApiManager(23921): Not showing notification since connectionResult is not user-facing: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+I/flutter (23921): Translation: Translating article YZi0LXD8N38okCVN0RbT to ca
+I/flutter (23921): Translation: Translating article 3vXHgTEgvHPPZT7EEdft to ca
+I/flutter (23921): Translation: Translating article T1L0GeINmQba2lwQb6Ha to ca
+I/flutter (23921): Translation: Translating article jTl50vL3cRYsKGObmnCr to ca
+I/glos.conectasoc(23921): AssetManager2(0x7ee6dee406d8) locale list changing from [] to [es-ES]

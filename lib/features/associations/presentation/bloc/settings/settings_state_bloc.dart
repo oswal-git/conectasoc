@@ -16,27 +16,32 @@ class SettingsLoaded extends SettingsState {
   final List<CategoryEntity> categories;
   final Map<String, List<SubcategoryEntity>> subcategoriesMap;
   final bool isProcessing;
+  final String? assocId;
 
   const SettingsLoaded({
     required this.categories,
     required this.subcategoriesMap,
     this.isProcessing = false,
+    this.assocId,
   });
 
   SettingsLoaded copyWith({
     List<CategoryEntity>? categories,
     Map<String, List<SubcategoryEntity>>? subcategoriesMap,
     bool? isProcessing,
+    String? assocId,
   }) {
     return SettingsLoaded(
       categories: categories ?? this.categories,
       subcategoriesMap: subcategoriesMap ?? this.subcategoriesMap,
       isProcessing: isProcessing ?? this.isProcessing,
+      assocId: assocId ?? this.assocId,
     );
   }
 
   @override
-  List<Object?> get props => [categories, subcategoriesMap, isProcessing];
+  List<Object?> get props =>
+      [categories, subcategoriesMap, isProcessing, assocId];
 }
 
 class SettingsOpSuccess extends SettingsState {

@@ -1,5 +1,6 @@
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/domain/entities/entities.dart';
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class HomeEvent extends Equatable {
@@ -10,7 +11,7 @@ abstract class HomeEvent extends Equatable {
 }
 
 class LoadHomeData extends HomeEvent {
-  final UserEntity? user;
+  final IUser? user;
   final MembershipEntity? membership;
   final bool isEditMode;
   final bool forceReload;
@@ -27,7 +28,7 @@ class LoadHomeData extends HomeEvent {
 }
 
 class ToggleEditMode extends HomeEvent {
-  final UserEntity? user;
+  final IUser? user;
 
   const ToggleEditMode({this.user});
 
@@ -65,7 +66,7 @@ class SubcategorySelected extends HomeEvent {
 class ClearCategoryFilter extends HomeEvent {}
 
 class LoadMoreArticles extends HomeEvent {
-  final UserEntity? user;
+  final IUser? user;
 
   const LoadMoreArticles({this.user});
 

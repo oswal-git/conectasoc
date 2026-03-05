@@ -52,10 +52,13 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == userId;
       
       // Leer: propio usuario, superadmin, o admin de asociación donde es miembro
-      allow read: if isSignedIn() && (
+      allow get: if isSignedIn() && (
         request.auth.uid == userId ||
-        isSuperAdmin()
-        // Admins pueden ver usuarios de su asociación - requiere query constraint
+        isSuperAdmin() ||
+        (
+          getUserData().memberships.keys().hasAny(resource.data.memberships.keys()) &&
+          getUserData().memberships.values().hasAny(['admin', 'editor'])
+        )
       );
       
       // Actualizar:
@@ -65,12 +68,12 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         (request.auth.uid == userId && 
          request.resource.data.diff(resource.data).affectedKeys()
-           .hasOnly(['firstName', 'lastName', 'phone', 'language', 'avatarUrl', 'dateUpdated'])) ||
+           .hasOnly(['firstName', 'lastName', 'phone', 'language', 'avatarUrl', 'dateUpdated', 'notificationFrequency'])) ||
         isSuperAdmin() ||
         (
-          // Admin puede modificar si el usuario tiene membresía en su asociación
+          // Admin puede modificar si el usuario tiene membresía en su asociación (al menos compartida)
           getUserData().memberships.keys().hasAny(resource.data.memberships.keys()) &&
-          getUserData().memberships.keys().exists(k, getUserData().memberships[k] == 'admin') &&
+          getUserData().memberships.values().hasAny(['admin']) &&
           // No puede crear superadmins
           !request.resource.data.memberships.keys().hasAny(['superadmin_access'])
         )
@@ -108,8 +111,7 @@ service cloud.firestore {
       // 2. Los usuarios autenticados pueden leer artículos públicos de sus asociaciones.
       // 3. Los admins y editores pueden leer TODO de sus asociaciones (necesario para modo edición/borradores).
       // 4. Los superadmins pueden leer todo.
-      allow read, list: if (isPublicArticle() && resource.data.assocId == '') ||
-                          (isSignedIn() && isPublicArticle() && isMemberOf(resource.data.assocId)) ||
+      allow read, list: if isPublicArticle() ||
                           (isSignedIn() && (isAdmin(resource.data.assocId) || isEditor(resource.data.assocId))) ||
                           isSuperAdmin();
 
@@ -210,13 +212,39 @@ service cloud.firestore {
     // COLECCIÓN: categories & subcategories
     // =========================================
     match /categories/{categoryId} {
-      allow read, list: if true;
-      allow write: if isSuperAdmin();
+      allow read: if true;
+      allow create: if isSuperAdmin() || (
+        isAdmin(request.resource.data.assocId) && 
+        request.resource.data.isSystem == false
+      );
+      allow update: if isSuperAdmin() || (
+        isAdmin(resource.data.assocId) && 
+        resource.data.isSystem == false &&
+        request.resource.data.isSystem == false &&
+        request.resource.data.assocId == resource.data.assocId
+      );
+      allow delete: if isSuperAdmin() || (
+        isAdmin(resource.data.assocId) && 
+        resource.data.isSystem == false
+      );
     }
 
     match /subcategories/{subcategoryId} {
-      allow read, list: if true;
-      allow write: if isSuperAdmin();
+      allow read: if true;
+      allow create: if isSuperAdmin() || (
+        isAdmin(request.resource.data.assocId) && 
+        request.resource.data.isSystem == false
+      );
+      allow update: if isSuperAdmin() || (
+        isAdmin(resource.data.assocId) && 
+        resource.data.isSystem == false &&
+        request.resource.data.isSystem == false &&
+        request.resource.data.assocId == resource.data.assocId
+      );
+      allow delete: if isSuperAdmin() || (
+        isAdmin(resource.data.assocId) && 
+        resource.data.isSystem == false
+      );
     }
 
     // =========================================

@@ -24,14 +24,20 @@ class SettingsRepositoryImpl implements SettingsRepository {
   }
 
   @override
-  Future<Either<Failure, void>> createCategory(String name) async {
-    return _tryCatch(() => remoteDataSource.createCategory(name));
+  Future<Either<Failure, void>> createCategory(
+      String name, String assocId) async {
+    return _tryCatch(() => remoteDataSource.createCategory(name, assocId));
   }
 
   @override
   Future<Either<Failure, void>> updateCategory(CategoryEntity category) async {
     return _tryCatch(() => remoteDataSource.updateCategory(CategoryModel(
-        id: category.id, name: category.name, order: category.order)));
+          id: category.id,
+          name: category.name,
+          order: category.order,
+          assocId: category.assocId,
+          isSystem: category.isSystem,
+        )));
   }
 
   @override
@@ -43,26 +49,35 @@ class SettingsRepositoryImpl implements SettingsRepository {
   Future<Either<Failure, void>> reorderCategories(
       List<CategoryEntity> categories) async {
     final models = categories
-        .map((c) => CategoryModel(id: c.id, name: c.name, order: c.order))
+        .map((c) => CategoryModel(
+              id: c.id,
+              name: c.name,
+              order: c.order,
+              assocId: c.assocId,
+              isSystem: c.isSystem,
+            ))
         .toList();
     return _tryCatch(() => remoteDataSource.reorderCategories(models));
   }
 
   @override
   Future<Either<Failure, void>> createSubcategory(
-      String name, String categoryId) async {
+      String name, String categoryId, String assocId) async {
     return _tryCatch(
-        () => remoteDataSource.createSubcategory(name, categoryId));
+        () => remoteDataSource.createSubcategory(name, categoryId, assocId));
   }
 
   @override
   Future<Either<Failure, void>> updateSubcategory(
       SubcategoryEntity subcategory) async {
     return _tryCatch(() => remoteDataSource.updateSubcategory(SubcategoryModel(
-        id: subcategory.id,
-        name: subcategory.name,
-        order: subcategory.order,
-        categoryId: subcategory.categoryId)));
+          id: subcategory.id,
+          name: subcategory.name,
+          order: subcategory.order,
+          categoryId: subcategory.categoryId,
+          assocId: subcategory.assocId,
+          isSystem: subcategory.isSystem,
+        )));
   }
 
   @override
@@ -75,7 +90,13 @@ class SettingsRepositoryImpl implements SettingsRepository {
       List<SubcategoryEntity> subcategories) async {
     final models = subcategories
         .map((s) => SubcategoryModel(
-            id: s.id, name: s.name, order: s.order, categoryId: s.categoryId))
+              id: s.id,
+              name: s.name,
+              order: s.order,
+              categoryId: s.categoryId,
+              assocId: s.assocId,
+              isSystem: s.isSystem,
+            ))
         .toList();
     return _tryCatch(() => remoteDataSource.reorderSubcategories(models));
   }

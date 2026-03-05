@@ -5,6 +5,7 @@ import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/widgets/auth_text_field_widget.dart';
 import 'package:conectasoc/injection_container.dart';
+import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -32,6 +33,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   String? _selectedAssociationId;
+  String _selectedLanguage = 'es';
 
   @override
   void dispose() {
@@ -45,6 +47,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
             AuthSaveLocalUser(
               displayName: _nameController.text.trim(),
               associationId: _selectedAssociationId!,
+              language: _selectedLanguage,
             ),
           );
     }
@@ -151,6 +154,10 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                       const SizedBox(height: 24),
 
                       _buildAssociationDropdown(),
+
+                      const SizedBox(height: 24),
+
+                      _buildLanguageDropdown(),
 
                       const SizedBox(height: 32),
 
@@ -296,6 +303,37 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
             return null;
           },
         );
+      },
+    );
+  }
+
+  Widget _buildLanguageDropdown() {
+    final l10n = AppLocalizations.of(context);
+    return DropdownButtonFormField<String>(
+      key: ValueKey(_selectedLanguage), // Force rebuild to update labels
+      initialValue: _selectedLanguage,
+      decoration: InputDecoration(
+        labelText: '${l10n.language} *',
+        hintText: l10n.language,
+        prefixIcon: const Icon(Icons.language_outlined),
+      ),
+      items: [
+        DropdownMenuItem(value: 'es', child: Text(l10n.langSpanish)),
+        DropdownMenuItem(value: 'en', child: Text(l10n.langEnglish)),
+        DropdownMenuItem(value: 'ca', child: Text(l10n.langCatalan)),
+      ],
+      onChanged: (value) {
+        if (value != null) {
+          setState(() => _selectedLanguage = value);
+          // Cambiar el idioma global de la app inmediatamente
+          context.read<AuthBloc>().add(AuthSetLocale(value));
+        }
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return l10n.language;
+        }
+        return null;
       },
     );
   }

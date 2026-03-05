@@ -18,6 +18,7 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> saveLocalUser({
     required String displayName,
     required String associationId,
+    required String language,
   });
   Future<Either<Failure, void>> deleteLocalUser();
 

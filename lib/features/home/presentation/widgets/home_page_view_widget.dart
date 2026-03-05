@@ -88,7 +88,9 @@ class HomePageViewWidget extends StatelessWidget {
                       child: Icon(
                         isEditMode ? Icons.check_circle : Icons.edit_outlined,
                         key: ValueKey(isEditMode),
-                        color: isEditMode ? Colors.green : null,
+                        color: isEditMode
+                            ? const Color.fromARGB(255, 149, 175, 76)
+                            : null,
                       ),
                     ),
                     onPressed: () {

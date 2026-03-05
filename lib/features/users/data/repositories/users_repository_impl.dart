@@ -125,8 +125,12 @@ class UserRepositoryImpl implements UserRepository {
       await remoteDataSource.updateUserDetails(user, expectedDateUpdated);
       return const Right(null);
     } on ConcurrencyException {
+      debugPrint(
+          'UserRepositoryImpl: updateUserDetails -> El registro ha sido modificado por otro usuario. Por favor, refresca los datos e inténtalo de nuevo.');
       return Left(ConcurrencyFailure());
     } on ServerException catch (e) {
+      debugPrint(
+          'UserRepositoryImpl: updateUserDetails -> ServerException: $e');
       return Left(ServerFailure(e.message));
     }
   }
@@ -148,8 +152,10 @@ class UserRepositoryImpl implements UserRepository {
       await remoteDataSource.removeMembership(userId, associationId);
       return const Right(null);
     } on ServerException catch (e) {
+      debugPrint('UserRepositoryImpl: removeMembership -> ServerException: $e');
       return Left(ServerFailure(e.message));
     } catch (e) {
+      debugPrint('UserRepositoryImpl: removeMembership -> Error: $e');
       return Left(ServerFailure(
           'Ocurrió un error inesperado al abandonar la asociación.'));
     }
