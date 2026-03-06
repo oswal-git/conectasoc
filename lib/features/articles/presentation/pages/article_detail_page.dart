@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/services/notification_service.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter/material.dart';
@@ -71,7 +72,7 @@ class ArticleDetailView extends StatelessWidget {
             return LayoutBuilder(
               builder: (context, constraints) {
                 // Usamos un breakpoint para decidir qué layout mostrar
-                if (constraints.maxWidth > 768) {
+                if (constraints.maxWidth > AppTheme.breakpointWeb) {
                   return _WebLayout(article: state.article);
                 } else {
                   return _MobileLayout(article: state.article);
@@ -99,40 +100,42 @@ class _WebLayout extends StatelessWidget {
     return SingleChildScrollView(
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1300),
+          constraints:
+              const BoxConstraints(maxWidth: AppTheme.maxWidthWebContent),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Fila 1: Título
                 _SectionContent(jsonContent: article.title, isTitle: true),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.spaceMd),
 
                 // Fila 2: Metadata
                 _AuthorInfo(article: article),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppTheme.spaceXxs),
                 Text(
                   '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppTheme.spaceXs),
 
                 // Fila 3: Fecha de publicación
                 Text(
                   '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.spaceMd),
 
                 // Fila 4: Cover
                 if (article.coverUrl.isNotEmpty)
                   Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 400),
+                      constraints: const BoxConstraints(
+                          maxWidth: AppTheme.maxWidthCoverImage),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppTheme.borderRadiusDefault,
                         child: CachedNetworkImage(
                           imageUrl: article.coverUrl,
                           fit: BoxFit.contain,
@@ -142,7 +145,8 @@ class _WebLayout extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (article.coverUrl.isNotEmpty) const SizedBox(height: 24),
+                if (article.coverUrl.isNotEmpty)
+                  const SizedBox(height: AppTheme.spaceMd),
 
                 // Fila 5: Contenido (Abstract o Secciones)
                 // Ocultar abstract si alguna sección tiene texto
@@ -154,7 +158,8 @@ class _WebLayout extends StatelessWidget {
                 if (article.documentLink != null &&
                     article.documentLink!.documentId.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: SectionDocumentLinkWidget(
@@ -187,7 +192,7 @@ class _WebLayout extends StatelessWidget {
     final imageWidget = (section.imageUrl != null &&
             section.imageUrl!.isNotEmpty)
         ? Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(AppTheme.spaceXs),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: CachedNetworkImage(
@@ -204,14 +209,14 @@ class _WebLayout extends StatelessWidget {
 
     final textWidget = hasTextContent
         ? Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(AppTheme.spaceXs),
             child: _SectionContent(jsonContent: section.richTextContent!),
           )
         : null;
 
     final docWidget = section.documentLink != null
         ? Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(AppTheme.spaceXs),
             child:
                 SectionDocumentLinkWidget(documentLink: section.documentLink!),
           )
@@ -220,7 +225,7 @@ class _WebLayout extends StatelessWidget {
     // COMPOSICIÓN D: Sólo enlace a documento
     if (docWidget != null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
         child: Align(
           alignment: Alignment.centerLeft,
           child: docWidget,
@@ -231,10 +236,11 @@ class _WebLayout extends StatelessWidget {
     // COMPOSICIÓN B: Sólo imagen
     if (imageWidget != null && textWidget == null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
+            constraints:
+                const BoxConstraints(maxWidth: AppTheme.maxWidthSectionImage),
             child: imageWidget,
           ),
         ),
@@ -244,7 +250,7 @@ class _WebLayout extends StatelessWidget {
     // COMPOSICIÓN C: Sólo texto
     if (imageWidget == null && textWidget != null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
         child: textWidget, // Justificado a todo el ancho por defecto del widget
       );
     }
@@ -256,7 +262,7 @@ class _WebLayout extends StatelessWidget {
           : [Expanded(child: textWidget), Expanded(child: imageWidget)];
 
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -281,36 +287,36 @@ class _MobileLayout extends StatelessWidget {
     final dateFormat = DateFormat("d 'de' MMMM 'de' yyyy", l10n.localeName);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppTheme.spaceSm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Fila 1: Título
           _SectionContent(jsonContent: article.title, isTitle: true),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spaceSm),
 
           // Fila 2: Metadata
           _AuthorInfo(article: article),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppTheme.spaceXxs),
           Text(
             '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppTheme.spaceXs),
 
           // Fila 3: Fecha de publicación
           Text(
             '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppTheme.spaceMd),
 
           // Fila 4: Cover
           if (article.coverUrl.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(bottom: 24.0),
+              padding: const EdgeInsets.only(bottom: AppTheme.spaceMd),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppTheme.borderRadiusDefault,
                 child: CachedNetworkImage(
                   imageUrl: article.coverUrl,
                   fit: BoxFit.cover,
@@ -330,7 +336,7 @@ class _MobileLayout extends StatelessWidget {
           if (article.documentLink != null &&
               article.documentLink!.documentId.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: SectionDocumentLinkWidget(
@@ -348,14 +354,14 @@ class _MobileLayout extends StatelessWidget {
               final hasDoc = section.documentLink != null;
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 24.0),
+                padding: const EdgeInsets.only(bottom: AppTheme.spaceMd),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // COMPOSICIÓN A: Imagen arriba, texto debajo
                     if (hasImage && hasText) ...[
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppTheme.borderRadiusDefault,
                         child: CachedNetworkImage(
                           imageUrl: section.imageUrl!,
                           fit: BoxFit.cover,
@@ -364,14 +370,14 @@ class _MobileLayout extends StatelessWidget {
                               const SizedBox.shrink(),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppTheme.spaceXs),
                       _SectionContent(jsonContent: section.richTextContent!),
                     ]
                     // COMPOSICIÓN B: Sólo imagen (centrado)
                     else if (hasImage)
                       Center(
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: AppTheme.borderRadiusDefault,
                           child: CachedNetworkImage(
                             imageUrl: section.imageUrl!,
                             fit: BoxFit.cover,
@@ -438,7 +444,7 @@ class _AuthorInfo extends StatelessWidget {
           userId: article.userId,
           radius: 20,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppTheme.spaceXs),
         Text(
           'Por ${article.authorName}',
           style: Theme.of(context).textTheme.bodySmall,

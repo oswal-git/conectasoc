@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'dart:async';
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -145,67 +146,7 @@ class _ConectaSocAppState extends State<ConectaSocApp> {
             },
 
             // THEME
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-              useMaterial3: true,
-
-              // AppBar Theme
-              appBarTheme: const AppBarTheme(
-                elevation: 0,
-                centerTitle: true,
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-
-              // Input Decoration Theme
-              inputDecorationTheme: InputDecorationTheme(
-                filled: true,
-                fillColor: Colors.grey[50],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-              ),
-
-              // Elevated Button Theme
-              elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                  elevation: 2,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              // Card Theme
-              cardTheme: CardThemeData(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+            theme: AppTheme.light,
 
             // Sistema de navegación con GoRouter
             routerConfig: _appRouter.router,

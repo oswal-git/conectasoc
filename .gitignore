@@ -5,6 +5,9 @@ lib/core/constants/cloudinary_config.dart
 # Archivos de configuración de Firebase
 /android/app/google-services.json
 /ios/Runner/GoogleService-Info.plist
+google-services.json
+firebase.json
+lib/firebase_options.dart
 
 # Archivos generados por Dart y Flutter
 .dart_tool/

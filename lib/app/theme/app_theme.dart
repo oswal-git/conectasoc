@@ -10,16 +10,34 @@ abstract final class AppTheme {
   const AppTheme._();
 
   // ════════════════════════════════════════════
-  //  COLOR TOKENS
+  //  COLOR TOKENS — Primarios
   // ════════════════════════════════════════════
 
   static const Color primary = Colors.blue;
-  static const Color inputBackground = Color(0xFFFAFAFA); // Colors.grey[50]
-  static const Color border = Color(0xFFE0E0E0); // Colors.grey[300]
+  static const Color secondary = Color(0xFF03DAC6);
+
+  // Backgrounds
+  static const Color background = Colors.white;
+  static const Color surface = Colors.white;
+  static const Color inputBackground = Color(0xFFFAFAFA); // grey[50]
+
+  // Borders
+  static const Color border = Color(0xFFE0E0E0); // grey[300]
   static const Color borderFocus = Colors.blue;
-  static const Color error = Colors.red;
+
+  // AppBar
   static const Color appBarBackground = Colors.blue;
   static const Color appBarForeground = Colors.white;
+
+  // Text
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Colors.black54;
+  static const Color textHint = Colors.grey;
+
+  // Status
+  static const Color error = Colors.red;
+  static const Color success = Colors.green;
+  static const Color warning = Colors.orange;
 
   // ════════════════════════════════════════════
   //  SPACING TOKENS
@@ -47,6 +65,29 @@ abstract final class AppTheme {
   static const double radiusDefault = 12;
   static const BorderRadius borderRadiusDefault =
       BorderRadius.all(Radius.circular(radiusDefault));
+
+  // ════════════════════════════════════════════
+  //  AVATAR RADIUS TOKENS
+  // ════════════════════════════════════════════
+
+  /// Avatar estándar (autor, perfil inline)
+  static const double avatarRadiusDefault = 20;
+
+  // ════════════════════════════════════════════
+  //  LAYOUT CONSTRAINTS
+  // ════════════════════════════════════════════
+
+  /// Ancho máximo del contenedor web principal
+  static const double maxWidthWebContent = 1300;
+
+  /// Ancho máximo de imagen cover en web
+  static const double maxWidthCoverImage = 400;
+
+  /// Ancho máximo de sección solo-imagen en web
+  static const double maxWidthSectionImage = 600;
+
+  /// Breakpoint mobile → web
+  static const double breakpointWeb = 768;
 
   // ════════════════════════════════════════════
   //  ELEVATION TOKENS
@@ -95,23 +136,36 @@ abstract final class AppTheme {
   //  TEXT STYLES
   // ════════════════════════════════════════════
 
-  // Override only the styles actually used in the app;
-  // the rest delegate to Material 3 defaults.
-
-  static TextTheme get _textTheme => const TextTheme(
-        headlineMedium: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-        titleMedium: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-        bodyLarge: TextStyle(),
-        bodySmall: TextStyle(),
-        labelMedium: TextStyle(
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.8,
-        ),
-      );
+  static const TextTheme _textTheme = TextTheme(
+    // Títulos principales
+    headlineMedium: TextStyle(
+      fontWeight: FontWeight.bold,
+      color: textPrimary,
+    ),
+    // Texto destacado / subtítulos
+    titleMedium: TextStyle(
+      fontWeight: FontWeight.bold,
+      color: textPrimary,
+    ),
+    // Texto descriptivo
+    bodyLarge: TextStyle(
+      color: textPrimary,
+    ),
+    // Texto secundario / auxiliar
+    bodySmall: TextStyle(
+      color: textSecondary,
+    ),
+    // Etiquetas (drawer, chips, etc.)
+    labelMedium: TextStyle(
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.8,
+      color: textPrimary,
+    ),
+    // Hint / placeholders
+    bodyMedium: TextStyle(
+      color: textHint,
+    ),
+  );
 
   // ════════════════════════════════════════════
   //  COMPONENT THEMES
@@ -148,6 +202,7 @@ abstract final class AppTheme {
           borderRadius: borderRadiusDefault,
           borderSide: const BorderSide(color: error, width: 2),
         ),
+        hintStyle: TextStyle(color: textHint),
       );
 
   static ElevatedButtonThemeData get _elevatedButtonTheme =>
@@ -163,6 +218,7 @@ abstract final class AppTheme {
 
   static CardThemeData get _cardTheme => CardThemeData(
         elevation: elevationCard,
+        color: surface,
         shape: const RoundedRectangleBorder(
           borderRadius: borderRadiusDefault,
         ),
@@ -174,10 +230,15 @@ abstract final class AppTheme {
 
   static ThemeData get light => ThemeData(
         useMaterial3: true,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
         colorScheme: ColorScheme.fromSeed(
           seedColor: primary,
+          secondary: secondary,
           error: error,
+          surface: surface,
+          onSurface: textPrimary,
         ),
+        scaffoldBackgroundColor: background,
         textTheme: _textTheme,
         appBarTheme: _appBarTheme,
         inputDecorationTheme: _inputDecorationTheme,
