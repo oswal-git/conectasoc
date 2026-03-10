@@ -1,3 +1,4 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:flutter/material.dart';
@@ -67,15 +68,14 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildSettingsList(BuildContext context, SettingsLoaded state) {
     return ListView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppTheme.spaceSm),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Categorías',
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text('Categorías', style: AppTheme.sectionTitle(context)),
             IconButton(
-              icon: const Icon(Icons.add_circle, color: Colors.green),
+              icon: const Icon(Icons.add_circle, color: AppTheme.success),
               onPressed: () => _showAddDialog(context, isCategory: true),
             ),
           ],
@@ -98,12 +98,13 @@ class SettingsPage extends StatelessWidget {
         children: [
           if (!category.isSystem) ...[
             IconButton(
-              icon: const Icon(Icons.edit, size: 20),
+              icon: const Icon(Icons.edit, size: AppTheme.iconSizeSmall),
               onPressed: () =>
                   _showEditDialog(context, category.id, category.name, true),
             ),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+              icon: const Icon(Icons.delete,
+                  color: AppTheme.error, size: AppTheme.iconSizeSmall),
               onPressed: () =>
                   context.read<SettingsBloc>().add(DeleteCategory(category.id)),
             ),
@@ -113,7 +114,10 @@ class SettingsPage extends StatelessWidget {
       ),
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+          padding: const EdgeInsets.only(
+              left: AppTheme.spaceSm,
+              right: AppTheme.spaceSm,
+              bottom: AppTheme.spaceXs),
           child: Column(
             children: [
               ...subcategories.map((sub) => ListTile(
@@ -124,13 +128,15 @@ class SettingsPage extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit, size: 18),
+                                icon: const Icon(Icons.edit,
+                                    size: AppTheme.iconSizeSmall),
                                 onPressed: () => _showEditDialog(
                                     context, sub.id, sub.name, false),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete,
-                                    color: Colors.red, size: 18),
+                                    color: AppTheme.error,
+                                    size: AppTheme.iconSizeSmall),
                                 onPressed: () => context
                                     .read<SettingsBloc>()
                                     .add(DeleteSubcategory(sub.id)),

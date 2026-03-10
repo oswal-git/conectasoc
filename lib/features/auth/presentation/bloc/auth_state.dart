@@ -35,7 +35,6 @@ class AuthAuthenticated extends AuthState {
   const AuthAuthenticated(this.user, this.currentMembership);
 
   @override
-  @override
   List<Object?> get props => [user, currentMembership];
 }
 

@@ -52,6 +52,7 @@ class ConectaSocApp extends StatefulWidget {
 class _ConectaSocAppState extends State<ConectaSocApp> {
   late final AppRouter _appRouter;
   StreamSubscription<String?>? _notificationSubscription;
+  String? _pendingNotificationPayload;
 
   @override
   void initState() {
@@ -65,16 +66,21 @@ class _ConectaSocAppState extends State<ConectaSocApp> {
     _notificationSubscription =
         sl<NotificationService>().onNotificationClick.listen((articleId) {
       if (articleId != null) {
-        // Navegar al detalle del artículo usando el router
-        _appRouter.router.pushNamed(
-          RouteNames.articleDetail,
-          pathParameters: {'articleId': articleId},
-        );
+        final authState = sl<AuthBloc>().state;
+        final isReady =
+            authState is AuthAuthenticated || authState is AuthLocalUser;
+        if (isReady) {
+          _navigateFromNotification(articleId);
+        } else {
+          _pendingNotificationPayload = articleId;
+        }
       }
     });
 
-    // Iniciar verificación de autenticación
-    sl<AuthBloc>().add(AuthCheckRequested());
+    // Iniciar verificación de autenticación después del primer frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      sl<AuthBloc>().add(AuthCheckRequested());
+    });
   }
 
   @override
@@ -83,22 +89,70 @@ class _ConectaSocAppState extends State<ConectaSocApp> {
     super.dispose();
   }
 
+  void _navigateFromNotification(String articleId) {
+    if (!mounted) return;
+
+    final currentUri =
+        _appRouter.router.routerDelegate.currentConfiguration.uri.toString();
+    if (currentUri.startsWith('/articles/')) {
+      // Si ya está en un artículo, reemplazar para no apilar infinitamente
+      _appRouter.router.pushReplacementNamed(
+        RouteNames.articleDetail,
+        pathParameters: {'articleId': articleId},
+      );
+    } else {
+      // Si está en listado u otra, push normal para permitir volver atrás
+      _appRouter.router.pushNamed(
+        RouteNames.articleDetail,
+        pathParameters: {'articleId': articleId},
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: sl<AuthBloc>(),
-      child: BlocBuilder<AuthBloc, AuthState>(
+      child: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          final isReady = state is AuthAuthenticated || state is AuthLocalUser;
+          if (isReady && _pendingNotificationPayload != null) {
+            final payload = _pendingNotificationPayload!;
+            _pendingNotificationPayload = null;
+            // Delay mínimo para asegurar que GoRouter procesa la redirección de auth antes
+            Future.microtask(() {
+              _navigateFromNotification(payload);
+            });
+          }
+        },
         builder: (context, state) {
           // Determinar el locale actual basado en el estado de autenticación.
           Locale? userLocale;
+          String? langCode;
+
           if (state is AuthAuthenticated) {
-            userLocale = Locale(state.user.language);
+            langCode = state.user.language;
           } else if (state is AuthLocalUser) {
-            userLocale = Locale(state.localUser.language);
+            langCode = state.localUser.language;
           } else if (state is AuthUnauthenticated && state.language != null) {
-            userLocale = Locale(state.language!);
+            langCode = state.language;
           }
 
+          if (langCode != null && langCode.isNotEmpty) {
+            try {
+              debugPrint(
+                  '👌 _ConectaSocAppState -> build: creating Locale for language code: "$langCode"');
+              userLocale = Locale(langCode);
+            } catch (e) {
+              debugPrint(
+                  '💥 _ConectaSocAppState -> build: Error creating Locale for language code "$langCode": $e');
+              userLocale = const Locale('es');
+            }
+          } else {
+            debugPrint(
+                '❌ _ConectaSocAppState -> build: Error creating Locale for language code NULL');
+            userLocale = const Locale('es');
+          }
           return MaterialApp.router(
             // Clave para que el SnackBarService funcione globalmente.
             scaffoldMessengerKey: SnackBarService.scaffoldMessengerKey,

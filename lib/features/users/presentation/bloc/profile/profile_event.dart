@@ -51,12 +51,28 @@ class ProfileLanguageChanged extends ProfileEvent {
   List<Object> get props => [language];
 }
 
-class ProfileNotificationFrequencyChanged extends ProfileEvent {
-  const ProfileNotificationFrequencyChanged(this.frequency);
-  final String frequency;
+class ProfileNotificationTime1Changed extends ProfileEvent {
+  const ProfileNotificationTime1Changed(this.time);
+  final String? time;
 
   @override
-  List<Object> get props => [frequency];
+  List<Object?> get props => [time];
+}
+
+class ProfileNotificationTime2Changed extends ProfileEvent {
+  const ProfileNotificationTime2Changed(this.time);
+  final String? time;
+
+  @override
+  List<Object?> get props => [time];
+}
+
+class ProfileNotificationTime3Changed extends ProfileEvent {
+  const ProfileNotificationTime3Changed(this.time);
+  final String? time;
+
+  @override
+  List<Object?> get props => [time];
 }
 
 class SaveProfileChanges extends ProfileEvent {

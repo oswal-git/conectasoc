@@ -10,7 +10,9 @@ class ProfileEntity extends Equatable {
   final String email; // Generalmente no editable, pero se muestra.
   final String? phone;
   final String language;
-  final String notificationFrequency;
+  final String? notificationTime1;
+  final String? notificationTime2;
+  final String? notificationTime3;
   final String? photoUrl;
   final DateTime dateUpdated;
 
@@ -21,7 +23,9 @@ class ProfileEntity extends Equatable {
     required this.email,
     this.phone,
     required this.language,
-    this.notificationFrequency = 'none',
+    this.notificationTime1,
+    this.notificationTime2,
+    this.notificationTime3,
     this.photoUrl,
     required this.dateUpdated,
   });
@@ -33,7 +37,9 @@ class ProfileEntity extends Equatable {
     String? email,
     String? phone,
     String? language,
-    String? notificationFrequency,
+    String? notificationTime1,
+    String? notificationTime2,
+    String? notificationTime3,
     String? photoUrl,
     DateTime? dateUpdated,
   }) {
@@ -44,8 +50,9 @@ class ProfileEntity extends Equatable {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       language: language ?? this.language,
-      notificationFrequency:
-          notificationFrequency ?? this.notificationFrequency,
+      notificationTime1: notificationTime1 ?? this.notificationTime1,
+      notificationTime2: notificationTime2 ?? this.notificationTime2,
+      notificationTime3: notificationTime3 ?? this.notificationTime3,
       photoUrl: photoUrl ?? this.photoUrl,
       dateUpdated: dateUpdated ?? this.dateUpdated,
     );
@@ -61,7 +68,9 @@ class ProfileEntity extends Equatable {
       lastName: lastname,
       phone: phone,
       language: language,
-      notificationFrequency: notificationFrequency,
+      notificationTime1: notificationTime1,
+      notificationTime2: notificationTime2,
+      notificationTime3: notificationTime3,
       avatarUrl: photoUrl, // Asegurarse de que la nueva URL se propaga
       // Se mantiene el resto de la información del usuario original.
       // uid, email, status, memberships, etc. no se modifican aquí.
@@ -76,7 +85,9 @@ class ProfileEntity extends Equatable {
         email,
         phone,
         language,
-        notificationFrequency,
+        notificationTime1,
+        notificationTime2,
+        notificationTime3,
         photoUrl,
         dateUpdated
       ];

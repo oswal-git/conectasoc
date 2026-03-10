@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/widgets/auth_text_field.dart
 
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class AuthTextFieldWidget extends StatelessWidget {
@@ -12,6 +13,8 @@ class AuthTextFieldWidget extends StatelessWidget {
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final bool enabled;
+  final EdgeInsetsGeometry?
+      contentPadding; // ← null = hereda AppTheme.paddingInput
 
   const AuthTextFieldWidget({
     super.key,
@@ -24,6 +27,7 @@ class AuthTextFieldWidget extends StatelessWidget {
     this.suffixIcon,
     this.validator,
     this.enabled = true,
+    this.contentPadding,
   });
 
   @override
@@ -39,43 +43,45 @@ class AuthTextFieldWidget extends StatelessWidget {
         hintText: hint,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.grey.shade300,
-            width: 1.5,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Theme.of(context).primaryColor,
-            width: 2,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Colors.red,
-            width: 1.5,
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Colors.red,
-            width: 2,
-          ),
-        ),
-        filled: true,
-        fillColor: enabled ? Colors.white : Colors.grey.shade100,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
+        fillColor:
+            enabled ? AppTheme.textFieldEnabled : AppTheme.textFieldDisabled,
+        contentPadding: contentPadding,
+        // border: OutlineInputBorder(
+        //   borderRadius: AppTheme.borderRadiusDefault,
+        // ),
+        // enabledBorder: OutlineInputBorder(
+        //   borderRadius: AppTheme.borderRadiusDefault,
+        //   borderSide: BorderSide(
+        //     color: AppTheme.border,
+        //     width: 1.5,
+        //   ),
+        // ),
+        // focusedBorder: OutlineInputBorder(
+        //   borderRadius: AppTheme.borderRadiusDefault,
+        //   borderSide: BorderSide(
+        //     color: AppTheme.border,
+        //     width: 2,
+        //   ),
+        // ),
+        // errorBorder: OutlineInputBorder(
+        //   borderRadius: AppTheme.borderRadiusDefault,
+        //   borderSide: const BorderSide(
+        //     color: AppTheme.error,
+        //     width: 1.5,
+        //   ),
+        // ),
+        // focusedErrorBorder: OutlineInputBorder(
+        //   borderRadius: AppTheme.borderRadiusDefault,
+        //   borderSide: const BorderSide(
+        //     color: AppTheme.error,
+        //     width: 2,
+        //   ),
+        // ),
+        // filled: true,
+        // contentPadding: const EdgeInsets.symmetric(
+        //   horizontal: 16,
+        //   vertical: 16,
+        // ),
       ),
     );
   }

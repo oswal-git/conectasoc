@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/pages/email_verification_page.dart
 
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
@@ -74,7 +75,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al reenviar email: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -102,7 +103,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('El email aún no ha sido verificado'),
-                backgroundColor: Colors.orange,
+                backgroundColor: AppTheme.warning,
               ),
             );
           }
@@ -113,7 +114,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al verificar: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -129,68 +130,60 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppTheme.spaceMd),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Icono
               Icon(
                 Icons.mark_email_unread_outlined,
-                size: 100,
-                color: Theme.of(context).primaryColor,
+                size: AppTheme.iconSizeLarge,
+                color: AppTheme.primary,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppTheme.spaceLg),
 
               // Título
               Text(
                 '¡Verifica tu Email!',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: AppTheme.articleTitle(context),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.spaceSm),
 
               // Mensaje
               Text(
                 _isSendingInitial
                     ? 'Enviando email de verificación...'
                     : 'Hemos enviado un email de verificación a:',
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: AppTheme.articleBody(context),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppTheme.spaceXs),
 
               // Email
               Text(
                 widget.email,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: AppTheme.verificationEmail(context),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppTheme.spaceMd),
 
               // Instrucciones
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppTheme.spaceSm),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade200),
+                  color: AppTheme.infoBg,
+                  borderRadius: AppTheme.borderRadiusDefault,
+                  border: Border.all(color: AppTheme.infoBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Instrucciones:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
-                      ),
+                      style: AppTheme.infoBannerTitle,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppTheme.spaceXs),
                     _buildInstruction('1. Revisa tu bandeja de entrada'),
                     _buildInstruction(
                         '2. Haz clic en el enlace de verificación'),
@@ -199,16 +192,16 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppTheme.spaceLg),
 
               // Indicador mientras se envía el email inicial
               if (_isSendingInitial)
-                const Column(
+                Column(
                   children: [
                     CircularProgressIndicator(),
-                    SizedBox(height: 16),
+                    SizedBox(height: AppTheme.spaceSm),
                     Text('Enviando email...'),
-                    SizedBox(height: 32),
+                    SizedBox(height: AppTheme.spaceLg),
                   ],
                 ),
 
@@ -219,29 +212,29 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 label: const Text('Ya verifiqué mi email'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
+                    horizontal: AppTheme.spaceLg,
+                    vertical: AppTheme.spaceSm,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppTheme.borderRadiusDefault,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.spaceSm),
 
               // Botón reenviar
               if (_emailSent)
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppTheme.spaceXs),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppTheme.successBg,
+                    borderRadius: AppTheme.borderRadiusDefault,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green.shade700),
-                      const SizedBox(width: 8),
+                      Icon(Icons.check_circle, color: AppTheme.successIcon),
+                      const SizedBox(width: AppTheme.spaceXs),
                       const Text('¡Email reenviado!'),
                     ],
                   ),
@@ -251,16 +244,17 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                   onPressed: _isResending ? null : _resendVerificationEmail,
                   icon: _isResending
                       ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          width: AppTheme.iconSizeSmall,
+                          height: AppTheme.iconSizeSmall,
+                          child: CircularProgressIndicator(
+                              strokeWidth: AppTheme.loadingStrokeWidth),
                         )
                       : const Icon(Icons.refresh),
                   label: Text(_isResending
                       ? 'Reenviando...'
                       : '¿No recibiste el email? Reenviar'),
                 ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppTheme.spaceLg),
 
               // Botón volver al login
               OutlinedButton(
@@ -271,8 +265,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 },
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 12,
+                    horizontal: AppTheme.spaceLg,
+                    vertical: AppTheme.spaceSm,
                   ),
                 ),
                 child: const Text('Volver al Login'),
@@ -286,15 +280,16 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
   Widget _buildInstruction(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: AppTheme.spaceXxs),
       child: Row(
         children: [
-          Icon(Icons.arrow_right, size: 20, color: Colors.blue.shade700),
-          const SizedBox(width: 8),
+          Icon(Icons.arrow_right,
+              size: AppTheme.iconSizeSmall + 4, color: AppTheme.infoIcon),
+          const SizedBox(width: AppTheme.spaceXs),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(color: Colors.blue.shade900),
+              style: AppTheme.verificationInstruction,
             ),
           ),
         ],

@@ -504,6 +504,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
       return Right(articles);
     } catch (e) {
+      debugPrint('🚨 ERROR en getArticlesForNotification: $e');
       return Left(
           ServerFailure('Error al obtener artículos para notificación: $e'));
     }

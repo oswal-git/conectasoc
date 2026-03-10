@@ -55,7 +55,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get articleStatus => 'Estat';
 
   @override
-  String get articleTitle => 'Títol de l\'Article';
+  String get articleTitle => 'Article';
 
   @override
   String get articleUpdatedSuccess => 'Article actualitzat correctament.';

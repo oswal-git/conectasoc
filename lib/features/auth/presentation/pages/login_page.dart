@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/pages/login_page.dart
 
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/features/auth/presentation/widgets/widgets.dart';
 import 'package:conectasoc/app/router/router.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ class LoginPage extends StatelessWidget {
             ..showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.red,
+                backgroundColor: AppTheme.error,
               ),
             );
         }
@@ -35,7 +36,7 @@ class LoginPage extends StatelessWidget {
               SafeArea(
                 child: Center(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(AppTheme.spaceMd),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -43,61 +44,52 @@ class LoginPage extends StatelessWidget {
                         // LOGO
                         Icon(
                           Icons.people_alt_outlined,
-                          size: 80,
-                          color: Theme.of(context).primaryColor,
+                          size: AppTheme.iconSizeApp,
+                          color: AppTheme.primary,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppTheme.spaceSm),
 
                         // TÍTULO
                         Text(
                           'ConectaAsoc',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                              ),
+                          style: AppTheme.loginTitle(context),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppTheme.spaceXxs),
 
                         Text(
                           'Inicia sesión en tu cuenta',
                           textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.grey.shade600,
-                                  ),
+                          style: AppTheme.loginSubtitle(context),
                         ),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: AppTheme.spaceTop),
 
                         // FORMULARIO DE LOGIN
                         LoginFormWidget(
                           authBloc: context.read<AuthBloc>(),
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppTheme.spaceSm),
 
                         // SEPARADOR
                         Row(
                           children: [
                             Expanded(
-                                child: Divider(color: Colors.grey.shade300)),
+                                child: Divider(color: AppTheme.neutralDivider)),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spaceSm),
                               child: Text(
                                 'O',
-                                style: TextStyle(color: Colors.grey.shade600),
+                                style: AppTheme.loginDividerLabel,
                               ),
                             ),
                             Expanded(
-                                child: Divider(color: Colors.grey.shade300)),
+                                child: Divider(color: AppTheme.neutralDivider)),
                           ],
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppTheme.spaceSm),
 
                         // BOTÓN REGISTRO
                         OutlinedButton(
@@ -106,21 +98,19 @@ class LoginPage extends StatelessWidget {
                               : () => GoRouter.of(context)
                                   .push(RouteNames.register),
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: AppTheme.spaceSm),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: AppTheme.borderRadiusDefault,
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Crear Cuenta Nueva',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: AppTheme.buttonLabel,
                           ),
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppTheme.spaceXxs),
 
                         // BOTÓN USUARIO LOCAL
                         TextButton(
@@ -128,9 +118,21 @@ class LoginPage extends StatelessWidget {
                               ? null
                               : () => GoRouter.of(context)
                                   .push(RouteNames.localUserSetup),
-                          child: const Text(
-                            'Continuar sin registrarme (solo lectura)',
-                            style: TextStyle(fontSize: 14),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: AppTheme.primary,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                            padding: const EdgeInsets.only(
+                                bottom: 0.1), // ← separación
+                            child: Text(
+                              'Continuar sin registrarme (solo lectura)',
+                              style: AppTheme.loginSecondaryLink,
+                            ),
                           ),
                         ),
                       ],
@@ -140,7 +142,7 @@ class LoginPage extends StatelessWidget {
               ),
               if (isLoading)
                 Container(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: AppTheme.overlayDark,
                   child: const Center(
                     child: CircularProgressIndicator(),
                   ),

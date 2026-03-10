@@ -47,7 +47,7 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: AppTheme.paddingPage,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -64,9 +64,7 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
             Text(
               friendlyMessage,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+              style: AppTheme.errorMessage(context),
             ),
             const SizedBox(height: AppTheme.spaceMd),
             if (widget.onRetry != null)
@@ -88,7 +86,7 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
               ),
               label: Text(
                 _isExpanded ? "Ocultar detalles" : "Ver detalles técnicos",
-                style: const TextStyle(fontSize: 12),
+                style: AppTheme.toggleLabel,
               ),
             ),
             if (_isExpanded) ...[
@@ -102,11 +100,7 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
                 ),
                 child: SelectableText(
                   widget.errorMessage,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 11,
-                    color: AppTheme.error,
-                  ),
+                  style: AppTheme.errorDetail,
                 ),
               ),
             ],

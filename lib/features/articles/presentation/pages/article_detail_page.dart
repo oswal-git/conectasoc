@@ -50,37 +50,51 @@ class ArticleDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.articleTitle),
-        leading: onBackOverride != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: onBackOverride,
-              )
-            : null,
-      ),
       body: BlocBuilder<ArticleDetailBloc, ArticleDetailState>(
         builder: (context, state) {
-          if (state is ArticleDetailLoading || state is ArticleDetailInitial) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is ArticleDetailError) {
-            return Center(
-                child: Text(state.message, textAlign: TextAlign.center));
-          }
-          if (state is ArticleDetailLoaded) {
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                // Usamos un breakpoint para decidir qué layout mostrar
-                if (constraints.maxWidth > AppTheme.breakpointWeb) {
-                  return _WebLayout(article: state.article);
-                } else {
-                  return _MobileLayout(article: state.article);
+          // Título del AppBar: nombre de asociación cuando el artículo está cargado,
+          // título genérico mientras carga o si hay error.
+          final appBarTitle = state is ArticleDetailLoaded
+              ? state.article.associationShortName != 'superadmin_access'
+                  ? state.article.associationShortName
+                  : l10n.articleTitle
+              : l10n.articleTitle;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(appBarTitle),
+              leading: onBackOverride != null
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: onBackOverride,
+                    )
+                  : null,
+            ),
+            body: Builder(
+              builder: (context) {
+                if (state is ArticleDetailLoading ||
+                    state is ArticleDetailInitial) {
+                  return const Center(child: CircularProgressIndicator());
                 }
+                if (state is ArticleDetailError) {
+                  return Center(
+                      child: Text(state.message, textAlign: TextAlign.center));
+                }
+                if (state is ArticleDetailLoaded) {
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Usamos un breakpoint para decidir qué layout mostrar
+                      if (constraints.maxWidth > AppTheme.breakpointWeb) {
+                        return _WebLayout(article: state.article);
+                      } else {
+                        return _MobileLayout(article: state.article);
+                      }
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
               },
-            );
-          }
-          return const SizedBox.shrink();
+            ),
+          );
         },
       ),
     );
@@ -117,14 +131,14 @@ class _WebLayout extends StatelessWidget {
                 const SizedBox(height: AppTheme.spaceXxs),
                 Text(
                   '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: AppTheme.articleMeta(context),
                 ),
                 const SizedBox(height: AppTheme.spaceXs),
 
                 // Fila 3: Fecha de publicación
                 Text(
                   '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: AppTheme.articleMeta(context),
                 ),
                 const SizedBox(height: AppTheme.spaceMd),
 
@@ -194,7 +208,7 @@ class _WebLayout extends StatelessWidget {
         ? Padding(
             padding: const EdgeInsets.all(AppTheme.spaceXs),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppTheme.borderRadiusDefault,
               child: CachedNetworkImage(
                 imageUrl: section.imageUrl!,
                 fit: BoxFit.cover,
@@ -300,14 +314,14 @@ class _MobileLayout extends StatelessWidget {
           const SizedBox(height: AppTheme.spaceXxs),
           Text(
             '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
-            style: Theme.of(context).textTheme.bodySmall,
+            style: AppTheme.articleMeta(context),
           ),
           const SizedBox(height: AppTheme.spaceXs),
 
           // Fila 3: Fecha de publicación
           Text(
             '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
-            style: Theme.of(context).textTheme.bodySmall,
+            style: AppTheme.articleMeta(context),
           ),
           const SizedBox(height: AppTheme.spaceMd),
 
@@ -423,10 +437,7 @@ Widget _buildFooter(
   return Center(
     child: Text(
       vigenciaText,
-      style: Theme.of(context)
-          .textTheme
-          .bodySmall
-          ?.copyWith(fontStyle: FontStyle.italic),
+      style: AppTheme.articleFooter(context),
       textAlign: TextAlign.center,
     ),
   );
@@ -442,12 +453,12 @@ class _AuthorInfo extends StatelessWidget {
       children: [
         UserAvatarWidget(
           userId: article.userId,
-          radius: 20,
+          radius: AppTheme.avatarRadiusDefault,
         ),
         const SizedBox(width: AppTheme.spaceXs),
         Text(
           'Por ${article.authorName}',
-          style: Theme.of(context).textTheme.bodySmall,
+          style: AppTheme.articleMeta(context),
         ),
       ],
     );
@@ -510,8 +521,8 @@ class _SectionContentState extends State<_SectionContent> {
   @override
   Widget build(BuildContext context) {
     final textStyle = widget.isTitle
-        ? Theme.of(context).textTheme.headlineMedium
-        : Theme.of(context).textTheme.bodyLarge;
+        ? AppTheme.articleTitle(context)
+        : AppTheme.articleBody(context);
 
     return quill.QuillEditor.basic(
       controller: _controller,
@@ -521,7 +532,7 @@ class _SectionContentState extends State<_SectionContent> {
         padding: EdgeInsets.zero,
         customStyles: quill.DefaultStyles(
           paragraph: quill.DefaultTextBlockStyle(
-            textStyle!,
+            textStyle,
             const quill.HorizontalSpacing(0, 0),
             const quill.VerticalSpacing(0, 0),
             const quill.VerticalSpacing(0, 0),

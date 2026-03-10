@@ -55,7 +55,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get articleStatus => 'Estado';
 
   @override
-  String get articleTitle => 'Título del Artículo';
+  String get articleTitle => 'Artículo';
 
   @override
   String get articleUpdatedSuccess => 'Artículo actualizado correctamente.';

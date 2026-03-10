@@ -1,3 +1,4 @@
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -303,14 +304,11 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
     DocumentUploadReady state,
     AppLocalizations l10n,
   ) {
-    return DropdownButtonFormField<String>(
-      initialValue: state.categoryId.isEmpty ? null : state.categoryId,
-      decoration: InputDecoration(
-        labelText: l10n.category,
-        prefixIcon: const Icon(Icons.category),
-        border: const OutlineInputBorder(),
-      ),
-      items: state.categories.map((category) {
+    return AppDropdownWidget<String>(
+      value: state.categoryId.isEmpty ? null : state.categoryId,
+      label: l10n.category,
+      prefixIcon: const Icon(Icons.category),
+      customItems: state.categories.map((category) {
         return DropdownMenuItem(
           value: category.id,
           child: Text(category.name),
@@ -335,14 +333,11 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
     DocumentUploadReady state,
     AppLocalizations l10n,
   ) {
-    return DropdownButtonFormField<String>(
-      initialValue: state.subcategoryId.isEmpty ? null : state.subcategoryId,
-      decoration: InputDecoration(
-        labelText: l10n.subcategory,
-        prefixIcon: const Icon(Icons.subdirectory_arrow_right),
-        border: const OutlineInputBorder(),
-      ),
-      items: state.subcategories.map((subcategory) {
+    return AppDropdownWidget<String>(
+      value: state.subcategoryId.isEmpty ? null : state.subcategoryId,
+      label: l10n.subcategory,
+      prefixIcon: const Icon(Icons.subdirectory_arrow_right),
+      customItems: state.subcategories.map((subcategory) {
         return DropdownMenuItem(
           value: subcategory.id,
           child: Text(subcategory.name),
@@ -404,16 +399,13 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
       }
     }
 
-    return DropdownButtonFormField<ReadScope>(
-      initialValue: state.readScope,
-      decoration: InputDecoration(
-        labelText: l10n.readScope,
-        prefixIcon: const Icon(Icons.visibility_outlined),
-        border: const OutlineInputBorder(),
-        helperText: _getReadScopeHelperText(state.readScope, l10n),
-        helperMaxLines: 2,
-      ),
-      items: availableScopes.map((scope) {
+    return AppDropdownWidget<ReadScope>(
+      value: state.readScope,
+      label: l10n.readScope,
+      prefixIcon: const Icon(Icons.visibility_outlined),
+      helperMaxLines: 2,
+      helperText: _getReadScopeHelperText(state.readScope, l10n),
+      customItems: availableScopes.map((scope) {
         return DropdownMenuItem(
           value: scope,
           child: Row(

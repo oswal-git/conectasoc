@@ -1,3 +1,4 @@
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/documents/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -209,30 +210,21 @@ class _DocumentSearchDialogContentState
       children: [
         // Filtro categoría
         Expanded(
-          child: DropdownButtonFormField<String>(
-            initialValue: state.selectedCategoryId,
+          child: AppDropdownWidget<String>(
+            label: l10n.category,
+            value: state.selectedCategoryId,
             isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.category,
-              isDense: true,
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            ),
-            hint: Text(l10n.category, style: const TextStyle(fontSize: 13)),
+            variant: AppDropdownVariant.dense,
+            hint: l10n.category,
             items: [
-              DropdownMenuItem(
+              AppDropdownItem(
                 value: null,
-                child: Text('— ${l10n.category} —',
-                    style: const TextStyle(fontSize: 13)),
+                label: '— ${l10n.category} —',
               ),
               ...state.categories.map(
-                (c) => DropdownMenuItem(
+                (c) => AppDropdownItem(
                   value: c.id,
-                  child: Text(c.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13)),
+                  label: c.name,
                 ),
               ),
             ],
@@ -247,30 +239,21 @@ class _DocumentSearchDialogContentState
 
         // Filtro subcategoría
         Expanded(
-          child: DropdownButtonFormField<String>(
-            initialValue: state.selectedSubcategoryId,
+          child: AppDropdownWidget<String>(
+            label: l10n.subcategory,
+            value: state.selectedSubcategoryId,
             isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.subcategory,
-              isDense: true,
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            ),
-            hint: Text(l10n.subcategory, style: const TextStyle(fontSize: 13)),
+            variant: AppDropdownVariant.dense,
+            hint: l10n.subcategory,
             items: [
-              DropdownMenuItem(
+              AppDropdownItem(
                 value: null,
-                child: Text('— ${l10n.subcategory} —',
-                    style: const TextStyle(fontSize: 13)),
+                label: '— ${l10n.subcategory} —',
               ),
               ...state.subcategories.map(
-                (s) => DropdownMenuItem(
+                (s) => AppDropdownItem(
                   value: s.id,
-                  child: Text(s.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13)),
+                  label: s.name,
                 ),
               ),
             ],

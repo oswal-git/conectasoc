@@ -184,7 +184,9 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
           'lastName': user.lastname,
           'phone': user.phone,
           'language': user.language,
-          'notificationFrequency': user.notificationFrequency,
+          'notificationTime1': user.notificationTime1,
+          'notificationTime2': user.notificationTime2,
+          'notificationTime3': user.notificationTime3,
           'dateUpdated': FieldValue.serverTimestamp(),
         };
 

@@ -15,7 +15,9 @@ class UserModel extends UserEntity {
     required super.dateUpdated,
     required super.isEmailVerified,
     super.phone,
-    super.notificationFrequency,
+    super.notificationTime1,
+    super.notificationTime2,
+    super.notificationTime3,
     super.fechaNotificada,
     super.configVersion,
     super.avatarUrl,
@@ -53,7 +55,9 @@ class UserModel extends UserEntity {
       dateUpdated:
           (data['dateUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastLoginDate: (data['lastLoginDate'] as Timestamp?)?.toDate(),
-      notificationFrequency: data['notificationFrequency'] ?? 'none',
+      notificationTime1: data['notificationTime1'],
+      notificationTime2: data['notificationTime2'],
+      notificationTime3: data['notificationTime3'],
       fechaNotificada: (data['fechaNotificada'] as Timestamp?)?.toDate(),
       configVersion: data['configVersion'] ?? 1,
       isEmailVerified: isEmailVerified, // Set from parameter
@@ -74,7 +78,9 @@ class UserModel extends UserEntity {
       dateUpdated: entity.dateUpdated,
       isEmailVerified: entity.isEmailVerified,
       language: entity.language,
-      notificationFrequency: entity.notificationFrequency,
+      notificationTime1: entity.notificationTime1,
+      notificationTime2: entity.notificationTime2,
+      notificationTime3: entity.notificationTime3,
       fechaNotificada: entity.fechaNotificada,
       configVersion: entity.configVersion,
       // La contraseña no se incluye en el modelo de datos, solo se usa en la entidad para la creación.
@@ -94,7 +100,9 @@ class UserModel extends UserEntity {
       'dateCreated':
           dateCreated, // Use existing dateCreated instead of total reset
       'dateUpdated': FieldValue.serverTimestamp(),
-      'notificationFrequency': notificationFrequency,
+      'notificationTime1': notificationTime1,
+      'notificationTime2': notificationTime2,
+      'notificationTime3': notificationTime3,
       'fechaNotificada':
           fechaNotificada != null ? Timestamp.fromDate(fechaNotificada!) : null,
       'configVersion': configVersion,

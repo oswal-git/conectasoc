@@ -2,11 +2,13 @@
 ├── .gitignore
 ├── .metadata
 ├── analysis_options.yaml
+├── build_output.txt
 ├── ConectAsoc.docx
 ├── conectasoc.iml
 ├── create_arbol_feature.bat
 ├── create_arbol.bat
 ├── devtools_options.yaml
+├── errores
 ├── firebase.json
 ├── firestore.rules
 ├── google-services.json
@@ -46,10 +48,11 @@
         ├── route_names.dart
         ├── router.dart
     ├── theme
-        ├── app_colors.dart
+        ├── app_theme.dart
   ├── core
     ├── constants
         ├── cloudinary_config.dart
+        ├── globals.dart
     ├── errors
         ├── errors.dart
         ├── exceptions.dart
@@ -61,6 +64,7 @@
         ├── local_storage_service.dart
         ├── translation_service.dart
     ├── utils
+        ├── app_scroll_behavior.dart
         ├── article_permissions.dart
         ├── formatters.dart
         ├── network_helper.dart
@@ -68,7 +72,9 @@
         ├── utils.dart
         ├── validators.dart
     ├── widgets
+        ├── dropdown_widget.dart
         ├── user_friendly_error_widget.dart
+        ├── widgets.dart
   ├── debug
       ├── email_debug_panel.dart
   ├── features
@@ -117,21 +123,23 @@
         ├── pages
             ├── article_detail_page.dart
             ├── article_edit_page.dart
+            ├── article_pager_page.dart
             ├── pages.dart
         ├── widgets
             ├── article_edit_view copy.dar
             ├── article_edit_view.dart
             ├── article_preview.dart
             ├── article_quill_editor_field.dart
-            ├── article_section_editor.dart
+            ├── article_section_editor_widget.dart
+            ├── article_section_list_widget.dart
             ├── category_selector_section.dart
             ├── cover_image_picker.dart
             ├── date_picker_field.dart
             ├── date_picker_section.dart
             ├── preview_section copy.dar
             ├── preview_section.dart
+            ├── section_document_link_widget.dart
             ├── section_image.dart
-            ├── section_list.dart
             ├── status_dropdown_section.dart
             ├── widgets.dart
     ├── associations
@@ -264,6 +272,7 @@
             ├── delete_document_usecase.dart
             ├── get_document_by_association_usecase.dart
             ├── get_document_by_id_usecase.dart
+            ├── is_document_linked_usecase.dart
             ├── search_document_usecase.dart
             ├── usecases.dart
       ├── presentation

@@ -29,8 +29,9 @@ class UserEntity extends Equatable implements IUser {
   final DateTime dateCreated;
   final DateTime dateUpdated;
   final DateTime? lastLoginDate;
-  final String
-      notificationFrequency; // 'none', 'once_day', 'twice_day', 'thrice_day'
+  final String? notificationTime1; // e.g. '10:00'
+  final String? notificationTime2;
+  final String? notificationTime3;
   final DateTime? fechaNotificada; // Última vez que se enviaron noticias
   final int configVersion;
   final bool isEmailVerified;
@@ -49,7 +50,9 @@ class UserEntity extends Equatable implements IUser {
     required this.dateCreated,
     required this.dateUpdated,
     this.lastLoginDate,
-    this.notificationFrequency = 'none',
+    this.notificationTime1,
+    this.notificationTime2,
+    this.notificationTime3,
     this.fechaNotificada,
     this.configVersion = 1,
     this.isEmailVerified = false,
@@ -72,7 +75,9 @@ class UserEntity extends Equatable implements IUser {
       dateCreated: now,
       dateUpdated: now,
       lastLoginDate: now,
-      notificationFrequency: 'none',
+      notificationTime1: null,
+      notificationTime2: null,
+      notificationTime3: null,
       fechaNotificada: null,
       configVersion: 1,
       isEmailVerified: false,
@@ -93,7 +98,9 @@ class UserEntity extends Equatable implements IUser {
     DateTime? dateCreated,
     DateTime? dateUpdated,
     DateTime? lastLoginDate,
-    String? notificationFrequency,
+    String? notificationTime1,
+    String? notificationTime2,
+    String? notificationTime3,
     DateTime? fechaNotificada,
     int? configVersion,
     bool? isEmailVerified,
@@ -112,8 +119,9 @@ class UserEntity extends Equatable implements IUser {
       dateCreated: dateCreated ?? this.dateCreated,
       dateUpdated: dateUpdated ?? this.dateUpdated,
       lastLoginDate: lastLoginDate ?? this.lastLoginDate,
-      notificationFrequency:
-          notificationFrequency ?? this.notificationFrequency,
+      notificationTime1: notificationTime1 ?? this.notificationTime1,
+      notificationTime2: notificationTime2 ?? this.notificationTime2,
+      notificationTime3: notificationTime3 ?? this.notificationTime3,
       fechaNotificada: fechaNotificada ?? this.fechaNotificada,
       configVersion: configVersion ?? this.configVersion,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
@@ -128,10 +136,12 @@ class UserEntity extends Equatable implements IUser {
       lastname: lastName,
       email: email,
       phone: phone,
-      language: language,
-      notificationFrequency: notificationFrequency,
+      notificationTime1: notificationTime1,
+      notificationTime2: notificationTime2,
+      notificationTime3: notificationTime3,
       photoUrl: avatarUrl,
       dateUpdated: dateUpdated,
+      language: language,
     );
   }
 
@@ -184,7 +194,9 @@ class UserEntity extends Equatable implements IUser {
         dateCreated,
         dateUpdated,
         lastLoginDate,
-        notificationFrequency,
+        notificationTime1,
+        notificationTime2,
+        notificationTime3,
         fechaNotificada,
         configVersion,
         isEmailVerified,

@@ -1,4 +1,5 @@
 import 'package:conectasoc/app/router/router.dart';
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
@@ -112,7 +113,8 @@ class _AssociationListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
       child: Dismissible(
         key: Key(association.id),
         direction: DismissDirection.endToStart,
@@ -135,7 +137,7 @@ class _AssociationListItem extends StatelessWidget {
                     TextButton(
                         onPressed: () => Navigator.of(dialogContext).pop(true),
                         child: Text(l10n.delete,
-                            style: const TextStyle(color: Colors.red))),
+                            style: AppTheme.destructiveAction)),
                   ],
                 ),
               ) ??
@@ -143,25 +145,25 @@ class _AssociationListItem extends StatelessWidget {
         },
         background: Container(
           decoration: BoxDecoration(
-            color: Colors.red,
-            borderRadius: BorderRadius.circular(12),
+            color: AppTheme.error,
+            borderRadius: AppTheme.borderRadiusDefault,
           ),
           alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 20.0),
+          padding: const EdgeInsets.only(right: AppTheme.spaceSm),
           child: const Icon(
             Icons.delete,
-            color: Colors.white,
-            size: 32,
+            color: AppTheme.appBarForeground,
+            size: AppTheme.iconSizeAction,
           ),
         ),
         child: Card(
-          elevation: 2,
+          elevation: AppTheme.elevationCard,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppTheme.borderRadiusDefault,
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.grey[200],
+              backgroundColor: AppTheme.border,
               backgroundImage:
                   association.logoUrl != null && association.logoUrl!.isNotEmpty
                       ? CachedNetworkImageProvider(association.logoUrl!)
@@ -172,14 +174,13 @@ class _AssociationListItem extends StatelessWidget {
                           'assets/images/generi_asoc-32.png',
                           width: 40,
                           height: 40,
-                          color: Colors.grey[600],
+                          color: AppTheme.imageIconHint,
                           colorBlendMode: BlendMode.srcIn,
                           fit: BoxFit.contain,
                         )
                       : null,
             ),
-            title: Text(association.longName,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            title: Text(association.longName, style: AppTheme.listItemTitle),
             subtitle: Text('${association.shortName}\n${association.email}'),
             isThreeLine: true,
             onTap: () async {
