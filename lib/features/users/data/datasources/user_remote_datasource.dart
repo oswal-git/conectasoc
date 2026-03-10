@@ -84,8 +84,10 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       }
     } catch (e) {
       if (!e.toString().contains('permission-denied')) {
-        debugPrint('UserRemoteDataSourceImpl: getUserById -> Error: $e');
+        debugPrint('❌ UserRemoteDataSourceImpl: getUserById -> Error: $e');
       }
+      debugPrint(
+          '❌ UserRemoteDataSourceImpl: getUserById (ServerException) -> Error: $e');
       throw ServerException('Error obteniendo usuario por ID: ${e.toString()}');
     }
   }
@@ -105,6 +107,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   Future<void> updateUserDetails(
       UserEntity user, DateTime? expectedDateUpdated) async {
     try {
+      final now = DateTime.now();
       await firestore.runTransaction((transaction) async {
         final userRef = firestore.collection('users').doc(user.uid);
         final snapshot = await transaction.get(userRef);
@@ -129,17 +132,17 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
 
         final userModel = UserModel.fromEntity(user);
         final dataToUpdate = userModel.toFirestore();
-        dataToUpdate['dateUpdated'] = FieldValue.serverTimestamp();
+        dataToUpdate['dateUpdated'] = Timestamp.fromDate(now);
 
         transaction.update(userRef, dataToUpdate);
       });
     } on ConcurrencyException {
       debugPrint(
-          'UserRemoteDataSourceImpl: updateUserDetails -> El registro ha sido modificado por otro usuario. Por favor, refresca los datos e inténtalo de nuevo.');
+          '💥 UserRemoteDataSourceImpl: updateUserDetails (ConcurrencyException) -> El registro ha sido modificado por otro usuario. Por favor, refresca los datos e inténtalo de nuevo.');
       rethrow;
     } catch (e) {
       debugPrint(
-          'UserRemoteDataSourceImpl: updateUserDetails -> Error al actualizar los detalles del usuario: $e');
+          '❌ UserRemoteDataSourceImpl: updateUserDetails -> Error al actualizar los detalles del usuario: $e');
       throw ServerException('Error al actualizar los detalles del usuario: $e');
     }
   }
@@ -157,11 +160,14 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   Future<ProfileEntity> updateUser(ProfileEntity user, String? newImageUrl,
       DateTime? expectedDateUpdated) async {
     try {
+      final now = DateTime.now();
       final result = await firestore.runTransaction((transaction) async {
         final userRef = firestore.collection('users').doc(user.uid);
         final snapshot = await transaction.get(userRef);
 
         if (!snapshot.exists) {
+          debugPrint(
+              '❌ UserRemoteDataSourceImpl: updateUser -> El usuario no existe.');
           throw ServerException('El usuario no existe.');
         }
 
@@ -187,7 +193,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
           'notificationTime1': user.notificationTime1,
           'notificationTime2': user.notificationTime2,
           'notificationTime3': user.notificationTime3,
-          'dateUpdated': FieldValue.serverTimestamp(),
+          'dateUpdated': Timestamp.fromDate(now),
         };
 
         if (newImageUrl != null) {
@@ -195,15 +201,20 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         }
 
         transaction.update(userRef, dataToUpdate);
-        return user.copyWith(photoUrl: newImageUrl ?? user.photoUrl);
+        return user.copyWith(
+          photoUrl: newImageUrl ?? user.photoUrl,
+          dateUpdated: now,
+        );
       });
 
       return result;
     } on ConcurrencyException {
+      debugPrint(
+          '💥 UserRemoteDataSourceImpl: updateUser (ConcurrencyException)-> El registro ha sido modificado por otro usuario. Por favor, refresca los datos e inténtalo de nuevo.');
       rethrow;
     } catch (e) {
       debugPrint(
-          'UserRemoteDataSourceImpl: updateUser -> Error al actualizar el usuario: $e');
+          '❌ UserRemoteDataSourceImpl: updateUser -> Error al actualizar el usuario: $e');
       throw ServerException('Error al actualizar el usuario: $e');
     }
   }

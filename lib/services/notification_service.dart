@@ -21,7 +21,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // En web el background lo maneja el service worker (firebase-messaging-sw.js)
   // Este handler aplica solo a móvil/desktop nativo
   if (kIsWeb) return;
-  debugPrint('FCM background message: ${message.messageId}');
+  debugPrint(
+      'ℹ️ NotificationService: _firebaseMessagingBackgroundHandler -> FCM background message: ${message.messageId}');
 }
 
 @pragma('vm:entry-point')
@@ -131,7 +132,8 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      debugPrint('FCM Web: permiso denegado por el usuario');
+      debugPrint(
+          'ℹ️ NotificationService: _initWeb -> FCM Web: permiso denegado por el usuario');
       return;
     }
 
@@ -139,12 +141,13 @@ class NotificationService {
     final token = await FirebaseMessaging.instance.getToken(
       vapidKey: DefaultFirebaseOptions.vapidKey,
     );
-    debugPrint('FCM Web Token: $token');
+    debugPrint('ℹ️ NotificationService: _initWeb -> FCM Web Token: $token');
     // TODO: guarda el token donde lo necesites (Firestore, shared preferences, etc.)
 
     // 4. Escuchar mensajes en FOREGROUND (app abierta)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('FCM Web foreground: ${message.notification?.title}');
+      debugPrint(
+          'ℹ️ NotificationService: _initWeb -> FCM Web foreground: ${message.notification?.title}');
 
       // Emitir el payload para que la UI pueda reaccionar
       // (p.ej. navegar al artículo correspondiente)
@@ -160,9 +163,9 @@ class NotificationService {
     // 5. App abierta desde notificación (estaba en background, usuario toca)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint(
-          'NotificationService: _initWeb -> FCM Web onMessageOpenedApp: ${message.notification?.title}');
+          'ℹ️ NotificationService: _initWeb -> FCM Web onMessageOpenedApp: ${message.notification?.title}');
       debugPrint(
-          'NotificationService: _initWeb -> FCM Web onMessageOpenedApp: ${message.data}');
+          'ℹ️ NotificationService: _initWeb -> FCM Web onMessageOpenedApp: ${message.data}');
       final payload = message.data['articleId'] as String?;
       if (payload != null) {
         _onNotificationClick.add(payload);
@@ -199,7 +202,12 @@ class NotificationService {
       },
     );
 
-    await Workmanager().initialize(callbackDispatcher);
+    try {
+      await Workmanager().initialize(callbackDispatcher);
+    } catch (e) {
+      debugPrint(
+          '❌ NotificationService: _initMobile -> Workmanager init failed: $e');
+    }
 
     // Manejar el caso en que la app se abre desde una notificación (app cerrada)
     final NotificationAppLaunchDetails? launchDetails =

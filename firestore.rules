@@ -68,7 +68,7 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         (request.auth.uid == userId && 
          request.resource.data.diff(resource.data).affectedKeys()
-           .hasOnly(['firstName', 'lastName', 'phone', 'language', 'avatarUrl', 'dateUpdated', 'notificationFrequency'])) ||
+           .hasOnly(['firstName', 'lastName', 'phone', 'language', 'avatarUrl', 'dateUpdated', 'notificationTime1', 'notificationTime2', 'notificationTime3'])) ||
         isSuperAdmin() ||
         (
           // Admin puede modificar si el usuario tiene membresía en su asociación (al menos compartida)
