@@ -1,3 +1,4 @@
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
@@ -18,10 +19,10 @@ class StatusDropdownSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<ArticleStatus>(
-      initialValue: status,
-      decoration: InputDecoration(labelText: l10n.articleStatus),
-      items: ArticleStatus.values.map((statusItem) {
+    return AppDropdownWidget<ArticleStatus>(
+      value: status,
+      label: l10n.articleStatus,
+      customItems: ArticleStatus.values.map((statusItem) {
         String statusText;
         switch (statusItem) {
           case ArticleStatus.redaccion:

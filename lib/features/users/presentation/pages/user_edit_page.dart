@@ -1,3 +1,5 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -280,16 +282,13 @@ class _UserEditViewState extends State<_UserEditView> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: user.language,
-                    decoration: InputDecoration(labelText: l10n.language),
+                  AppDropdownWidget<String>(
+                    value: user.language,
+                    label: l10n.language,
                     items: [
-                      DropdownMenuItem(
-                          value: 'es', child: Text(l10n.langSpanish)),
-                      DropdownMenuItem(
-                          value: 'en', child: Text(l10n.langEnglish)),
-                      DropdownMenuItem(
-                          value: 'ca', child: Text(l10n.langCatalan)),
+                      AppDropdownItem(value: 'es', label: l10n.langSpanish),
+                      AppDropdownItem(value: 'en', label: l10n.langEnglish),
+                      AppDropdownItem(value: 'ca', label: l10n.langCatalan),
                     ],
                     onChanged: (value) {
                       if (value != null) {
@@ -301,37 +300,12 @@ class _UserEditViewState extends State<_UserEditView> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: user.notificationFrequency,
-                    decoration: InputDecoration(labelText: l10n.notifications),
-                    items: [
-                      DropdownMenuItem(
-                          value: 'none',
-                          child: Text(l10n.notificationFreqNone)),
-                      DropdownMenuItem(
-                          value: 'once_day',
-                          child: Text(l10n.notificationFreqOnce)),
-                      DropdownMenuItem(
-                          value: 'twice_day',
-                          child: Text(l10n.notificationFreqTwice)),
-                      DropdownMenuItem(
-                          value: 'thrice_day',
-                          child: Text(l10n.notificationFreqThrice)),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        _markAsChanged();
-                        context
-                            .read<UserEditBloc>()
-                            .add(UserNotificationFrequencyChanged(value));
-                      }
-                    },
-                  ),
+                  _buildNotificationSelectors(context, user, l10n),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<UserStatus>(
-                    initialValue: user.status,
-                    decoration: InputDecoration(labelText: l10n.status),
-                    items: UserStatus.values.map((status) {
+                  AppDropdownWidget<UserStatus>(
+                    value: user.status,
+                    label: l10n.status,
+                    customItems: UserStatus.values.map((status) {
                       return DropdownMenuItem(
                         value: status,
                         child: Text(status.value),
@@ -360,6 +334,159 @@ class _UserEditViewState extends State<_UserEditView> {
           return const SizedBox.shrink();
         }),
       ),
+    );
+  }
+
+  Widget _buildNotificationSelectors(
+      BuildContext context, UserEntity user, AppLocalizations l10n) {
+    final List<DropdownMenuItem<String>> timeOptions = [
+      const DropdownMenuItem(value: '', child: Text('---')),
+    ];
+    for (int hour = 0; hour < 24; hour++) {
+      for (int min = 0; min < 60; min += 30) {
+        final hourStr = hour.toString().padLeft(2, '0');
+        final minStr = min.toString().padLeft(2, '0');
+        final timeStr = '$hourStr:$minStr';
+        timeOptions.add(DropdownMenuItem(
+          value: timeStr,
+          child: Text(timeStr),
+        ));
+      }
+    }
+
+    final hasTime1 =
+        user.notificationTime1 != null && user.notificationTime1!.isNotEmpty;
+    final hasTime2 =
+        user.notificationTime2 != null && user.notificationTime2!.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.notifications,
+            style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+
+        // Hora 1
+        Row(
+          children: [
+            Expanded(
+              child: AppDropdownWidget<String>(
+                label: 'Hora 1',
+                value: user.notificationTime1 ?? '',
+                customItems: timeOptions,
+                onChanged: (value) {
+                  _markAsChanged();
+                  final actualValue =
+                      (value == null || value.isEmpty) ? null : value;
+                  context
+                      .read<UserEditBloc>()
+                      .add(UserNotificationTime1Changed(actualValue));
+                  if (actualValue == null || actualValue.isEmpty) {
+                    context
+                        .read<UserEditBloc>()
+                        .add(const UserNotificationTime2Changed(null));
+                    context
+                        .read<UserEditBloc>()
+                        .add(const UserNotificationTime3Changed(null));
+                  }
+                },
+              ),
+            ),
+            if (hasTime1)
+              IconButton(
+                icon: const Icon(Icons.clear, color: Colors.grey),
+                onPressed: () {
+                  _markAsChanged();
+                  context
+                      .read<UserEditBloc>()
+                      .add(const UserNotificationTime1Changed(''));
+                  context
+                      .read<UserEditBloc>()
+                      .add(const UserNotificationTime2Changed(''));
+                  context
+                      .read<UserEditBloc>()
+                      .add(const UserNotificationTime3Changed(''));
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Hora 2
+        Row(
+          children: [
+            Expanded(
+              child: AppDropdownWidget<String>(
+                label: 'Hora 2',
+                value: user.notificationTime2 ?? '',
+                customItems: timeOptions,
+                enabled: hasTime1,
+                onChanged: (value) {
+                  _markAsChanged();
+                  final actualValue =
+                      (value == null || value.isEmpty) ? null : value;
+                  context
+                      .read<UserEditBloc>()
+                      .add(UserNotificationTime2Changed(actualValue));
+                  if (actualValue == null || actualValue.isEmpty) {
+                    context
+                        .read<UserEditBloc>()
+                        .add(const UserNotificationTime3Changed(null));
+                  }
+                },
+              ),
+            ),
+            if (hasTime2 && hasTime1)
+              IconButton(
+                icon: const Icon(Icons.clear, color: Colors.grey),
+                onPressed: () {
+                  _markAsChanged();
+                  context
+                      .read<UserEditBloc>()
+                      .add(const UserNotificationTime2Changed(''));
+                  context
+                      .read<UserEditBloc>()
+                      .add(const UserNotificationTime3Changed(''));
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Hora 3
+        Row(
+          children: [
+            Expanded(
+              child: AppDropdownWidget<String>(
+                label: 'Hora 3',
+                value: user.notificationTime3 ?? '',
+                customItems: timeOptions,
+                enabled: hasTime2,
+                onChanged: (value) {
+                  _markAsChanged();
+                  final actualValue =
+                      (value == null || value.isEmpty) ? null : value;
+                  context
+                      .read<UserEditBloc>()
+                      .add(UserNotificationTime3Changed(actualValue));
+                },
+              ),
+            ),
+            if (user.notificationTime3 != null &&
+                user.notificationTime3!.isNotEmpty &&
+                hasTime2)
+              IconButton(
+                icon: const Icon(Icons.clear, color: Colors.grey),
+                onPressed: () {
+                  _markAsChanged();
+                  context
+                      .read<UserEditBloc>()
+                      .add(const UserNotificationTime3Changed(''));
+                },
+              ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -410,11 +537,10 @@ class _MembershipSection extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: entry.value,
-                          decoration:
-                              InputDecoration(labelText: l10n.roleTitle),
-                          items: {
+                        child: AppDropdownWidget<String>(
+                          value: entry.value,
+                          label: l10n.roleTitle,
+                          customItems: {
                             // Lista base de roles
                             'admin',
                             'editor',
@@ -491,9 +617,11 @@ class _MembershipSection extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              DropdownButtonFormField<String>(
-                hint: Text(l10n.selectAssociation),
-                items: availableAssociations.map((assoc) {
+              AppDropdownWidget<String>(
+                label: l10n.selectAssociation,
+                value: selectedAssociationId,
+                hint: l10n.selectAssociation,
+                customItems: availableAssociations.map((assoc) {
                   return DropdownMenuItem(
                     value: assoc.id,
                     child: Text(assoc.longName),
@@ -501,11 +629,11 @@ class _MembershipSection extends StatelessWidget {
                 }).toList(),
                 onChanged: (value) => selectedAssociationId = value,
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: selectedRole,
-                decoration: InputDecoration(labelText: l10n.roleTitle),
-                items: ['admin', 'editor', 'asociado'].map((role) {
+              const SizedBox(height: AppTheme.spaceSm),
+              AppDropdownWidget<String>(
+                value: selectedRole,
+                label: l10n.roleTitle,
+                customItems: ['admin', 'editor', 'asociado'].map((role) {
                   return DropdownMenuItem(
                     value: role,
                     child: Text(role),

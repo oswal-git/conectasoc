@@ -1,5 +1,7 @@
 // lib/features/auth/presentation/widgets/register_form.dart
 
+import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_event.dart';
@@ -110,11 +112,9 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
             // DATOS PERSONALES
             Text(
               l10n.personalData,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: AppTheme.loginSubtitle(context),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.spaceSm),
 
             AuthTextFieldWidget(
               controller: _firstNameController,
@@ -127,7 +127,7 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppTheme.spaceSm),
 
             AuthTextFieldWidget(
               controller: _lastNameController,
@@ -140,7 +140,7 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppTheme.spaceSm),
 
             AuthTextFieldWidget(
               controller: _emailController,
@@ -352,24 +352,21 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
                   ),
                 )
               else
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedAssociationId,
-                  decoration: InputDecoration(
-                    labelText: '${l10n.selectAssociation} *',
-                    prefixIcon: const Icon(Icons.business_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  items: widget.associations.map((assoc) {
-                    return DropdownMenuItem(
-                      value: assoc.id,
-                      child: Text(assoc.shortName),
-                    );
-                  }).toList(),
+                AppDropdownWidget<String>(
+                  label: '${l10n.selectAssociation} *',
+                  value: _selectedAssociationId,
+                  items: widget.associations.map(
+                    (assoc) {
+                      return AppDropdownItem(
+                        value: assoc.id,
+                        label: assoc.shortName,
+                      );
+                    },
+                  ).toList(),
                   onChanged: (value) {
                     setState(() => _selectedAssociationId = value);
                   },
+                  prefixIcon: const Icon(Icons.business_outlined),
                   validator: (value) {
                     if (!_createNewAssociation &&
                         (value == null || value.isEmpty)) {
@@ -378,6 +375,33 @@ class _RegisterFormWidgetState extends State<RegisterFormWidget> {
                     return null;
                   },
                 ),
+
+              // DropdownButtonFormField<String>(
+              //   initialValue: _selectedAssociationId,
+              //   decoration: InputDecoration(
+              //     labelText: '${l10n.selectAssociation} *',
+              //     prefixIcon: const Icon(Icons.business_outlined),
+              //     border: OutlineInputBorder(
+              //       borderRadius: BorderRadius.circular(12),
+              //     ),
+              //   ),
+              //   items: widget.associations.map((assoc) {
+              //     return DropdownMenuItem(
+              //       value: assoc.id,
+              //       child: Text(assoc.shortName),
+              //     );
+              //   }).toList(),
+              //   onChanged: (value) {
+              //     setState(() => _selectedAssociationId = value);
+              //   },
+              //   validator: (value) {
+              //     if (!_createNewAssociation &&
+              //         (value == null || value.isEmpty)) {
+              //       return l10n.mustSelectAnAssociation;
+              //     }
+              //     return null;
+              //   },
+              // ),
             ],
 
             const SizedBox(height: 32),

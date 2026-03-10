@@ -43,12 +43,28 @@ class UserLanguageChanged extends UserEditEvent {
   const UserLanguageChanged(this.language);
 }
 
-class UserNotificationFrequencyChanged extends UserEditEvent {
-  final String frequency;
-  const UserNotificationFrequencyChanged(this.frequency);
+class UserNotificationTime1Changed extends UserEditEvent {
+  final String? time;
+  const UserNotificationTime1Changed(this.time);
 
   @override
-  List<Object> get props => [frequency];
+  List<Object> get props => [time ?? ''];
+}
+
+class UserNotificationTime2Changed extends UserEditEvent {
+  final String? time;
+  const UserNotificationTime2Changed(this.time);
+
+  @override
+  List<Object> get props => [time ?? ''];
+}
+
+class UserNotificationTime3Changed extends UserEditEvent {
+  final String? time;
+  const UserNotificationTime3Changed(this.time);
+
+  @override
+  List<Object> get props => [time ?? ''];
 }
 
 class UserRoleChanged extends UserEditEvent {

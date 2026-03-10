@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/pages/splash_page.dart
 
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class SplashPage extends StatelessWidget {
@@ -8,7 +9,7 @@ class SplashPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: AppTheme.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -18,8 +19,8 @@ class SplashPage extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                color: AppTheme.onDarkPrimary,
+                borderRadius: AppTheme.borderRadiusLogo,
                 boxShadow: [
                   BoxShadow(
                     color: const Color.fromARGB(25, 0, 0, 0),
@@ -37,23 +38,19 @@ class SplashPage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppTheme.spaceLg),
             const Text(
               'ConectAsoc',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: AppTheme.splashTitle,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppTheme.spaceXs),
             const Text(
               'Portal de Asociaciones',
-              style: TextStyle(fontSize: 16, color: Colors.white70),
+              style: AppTheme.splashSubtitle,
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: AppTheme.spaceXl),
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.onDarkPrimary),
             ),
           ],
         ),

@@ -105,21 +105,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         targetLang = authState.language!;
       }
 
-      // Si no estamos en modo edición, traducir los artículos
-      if (!event.isEditMode) {
-        // Usamos Future.wait para traducir todos los artículos en paralelo
-        articlesToDisplay = await Future.wait(_originalArticles.map((article) =>
-            translationService.translateArticle(article, targetLang)));
-
-        // Traducir categorías en paralelo
-        categoriesToDisplay = await translationService.translateCategories(
-            categoriesOriginal, targetLang);
-      }
-
+      // Emitir primero el estado con el contenido original (sin traducir)
       emit(HomeLoaded(
-        // 'allArticles' ahora contiene la lista para mostrar (traducida o no)
         allArticles: articlesToDisplay,
-        // 'filteredArticles' se inicializa con la misma lista
         filteredArticles: articlesToDisplay,
         categories: categoriesToDisplay,
         searchTerm: '', // Initialize search term
@@ -128,6 +116,30 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         hasMore: articlesData.item1.length == 20, // Assuming a page size of 20
         lastDocument: lastDocument,
       ));
+
+      // Si no estamos en modo edición, traducir los artículos en segundo plano
+      if (!event.isEditMode) {
+        // Usamos Future.wait para traducir todos los artículos en paralelo sin bloquear la UI
+        final translatedArticles = await Future.wait(_originalArticles.map(
+            (article) =>
+                translationService.translateArticle(article, targetLang)));
+
+        // Traducir categorías en paralelo
+        final translatedCategories = await translationService
+            .translateCategories(categoriesOriginal, targetLang);
+
+        // Si el bloc sigue activo, actualizar el estado con las traducciones
+        if (!isClosed) {
+          final currentState = state;
+          if (currentState is HomeLoaded) {
+            final newState = currentState.copyWith(
+              allArticles: translatedArticles,
+              categories: translatedCategories,
+            );
+            _applyFilters(emit, newState);
+          }
+        }
+      }
     } catch (e) {
       emit(HomeError(e.toString()));
     }
@@ -149,23 +161,61 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       lastDocument: currentState.lastDocument,
     );
 
-    articlesResult.fold(
-      (failure) => emit(HomeError(failure.message)),
-      (articlesData) {
+    await articlesResult.fold(
+      (failure) async => emit(HomeError(failure.message)),
+      (articlesData) async {
         final newArticles = articlesData.item1;
         final lastDocument = articlesData.item2;
 
-        // Append new articles to the existing list
+        // Append new original articles to the internal list
+        _originalArticles.addAll(newArticles);
+
+        // Append new original articles to the existing list for fast UI update
         final updatedArticles =
             List<ArticleEntity>.from(currentState.allArticles)
               ..addAll(newArticles);
 
-        emit(currentState.copyWith(
+        final initialNewState = currentState.copyWith(
           allArticles: updatedArticles,
-          filteredArticles: updatedArticles, // Update filtered list as well
           hasMore: newArticles.length == 20, // Assuming a page size of 20
           lastDocument: lastDocument,
-        ));
+        );
+
+        _applyFilters(emit, initialNewState);
+
+        // Si no estamos en modo edición, traducimos los nuevos artículos en segundo plano
+        if (!currentState.isEditMode) {
+          final authState = authBloc.state;
+          String targetLang = 'es';
+          if (authState is AuthAuthenticated) {
+            targetLang = authState.user.language;
+          } else if (authState is AuthLocalUser) {
+            targetLang = authState.localUser.language;
+          } else if (authState is AuthUnauthenticated &&
+              authState.language != null) {
+            targetLang = authState.language!;
+          }
+
+          final translatedNewArticles = await Future.wait(newArticles
+              .map((article) =>
+                  translationService.translateArticle(article, targetLang))
+              .toList());
+
+          if (!isClosed) {
+            final latestState = state;
+            if (latestState is HomeLoaded) {
+              final newArticlesMap = {
+                for (var a in translatedNewArticles) a.id: a
+              };
+              final finalArticles = latestState.allArticles.map((a) {
+                return newArticlesMap[a.id] ?? a;
+              }).toList();
+
+              _applyFilters(
+                  emit, latestState.copyWith(allArticles: finalArticles));
+            }
+          }
+        }
       },
     );
   }
@@ -218,31 +268,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         );
         List<CategoryEntity> categoriesToDisplay = categoriesOriginal;
 
-        // Si salimos del modo edición, traducimos los artículos
-        if (!newEditMode) {
-          String targetLang = 'es';
-          if (authState is AuthAuthenticated) {
-            targetLang = authState.user.language;
-          } else if (authState is AuthLocalUser) {
-            targetLang = authState.localUser.language;
-          } else if (authState is AuthUnauthenticated &&
-              authState.language != null) {
-            targetLang = authState.language!;
-          }
-
-          articlesToDisplay = await Future.wait(_originalArticles
-              .map((article) =>
-                  translationService.translateArticle(article, targetLang))
-              .toList());
-
-          categoriesToDisplay = await translationService.translateCategories(
-              categoriesOriginal, targetLang);
-        }
-
         debugPrint(
             'DEBUG: ToggleEditMode success. Articles fetched: ${articlesData.item1.length}');
 
-        final newState = currentState.copyWith(
+        final initialNewState = currentState.copyWith(
           isEditMode: newEditMode,
           allArticles: articlesToDisplay,
           filteredArticles: articlesToDisplay, // Sincronizamos inmediatamente
@@ -257,7 +286,40 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         );
 
         // Volvemos a aplicar filtros por si acaso (aunque los acabamos de limpiar)
-        _applyFilters(emit, newState);
+        // y emitimos el estado sin traducir para mostrar información rápidamente.
+        _applyFilters(emit, initialNewState);
+
+        // Si salimos del modo edición, traducimos los artículos de forma diferida
+        if (!newEditMode) {
+          String targetLang = 'es';
+          if (authState is AuthAuthenticated) {
+            targetLang = authState.user.language;
+          } else if (authState is AuthLocalUser) {
+            targetLang = authState.localUser.language;
+          } else if (authState is AuthUnauthenticated &&
+              authState.language != null) {
+            targetLang = authState.language!;
+          }
+
+          final translatedArticles = await Future.wait(_originalArticles
+              .map((article) =>
+                  translationService.translateArticle(article, targetLang))
+              .toList());
+
+          final translatedCategories = await translationService
+              .translateCategories(categoriesOriginal, targetLang);
+
+          if (!isClosed) {
+            final latestState = state;
+            if (latestState is HomeLoaded) {
+              final translatedState = latestState.copyWith(
+                allArticles: translatedArticles,
+                categories: translatedCategories,
+              );
+              _applyFilters(emit, translatedState);
+            }
+          }
+        }
       },
     );
   }

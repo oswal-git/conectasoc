@@ -4,6 +4,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/material.dart';
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
@@ -136,7 +137,7 @@ class _RegisterPageState extends State<RegisterPage> {
               children: [
                 // Formulario
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(AppTheme.spaceSm),
                   child: RegisterFormWidget(
                     authBloc: context
                         .read<AuthBloc>(), // Pasa la instancia del AuthBloc
@@ -148,16 +149,16 @@ class _RegisterPageState extends State<RegisterPage> {
                 // Overlay de carga durante el procesamiento
                 if (isProcessing)
                   Container(
-                    color: Colors.black.withAlpha(3),
+                    color: AppTheme.overlayLoading,
                     child: const Center(
                       child: Card(
                         child: Padding(
-                          padding: EdgeInsets.all(24.0),
+                          padding: EdgeInsets.all(AppTheme.spaceMd),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               CircularProgressIndicator(),
-                              SizedBox(height: 16),
+                              SizedBox(height: AppTheme.spaceSm),
                               Text('Registrando usuario...'),
                             ],
                           ),

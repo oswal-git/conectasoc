@@ -27,7 +27,9 @@ class UserEditBloc extends Bloc<UserEditEvent, UserEditState> {
     on<UserPasswordChanged>(_onUserPasswordChanged);
     on<UserEmailChanged>(_onUserEmailChanged);
     on<UserLanguageChanged>(_onUserLanguageChanged);
-    on<UserNotificationFrequencyChanged>(_onUserNotificationFrequencyChanged);
+    on<UserNotificationTime1Changed>(_onUserNotificationTime1Changed);
+    on<UserNotificationTime2Changed>(_onUserNotificationTime2Changed);
+    on<UserNotificationTime3Changed>(_onUserNotificationTime3Changed);
     on<UserRoleChanged>(_onUserRoleChanged);
     on<AddMembership>(_onAddMembership);
     on<RemoveMembership>(_onRemoveMembership);
@@ -122,13 +124,33 @@ class UserEditBloc extends Bloc<UserEditEvent, UserEditState> {
     }
   }
 
-  void _onUserNotificationFrequencyChanged(
-      UserNotificationFrequencyChanged event, Emitter<UserEditState> emit) {
+  void _onUserNotificationTime1Changed(
+      UserNotificationTime1Changed event, Emitter<UserEditState> emit) {
     if (state is UserEditLoaded) {
       final currentState = state as UserEditLoaded;
       emit(currentState.copyWith(
-          user: currentState.user
-              .copyWith(notificationFrequency: event.frequency)));
+          user:
+              currentState.user.copyWith(notificationTime1: event.time ?? "")));
+    }
+  }
+
+  void _onUserNotificationTime2Changed(
+      UserNotificationTime2Changed event, Emitter<UserEditState> emit) {
+    if (state is UserEditLoaded) {
+      final currentState = state as UserEditLoaded;
+      emit(currentState.copyWith(
+          user:
+              currentState.user.copyWith(notificationTime2: event.time ?? "")));
+    }
+  }
+
+  void _onUserNotificationTime3Changed(
+      UserNotificationTime3Changed event, Emitter<UserEditState> emit) {
+    if (state is UserEditLoaded) {
+      final currentState = state as UserEditLoaded;
+      emit(currentState.copyWith(
+          user:
+              currentState.user.copyWith(notificationTime3: event.time ?? "")));
     }
   }
 

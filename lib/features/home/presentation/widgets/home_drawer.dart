@@ -2,6 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:conectasoc/app/router/router.dart';
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
@@ -17,150 +18,158 @@ class HomeDrawer extends StatelessWidget {
     return Drawer(
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
-          return ListView(
-            padding: EdgeInsets.zero,
+          return Column(
             children: [
-              _buildDrawerHeader(context, state),
-              _buildDrawerItem(
-                context: context,
-                icon: Icons.home_outlined,
-                text: AppLocalizations.of(context).homePage,
-                onTap: () {
-                  GoRouter.of(context).pop();
-                  GoRouter.of(context).go(RouteNames.home);
-                },
-              ),
-              // Menú de Administración
-              if (state is AuthAuthenticated) ...[
-                // Las opciones de administración aparecen si el rol en la membresía
-                // actual es 'admin' o si el usuario es 'superadmin'.
-                if (state.user.isSuperAdmin ||
-                    state.currentMembership?.role == 'admin') ...[
-                  _buildDrawerItem(
-                    context: context,
-                    icon: Icons.people_outline,
-                    text: AppLocalizations.of(context).usersListTitle,
-                    onTap: () {
-                      GoRouter.of(context).pop();
-                      GoRouter.of(context)
-                          .push('${RouteNames.home}/${RouteNames.usersList}');
-                    },
-                  ),
-                  // Si el usuario es superadmin global, puede ver todas las asociaciones.
-                  // Si es solo admin, puede editar la suya.
-                  if (state.user.isSuperAdmin)
-                    _buildDrawerItem(
-                      context: context,
-                      icon: Icons.business_outlined,
-                      text: AppLocalizations.of(context).associationsListTitle,
-                      onTap: () {
-                        GoRouter.of(context).pop();
-                        GoRouter.of(context).go(
-                            '${RouteNames.home}/${RouteNames.associationsList}');
-                      },
-                    )
-                  else if (state.currentMembership?.associationId != null)
-                    _buildDrawerItem(
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildDrawerHeader(context, state),
+                    // _buildDrawerItem(
+                    //   context: context,
+                    //   icon: Icons.home_outlined,
+                    //   text: AppLocalizations.of(context).homePage,
+                    //   onTap: () {
+                    //     GoRouter.of(context).pop();
+                    //     GoRouter.of(context).go(RouteNames.home);
+                    //   },
+                    // ),
+                    // Menú de Administración
+                    if (state is AuthAuthenticated) ...[
+                      // Las opciones de administración aparecen si el rol en la membresía
+                      // actual es 'admin' o si el usuario es 'superadmin'.
+                      if (state.user.isSuperAdmin ||
+                          state.currentMembership?.role == 'admin') ...[
+                        _buildDrawerItem(
+                          context: context,
+                          icon: Icons.people_outline,
+                          text: AppLocalizations.of(context).usersListTitle,
+                          onTap: () {
+                            GoRouter.of(context).pop();
+                            GoRouter.of(context).push(
+                                '${RouteNames.home}/${RouteNames.usersList}');
+                          },
+                        ),
+                        // Si el usuario es superadmin global, puede ver todas las asociaciones.
+                        // Si es solo admin, puede editar la suya.
+                        if (state.user.isSuperAdmin)
+                          _buildDrawerItem(
+                            context: context,
+                            icon: Icons.business_outlined,
+                            text: AppLocalizations.of(context)
+                                .associationsListTitle,
+                            onTap: () {
+                              GoRouter.of(context).pop();
+                              GoRouter.of(context).go(
+                                  '${RouteNames.home}/${RouteNames.associationsList}');
+                            },
+                          )
+                        else if (state.currentMembership?.associationId != null)
+                          _buildDrawerItem(
+                            context: context,
+                            icon: Icons.business_outlined,
+                            text: AppLocalizations.of(context).association,
+                            onTap: () {
+                              GoRouter.of(context).pop();
+                              GoRouter.of(context).go(
+                                  '${RouteNames.home}/${RouteNames.associationEdit}/${state.currentMembership!.associationId}');
+                            },
+                          )
+                        else
+                          _buildDrawerItem(
+                            context: context,
+                            icon: Icons.business_outlined,
+                            text: AppLocalizations.of(context).association,
+                            onTap: () {
+                              SnackBarService.showSnackBar(
+                                AppLocalizations.of(context)
+                                    .noAssociationAvailable,
+                                isError: true,
+                              );
+                            },
+                          ),
+                      ],
+
+                      if (state.user.isSuperAdmin ||
+                          state.currentMembership?.role == 'admin' ||
+                          state.currentMembership?.role == 'editor') ...[
+                        const Divider(indent: 16, endIndent: 16),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                              AppTheme.spaceSm, 0, AppTheme.spaceSm, 0),
+                          child: Text(
+                            AppLocalizations.of(context).documents,
+                            style: AppTheme.drawerSectionLabel,
+                          ),
+                        ),
+                        _buildDrawerItem(
+                          context: context,
+                          icon: Icons.upload_file_outlined,
+                          text: AppLocalizations.of(context).uploadDocuments,
+                          onTap: () {
+                            GoRouter.of(context).pop();
+                            GoRouter.of(context).push(
+                                '${RouteNames.home}/${RouteNames.documentUpload}');
+                          },
+                        ),
+                        _buildDrawerItem(
+                          context: context,
+                          icon: Icons.folder_outlined,
+                          text: AppLocalizations.of(context).documentList,
+                          onTap: () {
+                            GoRouter.of(context).pop();
+                            GoRouter.of(context).push(
+                                '${RouteNames.home}/${RouteNames.documentList}');
+                          },
+                        ),
+                      ],
+
+                      // Opción de Configuración solo para superadmin
+                      if (state.user.isSuperAdmin ||
+                          state.currentMembership?.role == 'admin')
+                        const Divider(indent: 16, endIndent: 16),
+                      _buildDrawerItem(
                         context: context,
-                        icon: Icons.business_outlined,
-                        text: AppLocalizations.of(context).association,
+                        icon: Icons.settings_outlined,
+                        text: AppLocalizations.of(context).configuration,
                         onTap: () {
                           GoRouter.of(context).pop();
-                          GoRouter.of(context).go(
-                              '${RouteNames.home}/${RouteNames.associationEdit}/${state.currentMembership!.associationId}');
-                        })
-                  else
-                    _buildDrawerItem(
-                        context: context,
-                        icon: Icons.business_outlined,
-                        text: AppLocalizations.of(context).association,
-                        onTap: () {
-                          SnackBarService.showSnackBar(
-                            AppLocalizations.of(context).noAssociationAvailable,
-                            isError: true,
-                          );
-                        }),
-                ],
-
-                if (state.user.isSuperAdmin ||
-                    state.currentMembership?.role == 'admin' ||
-                    state.currentMembership?.role == 'editor') ...[
-                  const Divider(indent: 16, endIndent: 16),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                    child: Text(
-                      AppLocalizations.of(context).documents,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
-                        letterSpacing: 0.8,
+                          GoRouter.of(context).push(
+                              '${RouteNames.home}/${RouteNames.settings}');
+                        },
                       ),
-                    ),
-                  ),
-                  _buildDrawerItem(
-                    context: context,
-                    icon: Icons.upload_file_outlined,
-                    text: AppLocalizations.of(context).uploadDocuments,
-                    onTap: () {
-                      GoRouter.of(context).pop();
-                      GoRouter.of(context).push(
-                          '${RouteNames.home}/${RouteNames.documentUpload}');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    context: context,
-                    icon: Icons.folder_outlined,
-                    text: AppLocalizations.of(context).documentList,
-                    onTap: () {
-                      GoRouter.of(context).pop();
-                      GoRouter.of(context).push(
-                          '${RouteNames.home}/${RouteNames.documentList}');
-                    },
-                  ),
-                ],
-
-                // Opción de Configuración solo para superadmin
-                if (state.user.isSuperAdmin)
-                  const Divider(indent: 16, endIndent: 16),
-                _buildDrawerItem(
-                  context: context,
-                  icon: Icons.settings_outlined,
-                  text: AppLocalizations.of(context).configuration,
-                  onTap: () {
-                    GoRouter.of(context).pop();
-                    GoRouter.of(context)
-                        .push('${RouteNames.home}/${RouteNames.settings}');
-                  },
+                    ],
+                    if (state is AuthAuthenticated)
+                      // ── Perfil y asociación ──────────────────────────────────
+                      const Divider(indent: 16, endIndent: 16),
+                    if (state is AuthAuthenticated)
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.person_outline,
+                        text: AppLocalizations.of(context).myProfile,
+                        onTap: () {
+                          GoRouter.of(context).pop();
+                          GoRouter.of(context)
+                              .push('${RouteNames.home}/${RouteNames.profile}');
+                        },
+                      ),
+                    if (state is AuthAuthenticated)
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.add_business_outlined,
+                        text: AppLocalizations.of(context).joinAssociation,
+                        onTap: () {
+                          GoRouter.of(context).pop();
+                          GoRouter.of(context).push(
+                              '${RouteNames.home}/${RouteNames.joinAssociation}');
+                        },
+                      ),
+                    const Divider(),
+                  ],
                 ),
-              ],
-              if (state is AuthAuthenticated)
-                // ── Perfil y asociación ──────────────────────────────────
-                const Divider(indent: 16, endIndent: 16),
-              if (state is AuthAuthenticated)
-                _buildDrawerItem(
-                  context: context,
-                  icon: Icons.person_outline,
-                  text: AppLocalizations.of(context).myProfile,
-                  onTap: () {
-                    GoRouter.of(context).pop();
-                    GoRouter.of(context)
-                        .push('${RouteNames.home}/${RouteNames.profile}');
-                  },
-                ),
-              if (state is AuthAuthenticated)
-                _buildDrawerItem(
-                  context: context,
-                  icon: Icons.add_business_outlined,
-                  text: AppLocalizations.of(context).joinAssociation,
-                  onTap: () {
-                    GoRouter.of(context).pop();
-                    GoRouter.of(context).push(
-                        '${RouteNames.home}/${RouteNames.joinAssociation}');
-                  },
-                ),
-              const Divider(),
+              ),
               _buildLoginLogoutButton(context, state),
+              SizedBox(height: 48.0),
             ],
           );
         },
@@ -193,7 +202,7 @@ class HomeDrawer extends StatelessWidget {
           ),
         ),
         decoration: const BoxDecoration(
-          color: Colors.blue,
+          color: AppTheme.primary,
         ),
       );
     }
@@ -212,21 +221,18 @@ class HomeDrawer extends StatelessWidget {
               .toUpperCase()),
         ),
         decoration: const BoxDecoration(
-          color: Colors.blue,
+          color: AppTheme.primary,
         ),
       );
     }
     // Header para usuarios no logueados
     return const DrawerHeader(
       decoration: BoxDecoration(
-        color: Colors.blue,
+        color: AppTheme.primary,
       ),
       child: Text(
         'ConectaSoc',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-        ),
+        style: AppTheme.splashTitle,
       ),
     );
   }

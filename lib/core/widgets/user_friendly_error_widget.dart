@@ -1,5 +1,5 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:conectasoc/app/theme/app_colors.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 
 /// Un widget para mostrar errores de forma amigable al usuario,
@@ -47,7 +47,7 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: AppTheme.paddingPage,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -58,24 +58,22 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
                   ? Icons.settings_suggest_outlined
                   : Icons.error_outline_rounded,
               size: 64,
-              color: AppColors.textSecondary.withAlpha(128),
+              color: AppTheme.textSecondary.withAlpha(128),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.spaceSm),
             Text(
               friendlyMessage,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: AppTheme.errorMessage(context),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppTheme.spaceMd),
             if (widget.onRetry != null)
               FilledButton.icon(
                 onPressed: widget.onRetry,
                 icon: const Icon(Icons.refresh),
                 label: Text(AppLocalizations.of(context).retry),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.spaceSm),
             TextButton.icon(
               onPressed: () {
                 setState(() {
@@ -84,29 +82,25 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
               },
               icon: Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,
-                size: 16,
+                size: AppTheme.iconSizeSmall,
               ),
               label: Text(
                 _isExpanded ? "Ocultar detalles" : "Ver detalles técnicos",
-                style: const TextStyle(fontSize: 12),
+                style: AppTheme.toggleLabel,
               ),
             ),
             if (_isExpanded) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppTheme.spaceXs),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: AppTheme.paddingContainer,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
+                  color: AppTheme.inputBackground,
+                  borderRadius: AppTheme.borderRadiusDefault,
+                  border: Border.all(color: AppTheme.border),
                 ),
                 child: SelectableText(
                   widget.errorMessage,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 11,
-                    color: Colors.red,
-                  ),
+                  style: AppTheme.errorDetail,
                 ),
               ),
             ],

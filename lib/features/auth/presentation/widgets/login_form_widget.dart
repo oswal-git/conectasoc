@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/widgets/login_form.dart
 
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -62,7 +63,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spaceSm),
           AuthTextFieldWidget(
             controller: _passwordController,
             label: 'Contraseña',
@@ -88,31 +89,41 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               return null;
             },
           ),
-          const SizedBox(height: 8),
+          // const SizedBox(height: AppTheme.spaceXxs),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
                 _showPasswordResetDialog();
               },
-              child: const Text('¿Olvidaste tu contraseña?'),
+              child: Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: AppTheme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  padding: const EdgeInsets.only(bottom: 0.1), // ← separación
+                  child: const Text(
+                    '¿Olvidaste tu contraseña?',
+                    style: AppTheme.loginSecondaryLink,
+                  )),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppTheme.spaceSm),
           ElevatedButton(
             onPressed: _onLogin,
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppTheme.borderRadiusDefault,
               ),
             ),
             child: const Text(
               'Iniciar Sesión',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTheme.buttonLabel,
             ),
           ),
         ],
@@ -133,7 +144,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
             const Text(
               'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.spaceSm),
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,

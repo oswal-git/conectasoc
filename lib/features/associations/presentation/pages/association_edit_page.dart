@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -92,7 +94,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(
               l10n.discardChanges,
-              style: const TextStyle(color: Colors.red),
+              style: AppTheme.destructiveAction,
             ),
           ),
         ],
@@ -153,11 +155,11 @@ class _AssociationEditViewState extends State<AssociationEditView> {
                   return IconButton(
                     icon: state.isSaving
                         ? const SizedBox(
-                            width: 24,
-                            height: 24,
+                            width: AppTheme.loadingIndicatorSize,
+                            height: AppTheme.loadingIndicatorSize,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                              strokeWidth: AppTheme.loadingStrokeWidth,
+                              color: AppTheme.appBarForeground,
                             ),
                           )
                         : const Icon(Icons.save),
@@ -253,7 +255,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
   Widget _buildForm(BuildContext context, AssociationEditLoaded state,
       AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -265,7 +267,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(LogoChanged(bytes));
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppTheme.spaceMd),
           TextFormField(
             controller: _shortNameController,
             decoration: InputDecoration(labelText: l10n.shortName),
@@ -274,20 +276,18 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(ShortNameChanged(value));
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spaceSm),
           // --- Selector de Persona de Contacto ---
           if (state.associationUsers.isNotEmpty) ...[
-            DropdownButtonFormField<String>(
+            AppDropdownWidget<String>(
               // Asegurarnos de que el valor exista en la lista de items para evitar errores.
-              initialValue: state.associationUsers
+              label: l10n.contactPerson,
+              value: state.associationUsers
                       .any((u) => u.uid == state.association.contactUserId)
                   ? state.association.contactUserId
                   : null,
-              decoration: InputDecoration(
-                labelText: l10n.contactPerson,
-                prefixIcon: const Icon(Icons.person_pin_outlined),
-              ),
-              items: state.associationUsers.map((user) {
+              prefixIcon: const Icon(Icons.person_pin_outlined),
+              customItems: state.associationUsers.map((user) {
                 return DropdownMenuItem<String>(
                   value: user.uid,
                   child: Text(user.fullName),
@@ -309,9 +309,9 @@ class _AssociationEditViewState extends State<AssociationEditView> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.spaceSm),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spaceSm),
           TextFormField(
             controller: _longNameController,
             decoration: InputDecoration(labelText: l10n.longName),
@@ -320,7 +320,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(LongNameChanged(value));
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spaceSm),
           TextFormField(
             controller: _emailController,
             decoration: InputDecoration(labelText: l10n.email),
@@ -330,7 +330,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(EmailChanged(value));
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spaceSm),
           TextFormField(
             controller: _contactNameController,
             decoration: InputDecoration(labelText: l10n.contactName),
@@ -341,7 +341,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
                   .add(ContactNameChanged(value));
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spaceSm),
           TextFormField(
             controller: _phoneController,
             decoration: InputDecoration(labelText: l10n.phone),
@@ -351,7 +351,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(PhoneChanged(value));
             },
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: AppTheme.spaceXl),
         ],
       ),
     );
@@ -384,11 +384,13 @@ class _LogoPicker extends StatelessWidget {
       child: Stack(
         children: [
           CircleAvatar(
-            radius: 60,
-            backgroundColor: Colors.grey[200],
+            radius: AppTheme.avatarRadiusLarge,
+            backgroundColor: AppTheme.border,
             backgroundImage: backgroundImage,
             child: backgroundImage == null
-                ? Icon(Icons.business, size: 60, color: Colors.grey[400])
+                ? Icon(Icons.business,
+                    size: AppTheme.iconSizeMedium,
+                    color: AppTheme.imageIconHint)
                 : null,
           ),
           Positioned(
@@ -402,9 +404,11 @@ class _LogoPicker extends StatelessWidget {
                 }
               },
               child: CircleAvatar(
-                radius: 20,
-                backgroundColor: Theme.of(context).primaryColor,
-                child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                radius: AppTheme.avatarRadiusDefault,
+                backgroundColor: AppTheme.primary,
+                child: const Icon(Icons.edit,
+                    color: AppTheme.appBarForeground,
+                    size: AppTheme.avatarRadiusDefault),
               ),
             ),
           ),

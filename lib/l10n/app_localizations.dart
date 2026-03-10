@@ -193,7 +193,7 @@ abstract class AppLocalizations {
   /// No description provided for @articleTitle.
   ///
   /// In es, this message translates to:
-  /// **'Título del Artículo'**
+  /// **'Artículo'**
   String get articleTitle;
 
   /// No description provided for @articleUpdatedSuccess.

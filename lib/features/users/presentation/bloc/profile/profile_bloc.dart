@@ -1,6 +1,8 @@
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/domain/repositories/users_repository.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
+import 'package:conectasoc/injection_container.dart';
+import 'package:conectasoc/services/notification_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
@@ -16,17 +18,38 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfilePhoneChanged>(_onProfilePhoneChanged);
     on<ProfileLanguageChanged>(_onProfileLanguageChanged);
     on<ProfileImageChanged>(_onProfileImageChanged);
-    on<ProfileNotificationFrequencyChanged>(
-        _onProfileNotificationFrequencyChanged);
+    on<ProfileNotificationTime1Changed>(_onProfileNotificationTime1Changed);
+    on<ProfileNotificationTime2Changed>(_onProfileNotificationTime2Changed);
+    on<ProfileNotificationTime3Changed>(_onProfileNotificationTime3Changed);
     on<SaveProfileChanges>(_onSaveProfileChanges);
   }
 
-  void _onProfileNotificationFrequencyChanged(
-      ProfileNotificationFrequencyChanged event, Emitter<ProfileState> emit) {
+  void _onProfileNotificationTime1Changed(
+      ProfileNotificationTime1Changed event, Emitter<ProfileState> emit) {
     if (state is ProfileLoaded) {
       final currentState = state as ProfileLoaded;
       final updatedUser =
-          currentState.user.copyWith(notificationFrequency: event.frequency);
+          currentState.user.copyWith(notificationTime1: event.time ?? "");
+      emit(currentState.copyWith(user: updatedUser));
+    }
+  }
+
+  void _onProfileNotificationTime2Changed(
+      ProfileNotificationTime2Changed event, Emitter<ProfileState> emit) {
+    if (state is ProfileLoaded) {
+      final currentState = state as ProfileLoaded;
+      final updatedUser =
+          currentState.user.copyWith(notificationTime2: event.time ?? "");
+      emit(currentState.copyWith(user: updatedUser));
+    }
+  }
+
+  void _onProfileNotificationTime3Changed(
+      ProfileNotificationTime3Changed event, Emitter<ProfileState> emit) {
+    if (state is ProfileLoaded) {
+      final currentState = state as ProfileLoaded;
+      final updatedUser =
+          currentState.user.copyWith(notificationTime3: event.time ?? "");
       emit(currentState.copyWith(user: updatedUser));
     }
   }
@@ -133,6 +156,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             // Actualizar el AuthBloc con el nuevo usuario para que toda la app se entere.
             authBloc
                 .add(AuthUserUpdated(updatedUser.toAuthUser(originalAuthUser)));
+            // Reprogramar notificaciones con los nuevos horarios
+            sl<NotificationService>().scheduleNotifications(
+              updatedUser.toAuthUser(originalAuthUser),
+            ); // UserEntity
             // Emitir un estado de éxito para que la UI pueda reaccionar (mostrar SnackBar).
             emit(ProfileUpdateSuccess());
             // Volver al estado cargado, asegurando que la UI tenga los datos más recientes,

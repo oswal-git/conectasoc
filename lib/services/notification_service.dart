@@ -21,7 +21,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // En web el background lo maneja el service worker (firebase-messaging-sw.js)
   // Este handler aplica solo a móvil/desktop nativo
   if (kIsWeb) return;
-  debugPrint('FCM background message: ${message.messageId}');
+  debugPrint(
+      'ℹ️ NotificationService: _firebaseMessagingBackgroundHandler -> FCM background message: ${message.messageId}');
 }
 
 @pragma('vm:entry-point')
@@ -39,7 +40,15 @@ void callbackDispatcher() {
     return userResult.fold(
       (failure) => false,
       (user) async {
-        if (user == null || user.notificationFrequency == 'none') return true;
+        if (user == null ||
+            ((user.notificationTime1 == null ||
+                    user.notificationTime1!.isEmpty) &&
+                (user.notificationTime2 == null ||
+                    user.notificationTime2!.isEmpty) &&
+                (user.notificationTime3 == null ||
+                    user.notificationTime3!.isEmpty))) {
+          return true;
+        }
 
         // Consultar artículos nuevos desde la última notificación
         final articlesResult =
@@ -123,7 +132,8 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      debugPrint('FCM Web: permiso denegado por el usuario');
+      debugPrint(
+          'ℹ️ NotificationService: _initWeb -> FCM Web: permiso denegado por el usuario');
       return;
     }
 
@@ -131,12 +141,13 @@ class NotificationService {
     final token = await FirebaseMessaging.instance.getToken(
       vapidKey: DefaultFirebaseOptions.vapidKey,
     );
-    debugPrint('FCM Web Token: $token');
+    debugPrint('ℹ️ NotificationService: _initWeb -> FCM Web Token: $token');
     // TODO: guarda el token donde lo necesites (Firestore, shared preferences, etc.)
 
     // 4. Escuchar mensajes en FOREGROUND (app abierta)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('FCM Web foreground: ${message.notification?.title}');
+      debugPrint(
+          'ℹ️ NotificationService: _initWeb -> FCM Web foreground: ${message.notification?.title}');
 
       // Emitir el payload para que la UI pueda reaccionar
       // (p.ej. navegar al artículo correspondiente)
@@ -152,9 +163,9 @@ class NotificationService {
     // 5. App abierta desde notificación (estaba en background, usuario toca)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint(
-          'NotificationService: _initWeb -> FCM Web onMessageOpenedApp: ${message.notification?.title}');
+          'ℹ️ NotificationService: _initWeb -> FCM Web onMessageOpenedApp: ${message.notification?.title}');
       debugPrint(
-          'NotificationService: _initWeb -> FCM Web onMessageOpenedApp: ${message.data}');
+          'ℹ️ NotificationService: _initWeb -> FCM Web onMessageOpenedApp: ${message.data}');
       final payload = message.data['articleId'] as String?;
       if (payload != null) {
         _onNotificationClick.add(payload);
@@ -166,10 +177,7 @@ class NotificationService {
     if (initialMessage != null) {
       final payload = initialMessage.data['articleId'] as String?;
       if (payload != null) {
-        // Pequeño delay para que la UI esté montada
-        Future.delayed(const Duration(seconds: 1), () {
-          _onNotificationClick.add(payload);
-        });
+        _onNotificationClick.add(payload);
       }
     }
   }
@@ -194,19 +202,19 @@ class NotificationService {
       },
     );
 
-    await Workmanager().initialize(
-      callbackDispatcher,
-    );
+    try {
+      await Workmanager().initialize(callbackDispatcher);
+    } catch (e) {
+      debugPrint(
+          '❌ NotificationService: _initMobile -> Workmanager init failed: $e');
+    }
 
     // Manejar el caso en que la app se abre desde una notificación (app cerrada)
     final NotificationAppLaunchDetails? launchDetails =
         await _notificationsPlugin.getNotificationAppLaunchDetails();
     if (launchDetails != null && launchDetails.didNotificationLaunchApp) {
       if (launchDetails.notificationResponse?.payload != null) {
-        // Retrasar un poco para que la UI esté lista
-        Future.delayed(const Duration(seconds: 1), () {
-          _onNotificationClick.add(launchDetails.notificationResponse!.payload);
-        });
+        _onNotificationClick.add(launchDetails.notificationResponse!.payload);
       }
     }
   }
@@ -262,7 +270,15 @@ class NotificationService {
     return userResult.fold(
       (failure) => false,
       (user) async {
-        if (user == null || user.notificationFrequency == 'none') return true;
+        if (user == null ||
+            ((user.notificationTime1 == null ||
+                    user.notificationTime1!.isEmpty) &&
+                (user.notificationTime2 == null ||
+                    user.notificationTime2!.isEmpty) &&
+                (user.notificationTime3 == null ||
+                    user.notificationTime3!.isEmpty))) {
+          return true;
+        }
 
         // Consultar artículos nuevos desde la última notificación
         final articlesResult =
@@ -310,41 +326,39 @@ class NotificationService {
     if (kIsWeb) return;
     await Workmanager().cancelAll();
 
-    if (user.notificationFrequency == 'none') return;
+    final schedules = <TimeOfDay>[];
 
-    final schedules = _getSchedulesForFrequency(user.notificationFrequency);
+    void addScheduleIfValid(String? timeStr) {
+      if (timeStr != null && timeStr.isNotEmpty && timeStr.contains(':')) {
+        final parts = timeStr.split(':');
+        if (parts.length == 2) {
+          final h = int.tryParse(parts[0]);
+          final m = int.tryParse(parts[1]);
+          if (h != null && m != null) {
+            schedules.add(TimeOfDay(hour: h, minute: m));
+          }
+        }
+      }
+    }
+
+    addScheduleIfValid(user.notificationTime1);
+    addScheduleIfValid(user.notificationTime2);
+    addScheduleIfValid(user.notificationTime3);
+
+    if (schedules.isEmpty) return;
 
     for (int i = 0; i < schedules.length; i++) {
       final scheduleTime = schedules[i];
       final delay = _calculateDelayWithRandomOffset(scheduleTime);
 
-      await Workmanager().registerOneOffTask(
+      await Workmanager().registerPeriodicTask(
         'news_task_${user.uid}_$i',
         'check_news_task',
         initialDelay: delay,
-        existingWorkPolicy: ExistingWorkPolicy.replace,
+        frequency: const Duration(hours: 24),
+        existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
         inputData: {'userId': user.uid},
       );
-    }
-  }
-
-  List<TimeOfDay> _getSchedulesForFrequency(String frequency) {
-    switch (frequency) {
-      case 'once_day':
-        return [const TimeOfDay(hour: 12, minute: 0)];
-      case 'twice_day':
-        return [
-          const TimeOfDay(hour: 10, minute: 0),
-          const TimeOfDay(hour: 20, minute: 0),
-        ];
-      case 'thrice_day':
-        return [
-          const TimeOfDay(hour: 10, minute: 0),
-          const TimeOfDay(hour: 15, minute: 0),
-          const TimeOfDay(hour: 20, minute: 0),
-        ];
-      default:
-        return [];
     }
   }
 

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:conectasoc/core/services/image_picker_service.dart';
+import 'package:conectasoc/features/users/domain/entities/entities.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -154,7 +155,9 @@ class _ProfilePageState extends State<ProfilePage> {
               'email': state.user.email,
               'phone': state.user.phone,
               'language': state.user.language,
-              'notificationFrequency': state.user.notificationFrequency,
+              'notificationTime1': state.user.notificationTime1,
+              'notificationTime2': state.user.notificationTime2,
+              'notificationTime3': state.user.notificationTime3,
             },
             child: Column(
               children: [
@@ -179,7 +182,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 FormBuilderTextField(
                   name: 'email',
                   decoration: InputDecoration(labelText: l10n.email),
-                  enabled: false,
+                  readOnly: true,
                 ),
                 const SizedBox(height: 16),
                 FormBuilderTextField(
@@ -193,6 +196,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 FormBuilderDropdown<String>(
                   name: 'language',
                   decoration: InputDecoration(labelText: l10n.language),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.normal,
+                      ),
                   items: [
                     DropdownMenuItem(
                         value: 'es', child: Text(l10n.langSpanish)),
@@ -206,32 +212,176 @@ class _ProfilePageState extends State<ProfilePage> {
                       .add(ProfileLanguageChanged(value ?? 'es')),
                 ),
                 const SizedBox(height: 16),
-                FormBuilderDropdown<String>(
-                  name: 'notificationFrequency',
-                  decoration: InputDecoration(labelText: l10n.notifications),
-                  items: [
-                    DropdownMenuItem(
-                        value: 'none', child: Text(l10n.notificationFreqNone)),
-                    DropdownMenuItem(
-                        value: 'once_day',
-                        child: Text(l10n.notificationFreqOnce)),
-                    DropdownMenuItem(
-                        value: 'twice_day',
-                        child: Text(l10n.notificationFreqTwice)),
-                    DropdownMenuItem(
-                        value: 'thrice_day',
-                        child: Text(l10n.notificationFreqThrice)),
-                  ],
-                  onChanged: (value) {
-                    context.read<ProfileBloc>().add(
-                        ProfileNotificationFrequencyChanged(value ?? 'none'));
-                  },
-                ),
+                _buildNotificationSelectors(context, state.user, l10n),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNotificationSelectors(
+      BuildContext context, ProfileEntity user, AppLocalizations l10n) {
+    // Generar la lista de opciones cada 30 min (00:00, 00:30... 23:30)
+    final List<DropdownMenuItem<String>> timeOptions = [
+      const DropdownMenuItem(value: '', child: Text('---')),
+    ];
+    for (int hour = 0; hour < 24; hour++) {
+      for (int min = 0; min < 60; min += 30) {
+        final hourStr = hour.toString().padLeft(2, '0');
+        final minStr = min.toString().padLeft(2, '0');
+        final timeStr = '$hourStr:$minStr';
+        timeOptions.add(DropdownMenuItem(
+          value: timeStr,
+          child: Text(timeStr),
+        ));
+      }
+    }
+
+    final hasTime1 =
+        user.notificationTime1 != null && user.notificationTime1!.isNotEmpty;
+    final hasTime2 =
+        user.notificationTime2 != null && user.notificationTime2!.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.notifications,
+            style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+
+        // Hora 1
+        Row(
+          children: [
+            Expanded(
+              child: FormBuilderDropdown<String>(
+                name: 'notificationTime1',
+                decoration: const InputDecoration(labelText: 'Hora 1'),
+                items: timeOptions,
+                onChanged: (value) {
+                  context
+                      .read<ProfileBloc>()
+                      .add(ProfileNotificationTime1Changed(value));
+                  if (value == null || value.isEmpty) {
+                    // Si se vacía hora 1, vaciar 2 y 3 para mantener consistencia
+                    _formKey.currentState?.fields['notificationTime2']
+                        ?.didChange(null);
+                    _formKey.currentState?.fields['notificationTime3']
+                        ?.didChange(null);
+                    context
+                        .read<ProfileBloc>()
+                        .add(const ProfileNotificationTime2Changed(null));
+                    context
+                        .read<ProfileBloc>()
+                        .add(const ProfileNotificationTime3Changed(null));
+                  }
+                },
+              ),
+            ),
+            if (hasTime1)
+              IconButton(
+                icon: const Icon(Icons.clear, color: Colors.grey),
+                onPressed: () {
+                  _formKey.currentState?.fields['notificationTime1']
+                      ?.didChange('');
+                  _formKey.currentState?.fields['notificationTime2']
+                      ?.didChange('');
+                  _formKey.currentState?.fields['notificationTime3']
+                      ?.didChange('');
+                  context
+                      .read<ProfileBloc>()
+                      .add(const ProfileNotificationTime1Changed(''));
+                  context
+                      .read<ProfileBloc>()
+                      .add(const ProfileNotificationTime2Changed(''));
+                  context
+                      .read<ProfileBloc>()
+                      .add(const ProfileNotificationTime3Changed(''));
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Hora 2
+        Row(
+          children: [
+            Expanded(
+              child: FormBuilderDropdown<String>(
+                name: 'notificationTime2',
+                enabled: hasTime1,
+                decoration: InputDecoration(
+                  labelText: 'Hora 2',
+                ),
+                items: timeOptions,
+                onChanged: (value) {
+                  context
+                      .read<ProfileBloc>()
+                      .add(ProfileNotificationTime2Changed(value));
+                  if (value == null || value.isEmpty) {
+                    // Si se vacía hora 2, vaciar 3
+                    _formKey.currentState?.fields['notificationTime3']
+                        ?.didChange(null);
+                    context
+                        .read<ProfileBloc>()
+                        .add(const ProfileNotificationTime3Changed(null));
+                  }
+                },
+              ),
+            ),
+            if (hasTime2 && hasTime1)
+              IconButton(
+                icon: const Icon(Icons.clear, color: Colors.grey),
+                onPressed: () {
+                  _formKey.currentState?.fields['notificationTime2']
+                      ?.didChange('');
+                  _formKey.currentState?.fields['notificationTime3']
+                      ?.didChange('');
+                  context
+                      .read<ProfileBloc>()
+                      .add(const ProfileNotificationTime2Changed(''));
+                  context
+                      .read<ProfileBloc>()
+                      .add(const ProfileNotificationTime3Changed(''));
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Hora 3
+        Row(
+          children: [
+            Expanded(
+              child: FormBuilderDropdown<String>(
+                name: 'notificationTime3',
+                enabled: hasTime2,
+                decoration: InputDecoration(
+                  labelText: 'Hora 3',
+                ),
+                items: timeOptions,
+                onChanged: (value) => context
+                    .read<ProfileBloc>()
+                    .add(ProfileNotificationTime3Changed(value)),
+              ),
+            ),
+            if (user.notificationTime3 != null &&
+                user.notificationTime3!.isNotEmpty &&
+                hasTime2)
+              IconButton(
+                icon: const Icon(Icons.clear, color: Colors.grey),
+                onPressed: () {
+                  _formKey.currentState?.fields['notificationTime3']
+                      ?.didChange('');
+                  context
+                      .read<ProfileBloc>()
+                      .add(const ProfileNotificationTime3Changed(''));
+                },
+              ),
+          ],
+        ),
+      ],
     );
   }
 

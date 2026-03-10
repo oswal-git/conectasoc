@@ -1,6 +1,8 @@
 // lib/features/auth/presentation/pages/local_user_setup_page.dart
 
 import 'package:conectasoc/app/router/router.dart';
+import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/widgets/auth_text_field_widget.dart';
@@ -58,7 +60,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
     return Scaffold(
         appBar: AppBar(
           title: const Text('Acceso Rápido'),
-          elevation: 0,
+          elevation: AppTheme.elevationAppBar,
         ),
         body: MultiBlocListener(
           listeners: [
@@ -69,7 +71,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.message),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppTheme.error,
                     ),
                   );
                 }
@@ -81,7 +83,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.message),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppTheme.error,
                     ),
                   );
                 }
@@ -92,41 +94,34 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
             child: Form(
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppTheme.spaceMd),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // INFO
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(AppTheme.spaceXs),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.shade200),
+                          color: AppTheme.infoBg,
+                          borderRadius: AppTheme.borderRadiusDefault,
+                          border: Border.all(color: AppTheme.infoBorder),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info_outline,
-                                color: Colors.blue.shade700),
-                            const SizedBox(width: 12),
+                            Icon(Icons.info_outline, color: AppTheme.infoIcon),
+                            const SizedBox(width: AppTheme.spaceXs),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'Solo Lectura',
-                                    style: TextStyle(
-                                      color: Colors.blue.shade900,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: AppTheme.infoBannerTitle,
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: AppTheme.spaceXs),
                                   Text(
                                     'Con esta opción solo podrás ver contenido. No guardaremos tu email ni datos personales.',
-                                    style: TextStyle(
-                                      color: Colors.blue.shade800,
-                                      fontSize: 13,
-                                    ),
+                                    style: AppTheme.infoBannerBody,
                                   ),
                                 ],
                               ),
@@ -135,7 +130,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppTheme.spaceMd),
 
                       // NOMBRE
                       AuthTextFieldWidget(
@@ -151,15 +146,15 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                         },
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppTheme.spaceMd),
 
                       _buildAssociationDropdown(),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppTheme.spaceMd),
 
                       _buildLanguageDropdown(),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppTheme.spaceMd),
 
                       // BOTÓN CONTINUAR
                       BlocBuilder<AuthBloc, AuthState>(
@@ -172,65 +167,70 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                                 ? null
                                 : () => _onSave(context),
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: AppTheme.spaceSm),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: AppTheme.borderRadiusDefault,
                               ),
                             ),
                             child: isLoading
                                 ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
+                                    height: AppTheme.loadingIndicatorSize,
+                                    width: AppTheme.loadingIndicatorSize,
                                     child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                                      strokeWidth: AppTheme.loadingStrokeWidth,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                                          AppTheme.onDarkPrimary),
                                     ),
                                   )
                                 : const Text(
                                     'Continuar',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: AppTheme.buttonLabel,
                                   ),
                           );
                         },
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppTheme.spaceLg),
 
                       // OPCIÓN REGISTRO
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(AppTheme.spaceXs),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(12),
+                          color: AppTheme.neutralBg,
+                          borderRadius: AppTheme.borderRadiusDefault,
                         ),
                         child: Column(
                           children: [
                             Text(
                               '¿Quieres más funcionalidades?',
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: AppTheme.infoBannerTitle,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppTheme.spaceXs),
                             Text(
                               'Regístrate para crear y editar contenido, recibir notificaciones y más.',
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 13,
-                              ),
+                              style: AppTheme.infoBannerBody,
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: AppTheme.spaceXxs),
                             TextButton(
                               onPressed: () {
                                 GoRouter.of(context).go(RouteNames.register);
                               },
-                              child: const Text('Crear Cuenta Completa'),
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: AppTheme.primary,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                                padding: const EdgeInsets.only(
+                                    bottom: 0.1), // ← separación
+                                child: Text('Crear Cuenta Completa',
+                                    style: AppTheme.loginSecondaryLink),
+                              ),
                             ),
                           ],
                         ),
@@ -258,30 +258,27 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
 
         if (_associations.isEmpty) {
           return Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppTheme.spaceSm),
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.shade200),
+              color: AppTheme.warningBg,
+              borderRadius: AppTheme.borderRadiusDefault,
+              border: Border.all(color: AppTheme.warningBorder),
             ),
-            child: const Text(
+            child: Text(
               'No hay asociaciones disponibles. Debes registrarte para crear una.',
-              style: TextStyle(color: Colors.orange),
+              style: AppTheme.warningBannerBody,
               textAlign: TextAlign.center,
             ),
           );
         }
 
-        return DropdownButtonFormField<String>(
+        return AppDropdownWidget<String>(
+          label: 'Asociación *',
+          hint: 'Selecciona tu asociación',
+          value: _selectedAssociationId,
+          prefixIcon: Icon(Icons.business_outlined),
           isExpanded: true,
-          itemHeight: null, // Allow items to have variable height
-          initialValue: _selectedAssociationId,
-          decoration: const InputDecoration(
-            labelText: 'Asociación *',
-            hintText: 'Selecciona tu asociación',
-            prefixIcon: Icon(Icons.business_outlined),
-          ),
-          items: _associations.map((assoc) {
+          customItems: _associations.map((assoc) {
             final displayText = assoc.shortName != assoc.longName
                 ? '${assoc.shortName} (${assoc.longName})'
                 : assoc.shortName;
@@ -309,18 +306,28 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
 
   Widget _buildLanguageDropdown() {
     final l10n = AppLocalizations.of(context);
-    return DropdownButtonFormField<String>(
+    return AppDropdownWidget<String>(
       key: ValueKey(_selectedLanguage), // Force rebuild to update labels
-      initialValue: _selectedLanguage,
-      decoration: InputDecoration(
-        labelText: '${l10n.language} *',
-        hintText: l10n.language,
-        prefixIcon: const Icon(Icons.language_outlined),
-      ),
-      items: [
-        DropdownMenuItem(value: 'es', child: Text(l10n.langSpanish)),
-        DropdownMenuItem(value: 'en', child: Text(l10n.langEnglish)),
-        DropdownMenuItem(value: 'ca', child: Text(l10n.langCatalan)),
+      value: _selectedLanguage,
+      label: '${l10n.language} *',
+      hint: l10n.language,
+      prefixIcon: const Icon(Icons.language_outlined),
+      customItems: [
+        DropdownMenuItem(
+            value: 'es',
+            child: Text(
+              l10n.langSpanish,
+            )),
+        DropdownMenuItem(
+            value: 'en',
+            child: Text(
+              l10n.langEnglish,
+            )),
+        DropdownMenuItem(
+            value: 'ca',
+            child: Text(
+              l10n.langCatalan,
+            )),
       ],
       onChanged: (value) {
         if (value != null) {

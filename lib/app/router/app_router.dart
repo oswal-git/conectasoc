@@ -120,7 +120,6 @@ class AppRouter {
             builder: (context, state) {
               final articleId = state.pathParameters['articleId']!;
 
-              // Si recibimos el set de artículos en el extra, usamos el Pager
               if (state.extra != null && state.extra is Map<String, dynamic>) {
                 final extra = state.extra as Map<String, dynamic>;
                 if (extra.containsKey('articles') &&
@@ -129,13 +128,17 @@ class AppRouter {
                   final String initialId = extra['initialId'];
 
                   return ArticlePagerPage(
+                    key: ValueKey('pager_$initialId'),
                     articles: articles,
                     initialArticleId: initialId,
                   );
                 }
               }
 
-              return ArticleDetailPage(articleId: articleId);
+              return ArticleDetailPage(
+                key: ValueKey('detail_$articleId'),
+                articleId: articleId,
+              );
             },
           ),
           GoRoute(

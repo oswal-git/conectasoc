@@ -1,6 +1,8 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:conectasoc/app/router/route_names.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 class WelcomePage extends StatelessWidget {
@@ -9,103 +11,107 @@ class WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.blue[700]!,
-              Colors.blue[400]!,
-            ],
+    const gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [AppTheme.infoIcon, AppTheme.infoBorder],
+    );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Iconos de la barra de estado en blanco sobre fondo azul
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        extendBody: true,
+        extendBodyBehindAppBar: true,
+        backgroundColor: AppTheme.infoIcon,
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: gradient,
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 40), // Espacio superior
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spaceMd),
+                child: Column(
+                  children: [
+                    const SizedBox(
+                        height: AppTheme.spaceTop), // Espacio superior
 
-                  // Logo
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
+                    // Logo
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: AppTheme.onDarkPrimary,
+                        borderRadius: AppTheme.borderRadiusLogoLg,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color.fromARGB(51, 0, 0, 0),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.people,
+                        size: AppTheme.iconSizeMedium,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+
+                    const SizedBox(height: AppTheme.spaceLg),
+
+                    // Título
+                    Text(
+                      l10n.appTitle,
+                      style: AppTheme.welcomeTitle,
+                    ),
+
+                    const SizedBox(height: AppTheme.spaceXs),
+
+                    Text(
+                      l10n.welcomeSubtitle,
+                      style: AppTheme.welcomeSubtitle,
+                    ),
+
+                    const SizedBox(
+                        height: AppTheme
+                            .spaceSection), // Espacio antes de las tarjetas
+
+                    // Opciones de acceso
+                    _ModeCard(
+                      icon: Icons.visibility,
+                      title: l10n.welcomeReadOnlyTitle,
+                      description: l10n.welcomeReadOnlyDescription,
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color.fromARGB(51, 0, 0, 0),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
+                      onTap: () => _navigateToLocalSetup(context),
                     ),
-                    child: const Icon(
-                      Icons.people,
-                      size: 64,
-                      color: Colors.blue,
-                    ),
-                  ),
 
-                  const SizedBox(height: 32),
+                    const SizedBox(height: AppTheme.spaceSm),
 
-                  // Título
-                  Text(
-                    l10n.appTitle,
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
+                    _ModeCard(
+                      icon: Icons.login,
+                      title: l10n.welcomeLoginTitle,
+                      description: l10n.welcomeLoginDescription,
                       color: Colors.white,
+                      onTap: () => _navigateToLogin(context),
                     ),
-                  ),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: AppTheme.spaceSm),
 
-                  Text(
-                    l10n.welcomeSubtitle,
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white70,
+                    _ModeCard(
+                      icon: Icons.person_add,
+                      title: l10n.createAccount,
+                      description: l10n.welcomeRegisterDescription,
+                      color: Colors.white,
+                      onTap: () => _navigateToRegister(context),
                     ),
-                  ),
 
-                  const SizedBox(height: 60), // Espacio antes de las tarjetas
-
-                  // Opciones de acceso
-                  _ModeCard(
-                    icon: Icons.visibility,
-                    title: l10n.welcomeReadOnlyTitle,
-                    description: l10n.welcomeReadOnlyDescription,
-                    color: Colors.white,
-                    onTap: () => _navigateToLocalSetup(context),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _ModeCard(
-                    icon: Icons.login,
-                    title: l10n.welcomeLoginTitle,
-                    description: l10n.welcomeLoginDescription,
-                    color: Colors.white,
-                    onTap: () => _navigateToLogin(context),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _ModeCard(
-                    icon: Icons.person_add,
-                    title: l10n.createAccount,
-                    description: l10n.welcomeRegisterDescription,
-                    color: Colors.white,
-                    onTap: () => _navigateToRegister(context),
-                  ),
-
-                  const SizedBox(height: 32),
-                ],
+                    const SizedBox(height: AppTheme.spaceXl),
+                  ],
+                ),
               ),
             ),
           ),
@@ -145,57 +151,51 @@ class _ModeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 8,
+      elevation: AppTheme.elevationCardHigh,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppTheme.borderRadiusCard,
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppTheme.borderRadiusCard,
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(AppTheme.spaceXs),
           child: Row(
             children: [
               Container(
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppTheme.infoBg,
+                  borderRadius: AppTheme.borderRadiusDefault,
                 ),
                 child: Icon(
                   icon,
-                  size: 32,
-                  color: Colors.blue[700],
+                  size: AppTheme.iconSizeCard,
+                  color: AppTheme.infoIcon,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppTheme.spaceSm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppTheme.cardTitle,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppTheme.spaceXxs),
                     Text(
                       description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: AppTheme.cardDescription,
                     ),
                   ],
                 ),
               ),
               Icon(
                 Icons.arrow_forward_ios,
-                size: 20,
-                color: Colors.grey[400],
+                size: AppTheme.iconSizeXs,
+                color: AppTheme.neutralText,
               ),
             ],
           ),

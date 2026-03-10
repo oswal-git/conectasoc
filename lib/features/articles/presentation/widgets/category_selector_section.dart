@@ -1,3 +1,4 @@
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
@@ -29,11 +30,11 @@ class CategorySelectorSection extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: DropdownButtonFormField<String>(
+            child: AppDropdownWidget<String>(
               key: Key('category_$categoryId'),
-              initialValue: categoryId.isEmpty ? null : categoryId,
-              decoration: InputDecoration(labelText: l10n.category),
-              items: categories.toSet().map((CategoryEntity category) {
+              value: categoryId.isEmpty ? null : categoryId,
+              label: l10n.category,
+              customItems: categories.toSet().map((CategoryEntity category) {
                 return DropdownMenuItem<String>(
                   value: category.id,
                   child: Text(category.name, overflow: TextOverflow.ellipsis),
@@ -50,11 +51,12 @@ class CategorySelectorSection extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: DropdownButtonFormField<String>(
+            child: AppDropdownWidget<String>(
               key: Key('subcategory_$subcategoryId'),
-              initialValue: subcategoryId.isEmpty ? null : subcategoryId,
-              decoration: InputDecoration(labelText: l10n.subcategory),
-              items: subcategories.toSet().map((SubcategoryEntity subcategory) {
+              value: subcategoryId.isEmpty ? null : subcategoryId,
+              label: l10n.subcategory,
+              customItems:
+                  subcategories.toSet().map((SubcategoryEntity subcategory) {
                 return DropdownMenuItem<String>(
                   value: subcategory.id,
                   child:
