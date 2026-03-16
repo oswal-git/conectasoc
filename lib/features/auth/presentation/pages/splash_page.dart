@@ -48,7 +48,7 @@ class SplashPage extends StatelessWidget {
               'Portal de Asociaciones',
               style: AppTheme.splashSubtitle,
             ),
-            const SizedBox(height: AppTheme.spaceXl),
+            const SizedBox(height: AppTheme.spaceXxl),
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(AppTheme.onDarkPrimary),
             ),

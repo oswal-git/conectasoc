@@ -67,6 +67,9 @@ class ArticleSection extends Equatable {
       imageUrl: json['imageUrl'] ?? '',
       richTextContent: json['richTextContent'] ?? '',
       order: json['order'] ?? 0,
+      documentLink: json['documentLink'] != null
+          ? DocumentLinkEntity.fromJson(json['documentLink'])
+          : null,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/features/articles/domain/entities/category_entity.dart';
 import 'package:conectasoc/features/articles/domain/entities/subcategory_entity.dart';
 import 'package:conectasoc/features/home/presentation/bloc/home_bloc.dart';
@@ -91,16 +92,17 @@ class CategoryFilterBarWidget extends StatelessWidget {
     CategoryEntity? selectedItem,
   }) {
     return SizedBox(
-      height: 44,
+      height: AppTheme.spaceXl,
       child: ListView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: AppTheme.paddingHorizontalXs,
         children: items.map((item) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            padding: AppTheme.paddingHorizontalXxs,
             child: ChoiceChip(
-              label: Text(item.name),
+              label: Text(item.name, style: AppTheme.filterFieldText(context)),
+              backgroundColor: AppTheme.primary,
               selected: selectedItem?.id == item.id,
               onSelected: (_) => onItemSelected(item),
             ),
@@ -119,34 +121,49 @@ class CategoryFilterBarWidget extends StatelessWidget {
     SubcategoryEntity? selectedItem,
   }) {
     return SizedBox(
-      height: 44,
-      child: ListView(
+      height: AppTheme.spaceXl,
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        children: [
+        padding: AppTheme.paddingHorizontalXs,
+        itemCount: items.length + 1, // +1 por el botón atrás
+        separatorBuilder: (_, __) => const SizedBox(width: 8), // ← separación
+        itemBuilder: (context, index) {
           // Botón de flecha para volver atrás
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: ActionChip(
-              avatar: const Icon(Icons.arrow_back, size: 18),
-              label: const SizedBox.shrink(),
-              onPressed: onBack,
-              visualDensity: VisualDensity.compact,
-            ),
-          ),
-          // Lista de subcategorías
-          ...items.map((item) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: ChoiceChip(
-                label: Text(item.name),
-                selected: selectedItem?.id == item.id,
-                onSelected: (_) => onItemSelected(item),
+          if (index == 0) {
+            return UnconstrainedBox(
+              child: Container(
+                height: 38,
+                width: 38,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  iconSize: 20,
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                  ),
+                  onPressed: onBack,
+                ),
               ),
             );
-          }),
-        ],
+          }
+          // Lista de subcategorías
+          final item = items[index - 1];
+          return ChoiceChip(
+            label: Text(item.name, style: AppTheme.filterFieldText(context)),
+            backgroundColor: AppTheme.primary,
+            selected: selectedItem?.id == item.id,
+            onSelected: (_) => onItemSelected(item),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          );
+        },
       ),
     );
   }

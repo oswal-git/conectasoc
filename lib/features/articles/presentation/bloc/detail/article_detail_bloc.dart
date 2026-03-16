@@ -1,3 +1,5 @@
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
@@ -17,39 +19,136 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
         _translationService = translationService,
         _authBloc = authBloc,
         super(ArticleDetailInitial()) {
-    on<LoadArticleDetail>(_onLoadArticleDetail);
+    on<LoadArticleDetail>((event, emit) =>
+        _loadArticle(event.articleId, emit, forceRefresh: false));
+    on<RefreshArticleDetail>((event, emit) =>
+        _loadArticle(event.articleId, emit, forceRefresh: true));
   }
 
-  Future<void> _onLoadArticleDetail(
-    LoadArticleDetail event,
-    Emitter<ArticleDetailState> emit,
-  ) async {
-    emit(ArticleDetailLoading());
-    final result = await _getArticleByIdUseCase(event.articleId);
+  Future<void> _loadArticle(
+    String articleId,
+    Emitter<ArticleDetailState> emit, {
+    required bool forceRefresh,
+  }) async {
+    // En refresh, mantener el contenido actual visible mientras recarga.
+    if (!forceRefresh || state is! ArticleDetailLoaded) {
+      emit(ArticleDetailLoading());
+    }
+
+    final result = await _getArticleByIdUseCase(
+      articleId,
+      forceRefresh: forceRefresh,
+    );
 
     // Use a pattern that allows awaiting the async operations inside.
     await result.fold(
       (failure) async => emit(ArticleDetailError(failure.message)),
       (article) async {
+        final authState = _authBloc.state;
+        String targetLang = 'es';
+        if (authState is AuthAuthenticated) {
+          targetLang = authState.user.language;
+        } else if (authState is AuthLocalUser) {
+          targetLang = authState.localUser.language;
+        } else if (authState is AuthUnauthenticated &&
+            authState.language != null) {
+          targetLang = authState.language!;
+        }
+
+        final sameLanguage = article.originalLanguage == targetLang || kIsWeb;
+
+        if (sameLanguage) {
+          // No hay nada que traducir — emitir directamente.
+          emit(ArticleDetailLoaded(
+            article.copyWith(isTranslated: true),
+          ));
+          return;
+        }
+
+        // ── FASE 1: mostrar el artículo original inmediatamente ────────────
+        // El usuario ve el contenido sin esperar ninguna traducción.
+        emit(ArticleDetailLoaded(
+          article.copyWith(isTranslated: false),
+          isTranslating: true,
+        ));
+
         try {
-          final authState = _authBloc.state;
-          String targetLang = 'es'; // Default language
-          if (authState is AuthAuthenticated) {
-            targetLang = authState.user.language;
-          } else if (authState is AuthLocalUser) {
-            targetLang = authState.localUser.language;
-          } else if (authState is AuthUnauthenticated &&
-              authState.language != null) {
-            targetLang = authState.language!;
+          // ── FASE 2a: traducir campos visibles "above the fold" ────────────
+          // Título, abstract y metadatos — lo que el usuario ve primero.
+          final translatedTitle = await _translationService.translateField(
+              article.title, article.originalLanguage, targetLang,
+              isQuillJson: true);
+          final translatedAbstract = await _translationService.translateField(
+              article.abstractContent, article.originalLanguage, targetLang,
+              isQuillJson: true);
+          final translatedCategory = await _translationService.translateField(
+              article.categoryName, article.originalLanguage, targetLang);
+          final translatedSubcategory =
+              await _translationService.translateField(article.subcategoryName,
+                  article.originalLanguage, targetLang);
+
+          if (isClosed) return;
+
+          // Emitir con header traducido, secciones aún en original.
+          ArticleEntity current = article.copyWith(
+            title: translatedTitle,
+            abstractContent: translatedAbstract,
+            categoryName: translatedCategory,
+            subcategoryName: translatedSubcategory,
+            isTranslated: false, // secciones aún pendientes
+          );
+          emit(ArticleDetailLoaded(current, isTranslating: true));
+
+          // ── FASE 2b: traducir secciones una a una ─────────────────────────
+          final translatedSections =
+              List<ArticleSection>.from(article.sections);
+
+          for (int i = 0; i < translatedSections.length; i++) {
+            if (isClosed) return;
+            final section = translatedSections[i];
+            if (section.richTextContent != null &&
+                section.richTextContent!.isNotEmpty) {
+              final translatedContent =
+                  await _translationService.translateField(
+                      section.richTextContent!,
+                      article.originalLanguage,
+                      targetLang,
+                      isQuillJson: true);
+              translatedSections[i] =
+                  section.copyWith(richTextContent: translatedContent);
+
+              // Emitir tras cada sección para que aparezca progresivamente.
+              current = current.copyWith(
+                sections: List.from(translatedSections),
+                // Solo marcamos isTranslated: true en la última sección.
+                isTranslated: i == article.sections.length - 1,
+              );
+              emit(ArticleDetailLoaded(
+                current,
+                isTranslating: i < article.sections.length - 1,
+              ));
+            }
           }
 
-          // Translate the article if the language differs
-          final finalArticle =
-              await _translationService.translateArticle(article, targetLang);
-
-          emit(ArticleDetailLoaded(finalArticle));
+          // Si no había secciones con texto, marcar como traducido aquí.
+          if (!isClosed && state is ArticleDetailLoaded) {
+            final s = state as ArticleDetailLoaded;
+            if (s.isTranslating) {
+              emit(s.copyWith(
+                article: s.article.copyWith(isTranslated: true),
+                isTranslating: false,
+              ));
+            }
+          }
         } catch (e) {
-          emit(ArticleDetailError('Error during translation: ${e.toString()}'));
+          // En caso de error mostrar el original — nunca dejar congelado.
+          debugPrint('ArticleDetailBloc translation error: $e');
+          if (!isClosed) {
+            emit(ArticleDetailLoaded(
+              article.copyWith(isTranslated: true),
+              isTranslating: false,
+            ));
+          }
         }
       },
     );

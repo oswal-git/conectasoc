@@ -8,7 +8,10 @@ class GetArticleByIdUseCase {
 
   GetArticleByIdUseCase(this.repository);
 
-  Future<Either<Failure, ArticleEntity>> call(String articleId) {
-    return repository.getArticleById(articleId);
+  Future<Either<Failure, ArticleEntity>> call(
+    String articleId, {
+    bool forceRefresh = false,
+  }) {
+    return repository.getArticleById(articleId, forceRefresh: forceRefresh);
   }
 }

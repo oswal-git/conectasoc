@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:conectasoc/core/utils/article_permissions.dart';
 import 'package:conectasoc/core/utils/quill_helpers.dart';
 import 'package:conectasoc/features/articles/data/models/models.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
-import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
+import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// Un valor especial para indicar que la imagen de portada ha sido borrada explícitamente.
 Uint8List kClearImageBytes = Uint8List(0);
@@ -63,7 +63,6 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     on<RestoreDraft>(_onRestoreDraft);
     on<TogglePreviewMode>(_onTogglePreviewMode);
     on<DiscardDraft>(_onDiscardDraft);
-    on<UpdateArticleDocumentLink>(_onUpdateArticleDocumentLink);
     on<UpdateSectionDocumentLink>(_onUpdateSectionDocumentLink);
   }
 
@@ -94,6 +93,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
 
     try {
       final assocId = currentMembership?.associationId;
+
       final categoriesResult = await _getCategoriesUseCase(assocId: assocId);
       ArticleEntity? newArticle;
 
@@ -104,7 +104,7 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
             userId: user.uid,
             authorName: user.fullName,
             assocId: assocId ?? '',
-            associationShortName: assocId ?? '',
+            associationShortName: event.associationShortName,
             status: ArticleStatus.redaccion,
             sections: const [], // Empezar sin secciones
           );
@@ -295,16 +295,28 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
     }
 
     // Si hay secciones, ninguna puede estar completamente vacía.
-    if (currentState.article.sections.any((section) {
-      final hasText =
-          quillJsonToPlainText(section.richTextContent ?? '').isNotEmpty;
-      final hasExistingImage =
-          section.imageUrl != null && section.imageUrl!.isNotEmpty;
-      final hasNewImage =
-          currentState.newSectionImageBytes.containsKey(section.id);
+    if (currentState.article.sections.any(
+      (section) {
+        final hasText =
+            quillJsonToPlainText(section.richTextContent ?? '').isNotEmpty;
+        final hasExistingImage =
+            section.imageUrl != null && section.imageUrl!.isNotEmpty;
+        final hasNewImage =
+            currentState.newSectionImageBytes.containsKey(section.id);
 
-      return !hasText && !hasExistingImage && !hasNewImage;
-    })) {
+        final hasImage = hasExistingImage || hasNewImage;
+
+        final hasContent = hasText || hasImage;
+
+        final hasLink = section.documentLink != null &&
+            (section.documentLink?.documentId ?? '') != '';
+
+        final isValidSection =
+            (hasContent && !hasLink) || (hasLink && !hasContent);
+
+        return !isValidSection;
+      },
+    )) {
       emit(currentState.copyWith(
           isSaving: false,
           errorMessage: () =>
@@ -348,16 +360,18 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
         newSectionImageBytes: currentState.newSectionImageBytes,
         imagesToDelete:
             currentState.imagesToDelete, // Pasar las imágenes a borrar
-        expectedModifiedAt: currentState.article.modifiedAt,
+        expectedModifiedAt: currentState.initialArticle?.modifiedAt,
       );
       result.fold(
         (failure) => emit(currentState.copyWith(
             isSaving: false, errorMessage: () => failure.message)),
-        (_) {
+        (updatedArticle) {
           // On success, clear the draft
           _sharedPreferences.remove(_getDraftKey(articleToSave.id));
           emit(currentState.copyWith(
-              isSaving: false, initialArticle: articleToSave));
+              isSaving: false,
+              article: updatedArticle,
+              initialArticle: updatedArticle));
           emit(const ArticleEditSuccess(isCreating: false));
         },
       );
@@ -720,20 +734,6 @@ class ArticleEditBloc extends Bloc<ArticleEditEvent, ArticleEditState> {
       final currentState = state as ArticleEditLoaded;
       emit(currentState.copyWith(isPreviewMode: !currentState.isPreviewMode));
     }
-  }
-
-  void _onUpdateArticleDocumentLink(
-    UpdateArticleDocumentLink event,
-    Emitter<ArticleEditState> emit,
-  ) {
-    if (state is! ArticleEditLoaded) return;
-    final current = state as ArticleEditLoaded;
-
-    final updatedArticle = event.documentLink != null
-        ? current.article.copyWith(documentLink: event.documentLink)
-        : current.article.copyWith(clearDocumentLink: true);
-
-    emit(current.copyWith(article: updatedArticle));
   }
 
   void _onUpdateSectionDocumentLink(

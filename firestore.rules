@@ -66,9 +66,20 @@ service cloud.firestore {
       // 2. Superadmin puede actualizar todo
       // 3. Admins pueden actualizar usuarios de su asociación (sin crear superadmins)
       allow update: if isSignedIn() && (
-        (request.auth.uid == userId && 
-         request.resource.data.diff(resource.data).affectedKeys()
-           .hasOnly(['firstName', 'lastName', 'phone', 'language', 'avatarUrl', 'dateUpdated', 'notificationTime1', 'notificationTime2', 'notificationTime3'])) ||
+        (request.auth.uid == userId && (
+          // 1. PROTEGER CAMPOS CRÍTICOS (No pueden ser modificados por el usuario)
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['email', 'status', 'dateCreated', 'configVersion']) &&
+          
+          // 2. VALIDAR MEMBRESÍAS (Si cambian)
+          (!('memberships' in request.resource.data.diff(resource.data).affectedKeys()) || (
+            request.resource.data.memberships.keys().all(k, 
+              (k in ('memberships' in resource.data ? resource.data.memberships : {}).keys()) 
+                ? (request.resource.data.memberships[k] == resource.data.memberships[k]) // No cambiar rol existente
+                : (request.resource.data.memberships[k] == 'asociado') // Solo permitir 'asociado' para nuevas
+            )
+          ))
+        )) ||
         isSuperAdmin() ||
         (
           // Admin puede modificar si el usuario tiene membresía en su asociación (al menos compartida)
@@ -105,15 +116,54 @@ service cloud.firestore {
       function isPublicArticle() {
         return resource.data.status == 'publicado';
       }
-
+      
       // Leer:
       // 1. CUALQUIERA (autenticado o no) puede leer artículos públicos que sean genéricos (sin asociación).
       // 2. Los usuarios autenticados pueden leer artículos públicos de sus asociaciones.
       // 3. Los admins y editores pueden leer TODO de sus asociaciones (necesario para modo edición/borradores).
       // 4. Los superadmins pueden leer todo.
+      function getArticleData() {
+        return get(/databases/$(database)/documents/articles/$(articleId)).data;
+      }
+
+      // Leer: El artículo principal (ligero) sigue la misma lógica
       allow read, list: if isPublicArticle() ||
                           (isSignedIn() && (isAdmin(resource.data.assocId) || isEditor(resource.data.assocId))) ||
                           isSuperAdmin();
+
+      // Subcolección de Secciones (Contenido Pesado)
+      match /sections/{sectionId} {
+        allow read: if getArticleData().status == 'publicado' ||
+                       (isSignedIn() && (isAdmin(getArticleData().assocId) || isEditor(getArticleData().assocId))) ||
+                       isSuperAdmin();
+        allow write: if isSignedIn() && (
+          isSuperAdmin() || 
+          (existsAfter(/databases/$(database)/documents/articles/$(articleId)) 
+            ? (isAdmin(getAfter(/databases/$(database)/documents/articles/$(articleId)).data.assocId) || 
+               (isEditor(getAfter(/databases/$(database)/documents/articles/$(articleId)).data.assocId) && 
+                request.auth.uid == getAfter(/databases/$(database)/documents/articles/$(articleId)).data.userId))
+            : (isAdmin(getArticleData().assocId) || 
+               (isEditor(getArticleData().assocId) && 
+                request.auth.uid == getArticleData().userId)))
+        );
+      }
+
+      // Subcolección de Información Adicional (Metadata/Link)
+      match /additionalInfo/{infoId} {
+        allow read: if getArticleData().status == 'publicado' || 
+                       (isSignedIn() && (isAdmin(getArticleData().assocId) || isEditor(getArticleData().assocId))) ||
+                       isSuperAdmin();
+        allow write: if isSignedIn() && (
+          isSuperAdmin() || 
+          (existsAfter(/databases/$(database)/documents/articles/$(articleId)) 
+            ? (isAdmin(getAfter(/databases/$(database)/documents/articles/$(articleId)).data.assocId) || 
+               (isEditor(getAfter(/databases/$(database)/documents/articles/$(articleId)).data.assocId) && 
+                request.auth.uid == getAfter(/databases/$(database)/documents/articles/$(articleId)).data.userId))
+            : (isAdmin(getArticleData().assocId) || 
+               (isEditor(getArticleData().assocId) && 
+                request.auth.uid == getArticleData().userId)))
+        );
+      }
 
       // Crear: debe tener rol apropiado Y pertenecer a la asociación
       allow create: if isSignedIn() && 
@@ -128,35 +178,37 @@ service cloud.firestore {
 
       function isValidArticleData(data) {
         return 
-          // Campos requeridos
+          // Campos requeridos (Esquema Ligero)
           data.keys().hasAll([
-            'title', 'abstractContent', 'coverUrl', 'categoryId', 'subcategoryId', 
-            'publishDate', 'effectiveDate', 'status', 'sections', 'userId', 
-            'assocId', 'authorName', 'associationShortName', 'originalLanguage', 
-            'createdAt', 'modifiedAt', 'searchText'
+            'title', 'abstractContent', 'coverUrl', 'categoryId', 'categoryName',
+            'subcategoryId', 'subcategoryName', 'publishDate', 'effectiveDate', 
+            'status', 'userId', 'assocId', 'authorName', 'associationShortName', 
+            'originalLanguage', 'searchText', 'createdAt', 'modifiedAt'
           ]) &&
           // Validación de tipos
           data.title is string && data.title.size() > 0 &&
           data.abstractContent is string && data.abstractContent.size() > 0 &&
           data.coverUrl is string &&
-          data.categoryId is string && data.categoryId.size() > 0 &&
-          data.subcategoryId is string && data.subcategoryId.size() > 0 &&
+          data.categoryId is string &&
+          data.categoryName is string &&
+          data.subcategoryId is string &&
+          data.subcategoryName is string &&
           data.publishDate is timestamp &&
           data.effectiveDate is timestamp &&
           data.status is string &&
-          data.sections is list &&
           data.userId is string && data.userId == request.auth.uid &&
           data.assocId is string &&
           data.authorName is string &&
           data.associationShortName is string &&
           data.originalLanguage is string &&
+          data.searchText is list &&
           data.createdAt is timestamp &&
           data.modifiedAt is timestamp &&
-          data.searchText is list &&
           // Usuario debe ser miembro de la asociación del artículo
           (data.assocId == '' || data.assocId in getUserData().memberships) &&
-          // Validación de fechas (opcional - puede estar en cliente)
-          (data.expirationDate == null || data.expirationDate is timestamp);
+          // Validación de fechas
+          (data.expirationDate == null || data.expirationDate is timestamp) &&
+          (data.fechaNotificacion == null || data.fechaNotificacion is timestamp);
       }
 
       // Actualizar: superadmin, admin de asociación, o editor-autor

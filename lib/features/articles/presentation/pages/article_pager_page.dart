@@ -1,5 +1,7 @@
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
+import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/articles/presentation/pages/article_detail_page.dart';
+import 'package:conectasoc/injection_container.dart';
 import 'package:flutter/material.dart';
 
 class ArticlePagerPage extends StatefulWidget {
@@ -19,6 +21,7 @@ class ArticlePagerPage extends StatefulWidget {
 class _ArticlePagerPageState extends State<ArticlePagerPage> {
   late final PageController _pageController;
   late int _currentIndex;
+  late final PrefetchArticlesUseCase _prefetchUseCase;
 
   @override
   void initState() {
@@ -27,6 +30,31 @@ class _ArticlePagerPageState extends State<ArticlePagerPage> {
         widget.articles.indexWhere((a) => a.id == widget.initialArticleId);
     if (_currentIndex == -1) _currentIndex = 0;
     _pageController = PageController(initialPage: _currentIndex);
+    _prefetchUseCase = sl<PrefetchArticlesUseCase>();
+    _triggerPrefetch();
+  }
+
+  void _triggerPrefetch() {
+    final ids = <String>[];
+    const window = 4; // Precargar 4 adelante y 4 atrás
+
+    // Adelante
+    for (int i = 1; i <= window; i++) {
+      if (_currentIndex + i < widget.articles.length) {
+        ids.add(widget.articles[_currentIndex + i].id);
+      }
+    }
+
+    // Atrás
+    for (int i = 1; i <= window; i++) {
+      if (_currentIndex - i >= 0) {
+        ids.add(widget.articles[_currentIndex - i].id);
+      }
+    }
+
+    if (ids.isNotEmpty) {
+      _prefetchUseCase(ids);
+    }
   }
 
   @override
@@ -57,6 +85,7 @@ class _ArticlePagerPageState extends State<ArticlePagerPage> {
             setState(() {
               _currentIndex = index;
             });
+            _triggerPrefetch();
           },
           itemBuilder: (context, index) {
             final article = widget.articles[index];

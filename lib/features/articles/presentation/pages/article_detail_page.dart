@@ -111,93 +111,92 @@ class _WebLayout extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat("dd 'de' MMMM 'de' yyyy", l10n.localeName);
 
-    return SingleChildScrollView(
-      child: Center(
-        child: ConstrainedBox(
-          constraints:
-              const BoxConstraints(maxWidth: AppTheme.maxWidthWebContent),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Fila 1: Título
-                _SectionContent(jsonContent: article.title, isTitle: true),
-                const SizedBox(height: AppTheme.spaceMd),
+    return RefreshIndicator(
+      onRefresh: () async {
+        final bloc = context.read<ArticleDetailBloc>();
+        bloc.add(RefreshArticleDetail(article.id));
+        await bloc.stream.firstWhere(
+          (s) =>
+              s is ArticleDetailLoaded && !s.isTranslating ||
+              s is ArticleDetailError,
+        );
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Center(
+          child: ConstrainedBox(
+            constraints:
+                const BoxConstraints(maxWidth: AppTheme.maxWidthWebContent),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Fila 1: Título
+                  _SectionContent(jsonContent: article.title, isTitle: true),
+                  const SizedBox(height: AppTheme.spaceMd),
 
-                // Fila 2: Metadata
-                _AuthorInfo(article: article),
-                const SizedBox(height: AppTheme.spaceXxs),
-                Text(
-                  '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
-                  style: AppTheme.articleMeta(context),
-                ),
-                const SizedBox(height: AppTheme.spaceXs),
+                  // Fila 2: Metadata
+                  _AuthorInfo(article: article),
+                  const SizedBox(height: AppTheme.spaceXxs),
+                  Text(
+                    '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
+                    style: AppTheme.articleMeta(context),
+                  ),
+                  const SizedBox(height: AppTheme.spaceXs),
 
-                // Fila 3: Fecha de publicación
-                Text(
-                  '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
-                  style: AppTheme.articleMeta(context),
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
+                  // Fila 3: Fecha de publicación
+                  Text(
+                    '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
+                    style: AppTheme.articleMeta(context),
+                  ),
+                  const SizedBox(height: AppTheme.spaceMd),
 
-                // Fila 4: Cover
-                if (article.coverUrl.isNotEmpty)
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                          maxWidth: AppTheme.maxWidthCoverImage),
-                      child: ClipRRect(
-                        borderRadius: AppTheme.borderRadiusDefault,
-                        child: CachedNetworkImage(
-                          imageUrl: article.coverUrl,
-                          fit: BoxFit.contain,
-                          errorWidget: (context, url, error) =>
-                              const SizedBox.shrink(),
+                  // Fila 4: Cover
+                  if (article.coverUrl.isNotEmpty)
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                            maxWidth: AppTheme.maxWidthCoverImage),
+                        child: ClipRRect(
+                          borderRadius: AppTheme.borderRadiusDefault,
+                          child: CachedNetworkImage(
+                            imageUrl: article.coverUrl,
+                            fit: BoxFit.contain,
+                            errorWidget: (context, url, error) =>
+                                const SizedBox.shrink(),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                if (article.coverUrl.isNotEmpty)
-                  const SizedBox(height: AppTheme.spaceMd),
+                  if (article.coverUrl.isNotEmpty)
+                    const SizedBox(height: AppTheme.spaceMd),
 
-                // Fila 5: Contenido (Abstract o Secciones)
-                // Ocultar abstract si alguna sección tiene texto
-                if (!article.sections.any((s) =>
-                    quillJsonToPlainText(s.richTextContent ?? '').isNotEmpty))
-                  _SectionContent(jsonContent: article.abstractContent),
+                  // Fila 5: Contenido (Abstract o Secciones)
+                  // Ocultar abstract si alguna sección tiene texto
+                  if (!article.sections.any((s) =>
+                      quillJsonToPlainText(s.richTextContent ?? '').isNotEmpty))
+                    _SectionContent(jsonContent: article.abstractContent),
 
-                // Root Document Link
-                if (article.documentLink != null &&
-                    article.documentLink!.documentId.isNotEmpty)
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: SectionDocumentLinkWidget(
-                          documentLink: article.documentLink!),
-                    ),
-                  ),
+                  ...article.sections.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final section = entry.value;
+                    final bool isOdd = (index + 1) % 2 != 0;
+                    return _buildWebSection(context, section, isOdd);
+                  }),
 
-                ...article.sections.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final section = entry.value;
-                  final bool isOdd = (index + 1) % 2 != 0;
-                  return _buildWebSection(context, section, isOdd);
-                }),
+                  const Divider(height: 48),
 
-                const Divider(height: 48),
-
-                // Pie de página: Fechas de vigencia
-                _buildFooter(context, article, dateFormat),
-              ],
+                  // Pie de página: Fechas de vigencia
+                  _buildFooter(context, article, dateFormat),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      ), // SingleChildScrollView
+    ); // RefreshIndicator
   }
 
   Widget _buildWebSection(
@@ -300,97 +299,82 @@ class _MobileLayout extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final dateFormat = DateFormat("d 'de' MMMM 'de' yyyy", l10n.localeName);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppTheme.spaceSm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Fila 1: Título
-          _SectionContent(jsonContent: article.title, isTitle: true),
-          const SizedBox(height: AppTheme.spaceSm),
+    return RefreshIndicator(
+      onRefresh: () async {
+        final bloc = context.read<ArticleDetailBloc>();
+        bloc.add(RefreshArticleDetail(article.id));
+        // Esperar hasta que el estado deje de ser "refreshing"
+        await bloc.stream.firstWhere(
+          (s) =>
+              s is ArticleDetailLoaded && !s.isTranslating ||
+              s is ArticleDetailError,
+        );
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppTheme.spaceSm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Fila 1: Título
+            _SectionContent(jsonContent: article.title, isTitle: true),
+            const SizedBox(height: AppTheme.spaceSm),
 
-          // Fila 2: Metadata
-          _AuthorInfo(article: article),
-          const SizedBox(height: AppTheme.spaceXxs),
-          Text(
-            '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
-            style: AppTheme.articleMeta(context),
-          ),
-          const SizedBox(height: AppTheme.spaceXs),
+            // Fila 2: Metadata
+            _AuthorInfo(article: article),
+            const SizedBox(height: AppTheme.spaceXxs),
+            Text(
+              '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
+              style: AppTheme.articleMeta(context),
+            ),
+            const SizedBox(height: AppTheme.spaceXs),
 
-          // Fila 3: Fecha de publicación
-          Text(
-            '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
-            style: AppTheme.articleMeta(context),
-          ),
-          const SizedBox(height: AppTheme.spaceMd),
+            // Fila 3: Fecha de publicación
+            Text(
+              '${l10n.publishDateLabel}: ${dateFormat.format(article.publishDate)}',
+              style: AppTheme.articleMeta(context),
+            ),
+            const SizedBox(height: AppTheme.spaceMd),
 
-          // Fila 4: Cover
-          if (article.coverUrl.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.spaceMd),
-              child: ClipRRect(
-                borderRadius: AppTheme.borderRadiusDefault,
-                child: CachedNetworkImage(
-                  imageUrl: article.coverUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorWidget: (context, url, error) => const SizedBox.shrink(),
+            // Fila 4: Cover
+            if (article.coverUrl.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.spaceMd),
+                child: ClipRRect(
+                  borderRadius: AppTheme.borderRadiusDefault,
+                  child: CachedNetworkImage(
+                    imageUrl: article.coverUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    errorWidget: (context, url, error) =>
+                        const SizedBox.shrink(),
+                  ),
                 ),
               ),
-            ),
 
-          // Fila 5: Contenido (Abstract o Secciones)
-          // Ocultar abstract si alguna sección tiene texto
-          if (!article.sections.any(
-              (s) => quillJsonToPlainText(s.richTextContent ?? '').isNotEmpty))
-            _SectionContent(jsonContent: article.abstractContent),
+            // Fila 5: Contenido (Abstract o Secciones)
+            // Ocultar abstract si alguna sección tiene texto
+            if (!article.sections.any((s) =>
+                quillJsonToPlainText(s.richTextContent ?? '').isNotEmpty))
+              _SectionContent(jsonContent: article.abstractContent),
 
-          // Root Document Link
-          if (article.documentLink != null &&
-              article.documentLink!.documentId.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: SectionDocumentLinkWidget(
-                    documentLink: article.documentLink!),
-              ),
-            ),
+            if (article.sections.isNotEmpty)
+              ...article.sections.map((section) {
+                final hasImage =
+                    section.imageUrl != null && section.imageUrl!.isNotEmpty;
+                final hasText =
+                    quillJsonToPlainText(section.richTextContent ?? '')
+                        .isNotEmpty;
+                final hasDoc = section.documentLink != null;
 
-          if (article.sections.isNotEmpty)
-            ...article.sections.map((section) {
-              final hasImage =
-                  section.imageUrl != null && section.imageUrl!.isNotEmpty;
-              final hasText =
-                  quillJsonToPlainText(section.richTextContent ?? '')
-                      .isNotEmpty;
-              final hasDoc = section.documentLink != null;
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppTheme.spaceMd),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // COMPOSICIÓN A: Imagen arriba, texto debajo
-                    if (hasImage && hasText) ...[
-                      ClipRRect(
-                        borderRadius: AppTheme.borderRadiusDefault,
-                        child: CachedNetworkImage(
-                          imageUrl: section.imageUrl!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          errorWidget: (context, url, error) =>
-                              const SizedBox.shrink(),
-                        ),
-                      ),
-                      const SizedBox(height: AppTheme.spaceXs),
-                      _SectionContent(jsonContent: section.richTextContent!),
-                    ]
-                    // COMPOSICIÓN B: Sólo imagen (centrado)
-                    else if (hasImage)
-                      Center(
-                        child: ClipRRect(
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppTheme.spaceMd),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // COMPOSICIÓN A: Imagen arriba, texto debajo
+                      if (hasImage && hasText) ...[
+                        ClipRRect(
                           borderRadius: AppTheme.borderRadiusDefault,
                           child: CachedNetworkImage(
                             imageUrl: section.imageUrl!,
@@ -400,28 +384,45 @@ class _MobileLayout extends StatelessWidget {
                                 const SizedBox.shrink(),
                           ),
                         ),
-                      )
-                    // COMPOSICIÓN C: Sólo texto (ancho completo)
-                    else if (hasText)
-                      _SectionContent(jsonContent: section.richTextContent!)
-                    // COMPOSICIÓN D: Sólo enlace a documento (izquierda)
-                    else if (hasDoc)
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: SectionDocumentLinkWidget(
-                          documentLink: section.documentLink!,
+                        const SizedBox(height: AppTheme.spaceXs),
+                        _SectionContent(jsonContent: section.richTextContent!),
+                      ]
+                      // COMPOSICIÓN B: Sólo imagen (centrado)
+                      else if (hasImage)
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: AppTheme.borderRadiusDefault,
+                            child: CachedNetworkImage(
+                              imageUrl: section.imageUrl!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              errorWidget: (context, url, error) =>
+                                  const SizedBox.shrink(),
+                            ),
+                          ),
+                        )
+                      // COMPOSICIÓN C: Sólo texto (ancho completo)
+                      else if (hasText)
+                        _SectionContent(jsonContent: section.richTextContent!)
+                      // COMPOSICIÓN D: Sólo enlace a documento (izquierda)
+                      else if (hasDoc)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: SectionDocumentLinkWidget(
+                            documentLink: section.documentLink!,
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              );
-            }),
-          const Divider(height: 48),
-          _buildFooter(context, article, dateFormat),
-        ],
+                    ],
+                  ),
+                );
+              }),
+            const Divider(height: 48),
+            _buildFooter(context, article, dateFormat),
+          ],
+        ),
       ),
     );
-  }
+  } // RefreshIndicator
 }
 
 Widget _buildFooter(
@@ -477,11 +478,19 @@ class _SectionContent extends StatefulWidget {
 }
 
 class _SectionContentState extends State<_SectionContent> {
-  late final quill.QuillController _controller;
+  late quill.QuillController _controller;
 
   @override
-  void initState() {
-    super.initState();
+  void didUpdateWidget(covariant _SectionContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.jsonContent != widget.jsonContent) {
+      final old = _controller;
+      _initController();
+      old.dispose();
+    }
+  }
+
+  void _initController() {
     try {
       // ✅ Parsear el JSON correctamente
       List<dynamic> jsonData = jsonDecode(widget.jsonContent);
@@ -510,6 +519,12 @@ class _SectionContentState extends State<_SectionContent> {
         selection: const TextSelection.collapsed(offset: 0),
       );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initController();
   }
 
   @override

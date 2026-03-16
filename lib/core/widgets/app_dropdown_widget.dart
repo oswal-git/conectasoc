@@ -131,8 +131,17 @@ class AppDropdownWidget<T> extends StatelessWidget {
             enabled: enabled,
           );
 
+    // Verificación de seguridad para evitar crash si el valor no existe en los items (común en restaurar borradores)
+    T? safeValue = value;
+    if (value != null) {
+      final hasValue = resolvedItems.any((item) => item.value == value);
+      if (!hasValue) {
+        safeValue = null;
+      }
+    }
+
     return DropdownButtonFormField<T>(
-      initialValue: value,
+      initialValue: safeValue,
       isExpanded: isExpanded,
       decoration: decoration,
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(

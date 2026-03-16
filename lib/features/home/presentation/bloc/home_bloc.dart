@@ -10,7 +10,6 @@ import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
-import 'package:conectasoc/features/users/domain/entities/entities.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetArticlesUseCase getArticlesUseCase;
@@ -41,6 +40,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<ToggleSearch>(_onToggleSearch);
     on<ToggleFilter>(_onToggleFilter);
   }
+
+// ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  String _targetLang(AuthState authState) {
+    if (authState is AuthAuthenticated) return authState.user.language;
+    if (authState is AuthLocalUser) return authState.localUser.language;
+    if (authState is AuthUnauthenticated && authState.language != null) {
+      return authState.language!;
+    }
+    return 'es';
+  }
+
+  /// Marks every article in the list as "pending translation" (isTranslated: false).
+  List<ArticleEntity> _markPending(List<ArticleEntity> articles) =>
+      articles.map((a) => a.copyWith(isTranslated: false)).toList();
+
+  // ---------------------------------------------------------------------------
+  // LoadHomeData
+  // ---------------------------------------------------------------------------
 
   Future<void> _onLoadHomeData(
     LoadHomeData event,
@@ -91,25 +111,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final categoriesOriginal =
           categoriesResult.fold((failure) => throw failure, (data) => data);
 
-      List<ArticleEntity> articlesToDisplay = _originalArticles;
-      List<CategoryEntity> categoriesToDisplay = categoriesOriginal;
+      final targetLang = _targetLang(authState);
+      final needsTranslation = !event.isEditMode;
 
-      // Obtener el idioma del usuario
-      String targetLang = 'es'; // Idioma por defecto
-      if (authState is AuthAuthenticated) {
-        targetLang = authState.user.language;
-      } else if (authState is AuthLocalUser) {
-        targetLang = authState.localUser.language;
-      } else if (authState is AuthUnauthenticated &&
-          authState.language != null) {
-        targetLang = authState.language!;
-      }
+      // ── FIRST EMIT: show articles immediately, marked as pending ──────────
+      // In edit mode we show the originals as-is (no translation needed).
+      final articlesToDisplay = needsTranslation
+          ? _markPending(_originalArticles)
+          : _originalArticles;
 
       // Emitir primero el estado con el contenido original (sin traducir)
       emit(HomeLoaded(
         allArticles: articlesToDisplay,
         filteredArticles: articlesToDisplay,
-        categories: categoriesToDisplay,
+        categories: categoriesOriginal,
         searchTerm: '', // Initialize search term
         isEditMode: event.isEditMode,
         associations: associations,
@@ -117,26 +132,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         lastDocument: lastDocument,
       ));
 
-      // Si no estamos en modo edición, traducir los artículos en segundo plano
-      if (!event.isEditMode) {
-        // Usamos Future.wait para traducir todos los artículos en paralelo sin bloquear la UI
-        final translatedArticles = await Future.wait(_originalArticles.map(
-            (article) =>
-                translationService.translateArticle(article, targetLang)));
+      // ── BACKGROUND TRANSLATION ────────────────────────────────────────────
+      if (needsTranslation) {
+        // Translate article-by-article and emit each one as it finishes.
+        // This way the first translated card appears immediately without
+        // waiting for all 20 to be done.
+        for (int i = 0; i < _originalArticles.length; i++) {
+          if (isClosed) break;
+          final translated = await translationService.translateArticle(
+              _originalArticles[i], targetLang);
 
-        // Traducir categorías en paralelo
-        final translatedCategories = await translationService
-            .translateCategories(categoriesOriginal, targetLang);
-
-        // Si el bloc sigue activo, actualizar el estado con las traducciones
-        if (!isClosed) {
-          final currentState = state;
-          if (currentState is HomeLoaded) {
-            final newState = currentState.copyWith(
-              allArticles: translatedArticles,
-              categories: translatedCategories,
-            );
+          if (!isClosed && state is HomeLoaded) {
+            final latest = state as HomeLoaded;
+            final updatedAll = List<ArticleEntity>.from(latest.allArticles)
+              ..[i] = translated;
+            final newState = latest.copyWith(allArticles: updatedAll);
             _applyFilters(emit, newState);
+          }
+        }
+
+        // Translate categories after articles
+        if (!isClosed && state is HomeLoaded) {
+          final translatedCategories = await translationService
+              .translateCategories(categoriesOriginal, targetLang);
+          if (!isClosed && state is HomeLoaded) {
+            _applyFilters(
+                emit,
+                (state as HomeLoaded)
+                    .copyWith(categories: translatedCategories));
           }
         }
       }
@@ -144,6 +167,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(HomeError(e.toString()));
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // LoadMoreArticles
+  // ---------------------------------------------------------------------------
 
   Future<void> _onLoadMoreArticles(
     LoadMoreArticles event,
@@ -171,9 +198,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         _originalArticles.addAll(newArticles);
 
         // Append new original articles to the existing list for fast UI update
+        final needsTranslation = !currentState.isEditMode;
+        final pendingNew =
+            needsTranslation ? _markPending(newArticles) : newArticles;
+
         final updatedArticles =
             List<ArticleEntity>.from(currentState.allArticles)
-              ..addAll(newArticles);
+              ..addAll(pendingNew);
 
         final initialNewState = currentState.copyWith(
           allArticles: updatedArticles,
@@ -184,35 +215,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         _applyFilters(emit, initialNewState);
 
         // Si no estamos en modo edición, traducimos los nuevos artículos en segundo plano
-        if (!currentState.isEditMode) {
+        if (needsTranslation) {
           final authState = authBloc.state;
-          String targetLang = 'es';
-          if (authState is AuthAuthenticated) {
-            targetLang = authState.user.language;
-          } else if (authState is AuthLocalUser) {
-            targetLang = authState.localUser.language;
-          } else if (authState is AuthUnauthenticated &&
-              authState.language != null) {
-            targetLang = authState.language!;
-          }
+          final targetLang = _targetLang(authState);
+          final offset =
+              updatedArticles.length - newArticles.length; // index of first new
+          for (int i = 0; i < newArticles.length; i++) {
+            if (isClosed) break;
+            final translated = await translationService.translateArticle(
+                _originalArticles[offset + i], targetLang);
 
-          final translatedNewArticles = await Future.wait(newArticles
-              .map((article) =>
-                  translationService.translateArticle(article, targetLang))
-              .toList());
+            if (!isClosed && state is HomeLoaded) {
+              final latest = state as HomeLoaded;
+              final updatedAll = List<ArticleEntity>.from(latest.allArticles)
+                ..[offset + i] = translated;
 
-          if (!isClosed) {
-            final latestState = state;
-            if (latestState is HomeLoaded) {
-              final newArticlesMap = {
-                for (var a in translatedNewArticles) a.id: a
-              };
-              final finalArticles = latestState.allArticles.map((a) {
-                return newArticlesMap[a.id] ?? a;
-              }).toList();
-
-              _applyFilters(
-                  emit, latestState.copyWith(allArticles: finalArticles));
+              _applyFilters(emit, latest.copyWith(allArticles: updatedAll));
             }
           }
         }
@@ -220,103 +238,73 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // ToggleEditMode
+  // ---------------------------------------------------------------------------
+
   Future<void> _onToggleEditMode(
-      ToggleEditMode event, Emitter<HomeState> emit) async {
+    ToggleEditMode event,
+    Emitter<HomeState> emit,
+  ) async {
     if (state is! HomeLoaded) return;
     final currentState = state as HomeLoaded;
+    final authState = authBloc.state;
     final newEditMode = !currentState.isEditMode;
 
-    // Emitimos un estado de carga parcial para dar feedback al usuario
-    emit(currentState.copyWith(isLoading: true));
-
-    final authState = authBloc.state;
-    IUser? user = event.user;
-    if (user == null) {
-      if (authState is AuthAuthenticated) {
-        user = authState.user;
-      } else if (authState is AuthLocalUser) {
-        user = authState.localUser;
-      }
-    }
-
-    debugPrint(
-        'DEBUG: ToggleEditMode - Calling getArticlesUseCase for newEditMode=$newEditMode with user=${user?.uid}');
-    String? assocId;
-    if (authState is AuthAuthenticated) {
-      assocId = authState.currentMembership?.associationId;
-    } else if (authState is AuthLocalUser) {
-      assocId = authState.localUser.associationId;
-    }
-
-    // Volvemos a cargar los artículos desde el principio con el nuevo modo de edición
-    final articlesResult =
-        await getArticlesUseCase(user: user, isEditMode: newEditMode);
-
-    // Obtenemos las categorías actuales (sin traducir)
-    final categoriesResult = await getCategoriesUseCase(assocId: assocId);
+    final articlesResult = await getArticlesUseCase(
+      user: event.user,
+      isEditMode: newEditMode,
+      lastDocument: null,
+    );
 
     await articlesResult.fold(
       (failure) async => emit(HomeError(failure.message)),
       (articlesData) async {
         _originalArticles = articlesData.item1;
-        final lastDocument = articlesData.item2;
-        List<ArticleEntity> articlesToDisplay = _originalArticles;
 
-        final categoriesOriginal = categoriesResult.fold(
-          (failure) => throw failure,
-          (data) => data,
-        );
-        List<CategoryEntity> categoriesToDisplay = categoriesOriginal;
+        final needsTranslation = !newEditMode;
+        final articlesToDisplay = needsTranslation
+            ? _markPending(_originalArticles)
+            : _originalArticles;
 
-        debugPrint(
-            'DEBUG: ToggleEditMode success. Articles fetched: ${articlesData.item1.length}');
+        final categoriesOriginal = currentState.categories;
 
         final initialNewState = currentState.copyWith(
-          isEditMode: newEditMode,
           allArticles: articlesToDisplay,
-          filteredArticles: articlesToDisplay, // Sincronizamos inmediatamente
-          categories: categoriesToDisplay,
-          lastDocument: lastDocument,
+          isEditMode: newEditMode,
           hasMore: articlesData.item1.length == 20,
-          isLoading: false,
-          // Al cambiar de modo, limpiamos los filtros para asegurar visibilidad
+          lastDocument: articlesData.item2,
           searchTerm: '',
           clearSelectedCategory: true,
           clearSelectedSubcategory: true,
         );
 
-        // Volvemos a aplicar filtros por si acaso (aunque los acabamos de limpiar)
-        // y emitimos el estado sin traducir para mostrar información rápidamente.
         _applyFilters(emit, initialNewState);
 
-        // Si salimos del modo edición, traducimos los artículos de forma diferida
-        if (!newEditMode) {
-          String targetLang = 'es';
-          if (authState is AuthAuthenticated) {
-            targetLang = authState.user.language;
-          } else if (authState is AuthLocalUser) {
-            targetLang = authState.localUser.language;
-          } else if (authState is AuthUnauthenticated &&
-              authState.language != null) {
-            targetLang = authState.language!;
+        if (needsTranslation) {
+          final targetLang = _targetLang(authState);
+
+          for (int i = 0; i < _originalArticles.length; i++) {
+            if (isClosed) break;
+            final translated = await translationService.translateArticle(
+                _originalArticles[i], targetLang);
+
+            if (!isClosed && state is HomeLoaded) {
+              final latest = state as HomeLoaded;
+              final updatedAll = List<ArticleEntity>.from(latest.allArticles)
+                ..[i] = translated;
+              _applyFilters(emit, latest.copyWith(allArticles: updatedAll));
+            }
           }
 
-          final translatedArticles = await Future.wait(_originalArticles
-              .map((article) =>
-                  translationService.translateArticle(article, targetLang))
-              .toList());
-
-          final translatedCategories = await translationService
-              .translateCategories(categoriesOriginal, targetLang);
-
-          if (!isClosed) {
-            final latestState = state;
-            if (latestState is HomeLoaded) {
-              final translatedState = latestState.copyWith(
-                allArticles: translatedArticles,
-                categories: translatedCategories,
-              );
-              _applyFilters(emit, translatedState);
+          if (!isClosed && state is HomeLoaded) {
+            final translatedCategories = await translationService
+                .translateCategories(categoriesOriginal, targetLang);
+            if (!isClosed && state is HomeLoaded) {
+              _applyFilters(
+                  emit,
+                  (state as HomeLoaded)
+                      .copyWith(categories: translatedCategories));
             }
           }
         }
@@ -324,11 +312,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Filters / Search
+  // ---------------------------------------------------------------------------
+
   void _onSearchQueryChanged(
       SearchQueryChanged event, Emitter<HomeState> emit) {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded; // Update searchTerm in state
-      emit(currentState.copyWith(searchTerm: event.query));
       _applyFilters(emit, currentState.copyWith(searchTerm: event.query));
     }
   }
@@ -337,13 +328,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       CategorySelected event, Emitter<HomeState> emit) async {
     if (state is! HomeLoaded) return;
     final currentState = state as HomeLoaded;
-
-    debugPrint(
-        'DEBUG: CategorySelected - category.id=${event.category.id}, category.name=${event.category.name}');
-    debugPrint(
-        'DEBUG: CategorySelected - isEditMode=${currentState.isEditMode}');
-
     final authState = authBloc.state;
+
     String? assocId;
     if (authState is AuthAuthenticated) {
       assocId = authState.currentMembership?.associationId;
@@ -367,12 +353,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         // Si no estamos en modo edición, traducir las subcategorías
         if (!currentState.isEditMode) {
-          String targetLang = 'es'; // Idioma por defecto
-          if (authState is AuthAuthenticated) {
-            targetLang = authState.user.language;
-          } else if (authState is AuthLocalUser) {
-            targetLang = authState.localUser.language;
-          }
+          final targetLang = _targetLang(authState);
 
           debugPrint(
               'DEBUG: CategorySelected - Translating subcategories to $targetLang');
@@ -398,21 +379,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   void _onSubcategorySelected(
       SubcategorySelected event, Emitter<HomeState> emit) {
     if (state is HomeLoaded) {
-      final currentState = state as HomeLoaded; // Update subcategory in state
-      final newState = currentState.copyWith(
-        selectedSubcategory: event.subcategory,
-      );
-      _applyFilters(emit, newState);
+      _applyFilters(
+          emit,
+          (state as HomeLoaded)
+              .copyWith(selectedSubcategory: event.subcategory));
     }
   }
 
   void _onClearCategoryFilter(
       ClearCategoryFilter event, Emitter<HomeState> emit) {
     if (state is HomeLoaded) {
-      final currentState =
-          state as HomeLoaded; // Clear all category/subcategory filters
-      final newState = currentState.copyWith(
-        subcategories: [], // Clear subcategories
+      final newState = (state as HomeLoaded).copyWith(
+        subcategories: [],
         clearSelectedCategory: true,
         clearSelectedSubcategory: true,
       );

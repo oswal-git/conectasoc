@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
@@ -10,7 +11,7 @@ class SearchFieldWidget extends StatefulWidget {
   final Color? fillColor;
   final TextStyle? textStyle;
   final double? fontSize;
-  final double? borderRadius;
+  final BorderRadius? borderRadius;
 
   const SearchFieldWidget({
     super.key,
@@ -60,12 +61,7 @@ class _SearchFieldWidgetState extends State<SearchFieldWidget> {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.only(
-          top: 4.0,
-          bottom: 4.0,
-          left: 8.0,
-          right: 8.0,
-        ),
+        padding: AppTheme.paddingSearchAndFilterWidget,
         child: SizedBox(
           height: widget.height,
           child: TextField(
@@ -87,13 +83,12 @@ class _SearchFieldWidgetState extends State<SearchFieldWidget> {
                     )
                   : null,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: widget.borderRadius ?? BorderRadius.zero,
                 borderSide: BorderSide.none,
               ),
               filled: true,
               fillColor: widget.fillColor,
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              contentPadding: AppTheme.paddingHorizontalSm,
             ),
             onChanged: _onSearchChanged,
           ),

@@ -2,6 +2,7 @@
 
 import 'dart:typed_data';
 import 'package:conectasoc/core/constants/cloudinary_config.dart';
+import 'package:conectasoc/core/utils/utils.dart';
 import 'package:conectasoc/services/cloudinary_service.dart';
 import 'package:dartz/dartz.dart';
 
@@ -26,8 +27,12 @@ class UserRepositoryImpl implements UserRepository {
       await remoteDataSource.addMembership(userId, associationId, 'asociado');
       return const Right(null);
     } on ServerException catch (e) {
+      debugPrint(
+          '${fechaD('❌')} UserRepositoryImpl -> joinAssociation: ServerException Error $e');
       return Left(ServerFailure(e.message));
     } catch (e) {
+      debugPrint(
+          '${fechaD('❌')} UserRepositoryImpl -> joinAssociation: Error$e');
       return Left(ServerFailure('Ocurrió un error inesperado.'));
     }
   }

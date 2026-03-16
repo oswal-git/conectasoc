@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:conectasoc/core/utils/formatters.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_bloc.dart'; // Importamos la constante
 import 'package:flutter/material.dart';
@@ -18,6 +19,9 @@ import 'package:uuid/uuid.dart';
 
 class ArticleRepositoryImpl implements ArticleRepository {
   final FirebaseFirestore firestore;
+
+  // Caché interna para navegación fluida
+  final Map<String, ArticleEntity> _articleCache = {};
 
   ArticleRepositoryImpl({required this.firestore});
 
@@ -39,7 +43,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
       // 1. Filtrado por permisos y visibilidad
       debugPrint(
-          'DEBUG: ArticleRepo.getArticles - isEditMode: $isEditMode, userLoggedIn: ${user != null}, isSuper: ${user?.isSuperAdmin}, canEdit: ${user?.canEditContent}');
+          '${fechaD('🕵️‍♀️')} DEBUG: ArticleRepo.getArticles - isEditMode: $isEditMode, userLoggedIn: ${user != null}, isSuper: ${user?.isSuperAdmin}, canEdit: ${user?.canEditContent}');
       if (isEditMode && user != null && user.canEditContent) {
         // Modo Edición:
         // - Superadmin: Ve todo (no se aplica filtro de assocId ni userId).
@@ -50,7 +54,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
           // Admin/Editor ven solo los de su asociación.
           final userAssociationIds = user.associationIds;
           debugPrint(
-              'DEBUG: ArticleRepo - Admin/Editor filtering by Assocs: $userAssociationIds');
+              '${fechaD('🕵️')} DEBUG: ArticleRepo - Admin/Editor filtering by Assocs: $userAssociationIds');
           query = query.where('assocId', whereIn: userAssociationIds);
 
           if (user is UserEntity) {
@@ -58,13 +62,13 @@ class ArticleRepositoryImpl implements ArticleRepository {
                 user.memberships.values.any((role) => role == 'admin');
             if (!isAnyAdmin) {
               debugPrint(
-                  'DEBUG: ArticleRepo - Editor filtering by userId: ${user.uid}');
+                  '${fechaD('🕵️')} DEBUG: ArticleRepo - Editor filtering by userId: ${user.uid}');
               query = query.where('userId', isEqualTo: user.uid);
             }
           }
         } else {
           debugPrint(
-              'DEBUG: ArticleRepo - Superadmin in Edit Mode. FETCHING EVERYTHING.');
+              '${fechaD('🕵️')} DEBUG: ArticleRepo - Superadmin in Edit Mode. FETCHING EVERYTHING.');
         }
       } else {
         // Modo Lectura:
@@ -124,7 +128,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
       final snapshot = await query.get();
       debugPrint(
-          'DEBUG: ArticleRepo - QUERY EXECUTED. Documents found: ${snapshot.docs.length}');
+          '${fechaD('🕵️')} DEBUG: ArticleRepo - QUERY EXECUTED. Documents found: ${snapshot.docs.length}');
 
       final articles = snapshot.docs
           .map((doc) => ArticleModel.fromFirestore(doc))
@@ -169,7 +173,8 @@ class ArticleRepositoryImpl implements ArticleRepository {
     try {
       // 1. Subir imagen de portada a Cloudinary si existe
       if (hasCoverImage) {
-        debugPrint('🧪 ArticleRepositoryImpl: createArticle ✅ hasCoverImage');
+        debugPrint(
+            '${fechaD('🧪')} ArticleRepositoryImpl: createArticle ✅ hasCoverImage');
         final uploadResult = await CloudinaryService.uploadImageBytes(
           imageBytes: coverImageBytes,
           filename: uuid.v4(), // Generate a unique filename
@@ -178,7 +183,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
         if (!uploadResult.success) {
           debugPrint(
-              '🧪 ArticleRepositoryImpl: createArticle ✅ Error al subir la imagen de portada.');
+              '${fechaD('🧪')} ArticleRepositoryImpl: createArticle ✅ Error al subir la imagen de portada.');
           return Left(ServerFailure(
               uploadResult.error ?? 'Error al subir la imagen de portada.'));
         }
@@ -190,7 +195,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
       // 2. Subir imágenes de las secciones
       final List<ArticleSection> sectionsWithUploadedImages = [];
       debugPrint(
-          '🧪 ArticleRepositoryImpl: createArticle ✅ Subir imágenes de las secciones');
+          '${fechaD('🧪')} ArticleRepositoryImpl: createArticle ✅ Subir imágenes de las secciones');
       for (final section in article.sections) {
         if (sectionImageBytes.containsKey(section.id)) {
           final bytes = sectionImageBytes[section.id]!;
@@ -218,16 +223,36 @@ class ArticleRepositoryImpl implements ArticleRepository {
           sections: sectionsWithUploadedImages);
       final articleModel = ArticleModel.fromEntity(articleWithCoverAndSections);
 
-      // 3. Escribir en Firestore
-      final docRef = await firestore
-          .collection('articles')
-          .add(articleModel.toFirestore());
+      // 3. Escribir en Firestore usando un batch para asegurar la consistencia
+      final batch = firestore.batch();
+      final docRef = firestore.collection('articles').doc();
+
+      // Guardar documento principal (ligero)
+      final mainData = articleModel.toFirestore();
+      mainData['createdAt'] = FieldValue.serverTimestamp();
+      mainData['modifiedAt'] = FieldValue.serverTimestamp();
+      batch.set(docRef, mainData);
+
+      // Guardar secciones en subcolección
+      for (final section in articleModel.sectionsToFirestore()) {
+        final sectionId = section['id'] as String;
+        final sectionDocRef = docRef
+            .collection('sections')
+            .doc(sectionId.isEmpty ? null : sectionId);
+        batch.set(sectionDocRef, section);
+      }
+
+      // Guardar información adicional en subcolección
+      // final infoData = articleModel.additionalInfoToFirestore();
+      // batch.set(docRef.collection('additionalInfo').doc('info'), infoData);
+
+      await batch.commit();
 
       // 4. Devolver la entidad completa con el ID asignado
       return Right(articleModel.copyWith(id: docRef.id));
     } catch (e) {
       debugPrint(
-          '🧪 ArticleRepositoryImpl: createArticle ✅ Error al crear el artículo: $e');
+          '${fechaD('🧪')} ArticleRepositoryImpl: createArticle ✅ Error al crear el artículo: $e');
       // ROLLBACK: Si algo falla (subida de imagen de sección o escritura en Firestore),
       // se borran las imágenes que ya se habían subido.
       if (uploadedCoverUrl != null) {
@@ -242,13 +267,48 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
   @override
   Future<Either<Failure, ArticleEntity>> getArticleById(
-    String articleId,
-  ) async {
+    String articleId, {
+    bool forceRefresh = false,
+  }) async {
     try {
-      final docSnapshot =
-          await firestore.collection('articles').doc(articleId).get();
+      // Servir desde caché solo si no se fuerza refresco.
+      if (!forceRefresh && _articleCache.containsKey(articleId)) {
+        debugPrint(
+            '${fechaD('🧠')} ArticleRepositoryImpl: getArticleById -> Servido desde CACHÉ: $articleId');
+        return Right(_articleCache[articleId]!);
+      }
+
+      if (forceRefresh) {
+        debugPrint(
+            '🔄 ArticleRepositoryImpl: getArticleById -> forceRefresh, omitiendo caché: $articleId');
+        _articleCache.remove(articleId);
+      }
+
+      final docRef = firestore.collection('articles').doc(articleId);
+
+      // Paralelizar las 3 lecturas de Firestore en lugar de hacerlas secuencialmente.
+      // Reduce la latencia de (t1 + t2 + t3) a max(t1, t2, t3).
+      final results = await Future.wait([
+        docRef.get(),
+        docRef.collection('sections').orderBy('order').get(),
+        // docRef.collection('additionalInfo').doc('info').get(),
+      ]);
+
+      final docSnapshot = results[0] as DocumentSnapshot;
+      final sectionsSnapshot = results[1] as QuerySnapshot;
+      // final additionalInfoSnapshot = results[2] as DocumentSnapshot;
+
       if (docSnapshot.exists) {
-        return Right(ArticleModel.fromFirestore(docSnapshot));
+        final article = ArticleModel.fromFirestore(
+          docSnapshot,
+          sectionsDocs: sectionsSnapshot.docs,
+          // additionalInfoDoc: additionalInfoSnapshot,
+        );
+
+        // Guardar en caché
+        _articleCache[articleId] = article;
+
+        return Right(article);
       } else {
         return Left(
             ServerFailure('No se encontró el artículo con ID: $articleId'));
@@ -364,27 +424,51 @@ class ArticleRepositoryImpl implements ArticleRepository {
               (currentData['modifiedAt'] as Timestamp).toDate();
 
           // Comparamos permitiendo una pequeña diferencia por la precisión de Firestore
+          // Relajamos a 500ms para evitar problemas de micro-discrepancias entre raíz y subcolecciones
           if (currentModifiedAt
                   .difference(expectedModifiedAt)
                   .inMilliseconds
                   .abs() >
-              100) {
+              500) {
+            debugPrint(
+                '${fechaD('💥')} ArticleRepositoryImpl -> updateArticle: currentModifiedAt  = $currentModifiedAt');
+            debugPrint(
+                '${fechaD('💥')} ArticleRepositoryImpl -> updateArticle: expectedModifiedAt = $expectedModifiedAt');
             throw ConcurrencyException();
           }
         }
 
         final articleModel = ArticleModel.fromEntity(articleToUpdate);
         final dataToUpdate = articleModel.toFirestore();
-        // Forzamos el timestamp del servidor para la nueva modificación
+
+        // Sincronizamos modifiedAt en la raíz con el servidor
         dataToUpdate['modifiedAt'] = FieldValue.serverTimestamp();
 
         transaction.update(docRef, dataToUpdate);
+
+        // Actualizar secciones
+        final sectionsRef = docRef.collection('sections');
+        for (final section in articleModel.sectionsToFirestore()) {
+          final sId = section['id'] as String;
+          transaction.set(sectionsRef.doc(sId.isEmpty ? null : sId), section);
+        }
+
+        // Actualizar additionalInfo
+        // final infoDoc = articleModel.additionalInfoToFirestore();
+        // infoDoc['modifiedAt'] = FieldValue.serverTimestamp();
+        // transaction.set(docRef.collection('additionalInfo').doc('info'),
+        //     infoDoc, SetOptions(merge: true));
       });
 
-      // Recargamos para devolver la entidad con el timestamp real del servidor
-      final updatedDoc =
-          await firestore.collection('articles').doc(article.id).get();
-      return Right(ArticleModel.fromFirestore(updatedDoc));
+      // Limpiar caché para forzar recarga fresca en la próxima lectura
+      _articleCache.remove(article.id);
+
+      // Recargamos el artículo completo para devolver la entidad actualizada
+      final refreshed = await getArticleById(article.id);
+      return refreshed.fold(
+        (failure) => Left(failure),
+        (updatedArticle) => Right(updatedArticle),
+      );
     } on ConcurrencyException catch (_) {
       return Left(ConcurrencyFailure());
     } catch (e) {
@@ -413,7 +497,18 @@ class ArticleRepositoryImpl implements ArticleRepository {
         }
       }
 
-      await firestore.collection('articles').doc(articleId).delete();
+      // 3. Delete sections subcollection
+      final articleRef = firestore.collection('articles').doc(articleId);
+      final sectionsSnapshot = await articleRef.collection('sections').get();
+      for (final doc in sectionsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // 4. Delete additional info
+      await articleRef.collection('additionalInfo').doc('info').delete();
+
+      // 5. Delete main document
+      await articleRef.delete();
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure('Error al borrar el artículo: $e'));
@@ -440,7 +535,8 @@ class ArticleRepositoryImpl implements ArticleRepository {
           .toList();
       return Right(categories);
     } catch (e) {
-      debugPrint('🗑️ ArticleRepositoryImpl: getCategories ➡️ EXCEPTION: $e');
+      debugPrint(
+          '${fechaD('🗑️')} ArticleRepositoryImpl: getCategories ➡️ EXCEPTION: $e');
       return Left(ServerFailure('Error al obtener las categorías: $e'));
     }
   }
@@ -471,7 +567,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
       return Right(subcategories);
     } catch (e) {
       debugPrint(
-          '🗑️ ArticleRepositoryImpl: getSubcategories ➡️ EXCEPTION: $e');
+          '${fechaD('🗑️')} ArticleRepositoryImpl: getSubcategories ➡️ EXCEPTION: $e');
       return Left(ServerFailure('Error al obtener las subcategorías: $e'));
     }
   }
@@ -504,9 +600,23 @@ class ArticleRepositoryImpl implements ArticleRepository {
 
       return Right(articles);
     } catch (e) {
-      debugPrint('🚨 ERROR en getArticlesForNotification: $e');
+      debugPrint(
+          '${fechaD('🚨')} ArticleRepositoryImpl: getArticlesForNotification ➡️ EXCEPTION: $e');
       return Left(
           ServerFailure('Error al obtener artículos para notificación: $e'));
+    }
+  }
+
+  @override
+  Future<void> prefetchArticles(List<String> articleIds) async {
+    for (final id in articleIds) {
+      if (!_articleCache.containsKey(id)) {
+        debugPrint(
+            '${fechaD('🚀')} ArticleRepositoryImpl: PREFETCHING article $id');
+        // No esperamos (await) individualmente para que sea paralelo,
+        // pero lo hacemos de forma que no bloquee.
+        getArticleById(id);
+      }
     }
   }
 }

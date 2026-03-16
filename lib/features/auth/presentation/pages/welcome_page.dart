@@ -109,7 +109,7 @@ class WelcomePage extends StatelessWidget {
                       onTap: () => _navigateToRegister(context),
                     ),
 
-                    const SizedBox(height: AppTheme.spaceXl),
+                    const SizedBox(height: AppTheme.spaceXxl),
                   ],
                 ),
               ),

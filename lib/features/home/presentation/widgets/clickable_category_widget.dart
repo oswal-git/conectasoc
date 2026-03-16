@@ -1,3 +1,4 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ClickableCategoryWidget extends StatelessWidget {
@@ -13,11 +14,8 @@ class ClickableCategoryWidget extends StatelessWidget {
       onTap: onTap,
       child: Text(
         name,
-        style: TextStyle(
-          fontSize: 10.0,
-          color: Theme.of(context).primaryColor,
-          decoration: TextDecoration.underline,
-        ),
+        style: AppTheme.articleCategory(context)
+            .copyWith(decoration: TextDecoration.underline),
       ),
     );
   }

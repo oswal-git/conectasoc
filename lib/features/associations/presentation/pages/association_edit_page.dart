@@ -351,7 +351,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(PhoneChanged(value));
             },
           ),
-          const SizedBox(height: AppTheme.spaceXl),
+          const SizedBox(height: AppTheme.spaceXxl),
         ],
       ),
     );

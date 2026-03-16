@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/core/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -141,16 +142,16 @@ class _ConectaSocAppState extends State<ConectaSocApp> {
           if (langCode != null && langCode.isNotEmpty) {
             try {
               debugPrint(
-                  '👌 _ConectaSocAppState -> build: creating Locale for language code: "$langCode"');
+                  '${fechaD('👌')} _ConectaSocAppState -> build: creating Locale for language code: "$langCode"');
               userLocale = Locale(langCode);
             } catch (e) {
               debugPrint(
-                  '💥 _ConectaSocAppState -> build: Error creating Locale for language code "$langCode": $e');
+                  '${fechaD('💥')} _ConectaSocAppState -> build: Error creating Locale for language code "$langCode": $e');
               userLocale = const Locale('es');
             }
           } else {
             debugPrint(
-                '❌ _ConectaSocAppState -> build: Error creating Locale for language code NULL');
+                '${fechaD('❌')} _ConectaSocAppState -> build: Error creating Locale for language code NULL');
             userLocale = const Locale('es');
           }
           return MaterialApp.router(

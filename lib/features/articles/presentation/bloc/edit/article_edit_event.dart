@@ -69,7 +69,14 @@ class ExpirationDateChanged extends ArticleEditEvent {
   List<Object?> get props => [date];
 }
 
-class PrepareArticleCreation extends ArticleEditEvent {}
+class PrepareArticleCreation extends ArticleEditEvent {
+  final String associationShortName;
+
+  const PrepareArticleCreation({this.associationShortName = ''});
+
+  @override
+  List<Object?> get props => [associationShortName];
+}
 
 class SaveArticle extends ArticleEditEvent {
   // El archivo de la imagen de portada, si se ha seleccionado uno nuevo.
@@ -150,17 +157,16 @@ class TogglePreviewMode extends ArticleEditEvent {
   const TogglePreviewMode();
 }
 
-/// Actualiza (o elimina) el documento enlazado al artículo completo.
-///
-/// Pasar [documentLink] = null para eliminar el enlace.
-class UpdateArticleDocumentLink extends ArticleEditEvent {
-  final DocumentLinkEntity? documentLink;
-
-  const UpdateArticleDocumentLink(this.documentLink);
-
-  @override
-  List<Object?> get props => [documentLink];
-}
+// UpdateArticleDocumentLink eliminado — documentLink a nivel raíz ya no se usa.
+// Si se necesita recuperar en el futuro, descomentar:
+// /// Actualiza (o elimina) el documento enlazado al artículo completo.
+// /// Pasar [documentLink] = null para eliminar el enlace.
+// class UpdateArticleDocumentLink extends ArticleEditEvent {
+//   final DocumentLinkEntity? documentLink;
+//   const UpdateArticleDocumentLink(this.documentLink);
+//   @override
+//   List<Object?> get props => [documentLink];
+// }
 
 /// Actualiza (o elimina) el documento enlazado de una sección concreta.
 ///

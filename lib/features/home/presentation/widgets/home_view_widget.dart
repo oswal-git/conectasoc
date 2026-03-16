@@ -1,3 +1,4 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/features/home/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,23 +31,16 @@ class HomeViewWidgetState extends State<HomeViewWidget> {
                 maintainState: true,
                 child: SearchFieldWidget(
                   height: 40.0,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 20,
-                  ),
-                  fillColor: const Color.fromARGB(255, 233, 236, 231),
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                  borderRadius: 8.0,
+                  contentPadding: AppTheme.paddingSearch,
+                  fillColor: AppTheme.neutralBg,
+                  textStyle: AppTheme.searchFieldText(context),
+                  borderRadius: AppTheme.borderRadiusSearch,
                 ),
               ),
               Visibility(
                 visible: state.showFilter,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
+                  padding: AppTheme.paddingFilter,
                   child: const CategoryFilterBarWidget(),
                 ),
               ),

@@ -33,6 +33,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       await firestore.collection('users').doc(userId).update({
         // Usar notación de punto para actualizar un campo dentro de un mapa
         'memberships.$associationId': role,
+        'dateUpdated': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (e) {
       throw ServerException(
@@ -47,6 +48,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     try {
       await firestore.collection('users').doc(userId).update({
         'memberships.$associationId': FieldValue.delete(),
+        'dateUpdated': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (e) {
       throw ServerException(

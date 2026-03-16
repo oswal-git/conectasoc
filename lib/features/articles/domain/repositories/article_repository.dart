@@ -40,7 +40,10 @@ abstract class ArticleRepository {
     List<String>? sectionImages,
   });
 
-  Future<Either<Failure, ArticleEntity>> getArticleById(String articleId);
+  Future<Either<Failure, ArticleEntity>> getArticleById(
+    String articleId, {
+    bool forceRefresh = false,
+  });
 
   Future<Either<Failure, ArticleEntity>> updateArticle(
     ArticleEntity article, {
@@ -54,4 +57,6 @@ abstract class ArticleRepository {
     required DateTime lastNotified,
     required List<String> associationIds,
   });
+
+  Future<void> prefetchArticles(List<String> articleIds);
 }

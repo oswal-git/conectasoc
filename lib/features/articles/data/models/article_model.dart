@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
-import 'package:conectasoc/features/documents/domain/entities/document_link_entity.dart';
 
 // Hereda de ArticleEntity para reutilizar la lógica de negocio y la igualdad.
 class ArticleModel extends ArticleEntity {
@@ -8,17 +7,17 @@ class ArticleModel extends ArticleEntity {
     required super.id,
     required super.title,
     required super.abstractContent,
-    required super.coverUrl,
-    required super.categoryId,
+    super.coverUrl = '',
     required super.categoryName,
+    required super.categoryId,
     required super.subcategoryId,
     required super.subcategoryName,
     required super.publishDate,
     required super.effectiveDate,
     super.expirationDate,
-    super.status,
+    super.status = ArticleStatus.redaccion,
     super.fechaNotificacion,
-    required super.sections,
+    super.sections = const [],
     required super.userId,
     required super.assocId,
     required super.authorName,
@@ -26,12 +25,29 @@ class ArticleModel extends ArticleEntity {
     required super.originalLanguage,
     required super.createdAt,
     required super.modifiedAt,
-    super.documentLink,
+    super.isTranslated,
   });
 
-  // Convierte un documento de Firestore en un ArticleModel
-  factory ArticleModel.fromFirestore(DocumentSnapshot doc) {
+  factory ArticleModel.fromFirestore(
+    DocumentSnapshot doc, {
+    List<QueryDocumentSnapshot>? sectionsDocs,
+  }) {
     final data = doc.data() as Map<String, dynamic>;
+
+    final sections = sectionsDocs
+            ?.map((s) =>
+                ArticleSection.fromJson(s.data() as Map<String, dynamic>))
+            .toList() ??
+        [];
+
+    final createdAtRaw = data['createdAt'];
+    final modifiedAtRaw = data['modifiedAt'];
+
+    final createdAt =
+        (createdAtRaw is Timestamp) ? createdAtRaw.toDate() : DateTime.now();
+    final modifiedAt =
+        (modifiedAtRaw is Timestamp) ? modifiedAtRaw.toDate() : DateTime.now();
+
     return ArticleModel(
       id: doc.id,
       title: data['title'] ?? '',
@@ -41,27 +57,18 @@ class ArticleModel extends ArticleEntity {
       categoryName: data['categoryName'] ?? '',
       subcategoryId: data['subcategoryId'] ?? '',
       subcategoryName: data['subcategoryName'] ?? '',
-      publishDate: (data['publishDate'] as Timestamp).toDate(),
-      effectiveDate: (data['effectiveDate'] as Timestamp).toDate(),
+      publishDate: data['publishDate'] != null
+          ? (data['publishDate'] as Timestamp).toDate()
+          : DateTime.now(),
+      effectiveDate: data['effectiveDate'] != null
+          ? (data['effectiveDate'] as Timestamp).toDate()
+          : DateTime.now(),
       expirationDate: data['expirationDate'] != null
           ? (data['expirationDate'] as Timestamp).toDate()
           : null,
-      sections: (data['sections'] as List<dynamic>?)
-              ?.map((s) => ArticleSection(
-                    id: s['id'] ?? '',
-                    imageUrl: s['imageUrl'],
-                    richTextContent: s['richTextContent'],
-                    order: s['order'] ?? 0,
-                    // ✨ Parsear documentLink de la sección
-                    documentLink: s['documentLink'] != null
-                        ? DocumentLinkEntity.fromJson(
-                            s['documentLink'] as Map<String, dynamic>)
-                        : null,
-                  ))
-              .toList() ??
-          [],
+      sections: sections,
       userId: data['userId'] ?? '',
-      assocId: data['assocId'] ?? '', // Asegura que nunca sea nulo
+      assocId: data['assocId'] ?? '',
       authorName: data['authorName'] ?? '',
       associationShortName: data['associationShortName'] ?? '',
       originalLanguage: data['originalLanguage'] ?? 'es',
@@ -69,12 +76,8 @@ class ArticleModel extends ArticleEntity {
       fechaNotificacion: data['fechaNotificacion'] != null
           ? (data['fechaNotificacion'] as Timestamp).toDate()
           : null,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      modifiedAt: (data['modifiedAt'] as Timestamp).toDate(),
-      documentLink: data['documentLink'] != null
-          ? DocumentLinkEntity.fromJson(
-              data['documentLink'] as Map<String, dynamic>)
-          : null,
+      createdAt: createdAt,
+      modifiedAt: modifiedAt,
     );
   }
 
@@ -102,11 +105,10 @@ class ArticleModel extends ArticleEntity {
       fechaNotificacion: entity.fechaNotificacion,
       createdAt: entity.createdAt,
       modifiedAt: entity.modifiedAt,
-      documentLink: entity.documentLink,
     );
   }
 
-  // Convierte un ArticleModel en un mapa para guardarlo en Firestore
+  // Convierte un ArticleModel en un mapa LIGERO para el documento principal en Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'title': title,
@@ -120,36 +122,46 @@ class ArticleModel extends ArticleEntity {
       'effectiveDate': Timestamp.fromDate(effectiveDate),
       'expirationDate':
           expirationDate != null ? Timestamp.fromDate(expirationDate!) : null,
-      'sections': sections
-          .map((s) => {
-                'id': s.id,
-                'imageUrl': s.imageUrl,
-                'richTextContent': s.richTextContent,
-                'order': s.order,
-                'documentLink': s.documentLink?.toJson(),
-              })
-          .toList(),
+      'status': status.value,
+      'fechaNotificacion': fechaNotificacion != null
+          ? Timestamp.fromDate(fechaNotificacion!)
+          : null,
       'userId': userId,
       'assocId': assocId,
       'authorName': authorName,
       'associationShortName': associationShortName,
       'originalLanguage': originalLanguage,
-      'status': status.value,
-      'fechaNotificacion': fechaNotificacion != null
-          ? Timestamp.fromDate(fechaNotificacion!)
-          : null,
       'createdAt': Timestamp.fromDate(createdAt),
       'modifiedAt': Timestamp.fromDate(modifiedAt),
-      'documentLink': documentLink?.toJson(),
-      // Campo para búsquedas de texto. Se convierte el título y el resumen
-      // en un array de palabras en minúsculas para poder usar 'array-contains'.
-      'searchText':
-          '${title.toLowerCase()} ${abstractContent.toLowerCase()} ${sections.map((s) => s.richTextContent?.toLowerCase() ?? '').join(' ')}'
-              .split(RegExp(r'\s+'))
-              .where((s) => s.isNotEmpty)
-              .toSet() // Elimina duplicados
-              .toList(),
+      // searchText optimizado para listado
+      'searchText': _generateSearchText(),
     };
+  }
+
+  // Genera los datos para la subcolección 'sections'
+  List<Map<String, dynamic>> sectionsToFirestore() {
+    return sections
+        .map((s) => {
+              'id': s.id,
+              'imageUrl': s.imageUrl,
+              'richTextContent': s.richTextContent,
+              'order': s.order,
+              'documentLink': s.documentLink?.toJson(),
+            })
+        .toList();
+  }
+
+  // Genera los datos para la subcolección 'additionalInfo'
+  // Map<String, dynamic> additionalInfoToFirestore() {
+  //   return {};
+  // }
+
+  List<String> _generateSearchText() {
+    return '${title.toLowerCase()} ${abstractContent.toLowerCase()}'
+        .split(RegExp(r'\s+'))
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .toList();
   }
 
   // Added for consistency with fromJson in ArticleEntity, useful for local storage
@@ -168,9 +180,14 @@ class ArticleModel extends ArticleEntity {
       'expirationDate': expirationDate?.toIso8601String(),
       'status': status.value,
       'fechaNotificacion': fechaNotificacion?.toIso8601String(),
+      'sections': sections.map((s) => s.toJson()).toList(),
+      'userId': userId,
+      'assocId': assocId,
+      'authorName': authorName,
+      'associationShortName': associationShortName,
+      'originalLanguage': originalLanguage,
       'createdAt': createdAt.toIso8601String(),
       'modifiedAt': modifiedAt.toIso8601String(),
-      'documentLink': documentLink?.toJson(),
     };
   }
 
@@ -197,10 +214,9 @@ class ArticleModel extends ArticleEntity {
     String? originalLanguage,
     DateTime? createdAt,
     DateTime? modifiedAt,
-    DocumentLinkEntity? documentLink,
-    bool clearDocumentLink = false,
     bool clearExpirationDate = false,
     bool clearFechaNotificacion = false,
+    bool? isTranslated,
   }) {
     return ArticleModel(
       id: id ?? this.id,
@@ -227,8 +243,7 @@ class ArticleModel extends ArticleEntity {
       originalLanguage: originalLanguage ?? this.originalLanguage,
       createdAt: createdAt ?? this.createdAt,
       modifiedAt: modifiedAt ?? this.modifiedAt,
-      documentLink:
-          clearDocumentLink ? null : (documentLink ?? this.documentLink),
+      isTranslated: isTranslated ?? this.isTranslated,
     );
   }
 }

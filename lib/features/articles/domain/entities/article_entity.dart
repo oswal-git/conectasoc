@@ -1,5 +1,4 @@
 import 'package:conectasoc/features/articles/domain/entities/entities.dart';
-import 'package:conectasoc/features/documents/domain/entities/document_link_entity.dart';
 import 'package:equatable/equatable.dart';
 
 enum ArticleStatus {
@@ -39,7 +38,7 @@ class ArticleEntity extends Equatable {
   final ArticleStatus status;
   final DateTime? fechaNotificacion; // Fecha en que se marcó para notificar
   final List<ArticleSection> sections; // List of sections
-  final DocumentLinkEntity? documentLink;
+  final bool? isTranslated;
 
   // Metadata
   final String userId; // Creator's UID
@@ -72,7 +71,7 @@ class ArticleEntity extends Equatable {
     required this.originalLanguage,
     required this.createdAt,
     required this.modifiedAt,
-    this.documentLink,
+    this.isTranslated = true,
   });
 
   @override
@@ -98,7 +97,7 @@ class ArticleEntity extends Equatable {
         originalLanguage,
         createdAt,
         modifiedAt,
-        documentLink,
+        isTranslated,
       ];
 
   // Constructor 'empty' para la creación de nuevos artículos
@@ -126,7 +125,7 @@ class ArticleEntity extends Equatable {
       originalLanguage: 'es',
       createdAt: now,
       modifiedAt: now, // Default status is 'redaccion'
-      documentLink: null,
+      isTranslated: true,
     );
   }
 
@@ -160,9 +159,6 @@ class ArticleEntity extends Equatable {
       originalLanguage: json['originalLanguage'] ?? 'es',
       createdAt: DateTime.parse(json['createdAt']),
       modifiedAt: DateTime.parse(json['modifiedAt']),
-      documentLink: json['documentLink'] != null
-          ? DocumentLinkEntity.fromJson(json['documentLink'])
-          : null,
     );
   }
 
@@ -188,10 +184,9 @@ class ArticleEntity extends Equatable {
     String? originalLanguage,
     DateTime? createdAt,
     DateTime? modifiedAt,
-    DocumentLinkEntity? documentLink,
-    bool clearDocumentLink = false,
     bool clearExpirationDate = false,
     bool clearFechaNotificacion = false,
+    bool? isTranslated,
   }) {
     return ArticleEntity(
       id: id ?? this.id,
@@ -218,8 +213,7 @@ class ArticleEntity extends Equatable {
       originalLanguage: originalLanguage ?? this.originalLanguage,
       createdAt: createdAt ?? this.createdAt,
       modifiedAt: modifiedAt ?? this.modifiedAt,
-      documentLink:
-          clearDocumentLink ? null : (documentLink ?? this.documentLink),
+      isTranslated: isTranslated ?? this.isTranslated,
     );
   }
 }

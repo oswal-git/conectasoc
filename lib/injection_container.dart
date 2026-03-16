@@ -260,6 +260,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateArticleUseCase(sl()));
   sl.registerLazySingleton(() => UpdateArticleUseCase(sl()));
   sl.registerLazySingleton(() => DeleteArticleUseCase(sl()));
+  sl.registerLazySingleton(() => PrefetchArticlesUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<ArticleRepository>(

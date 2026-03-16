@@ -41,12 +41,18 @@ abstract final class AppTheme {
   // Image icon
   static const Color imageIconHint = Color.fromARGB(255, 126, 125, 125);
 
+  // Article Status
+  static const Color redaccion = Color(0xFFE3F2FD);
+  static const Color revision = Color(0xFFFFFDE7);
+  static const Color expirado = Color(0xFFFFF3E0);
+  static const Color anulado = Color(0xFFFFEBEE);
+
   // Status
   static const Color error = Colors.red;
   static const Color success = Colors.green;
   static const Color warning = Colors.orange;
 
-// Info banner (blue tints)
+// Info banner (blue tints) 0xFFFFFDE7
   static const Color infoBg = Color(0xFFE3F2FD); // blue.shade50
   static const Color infoBorder = secondary; // blue.shade200
   static const Color infoIcon = primary; // blue.shade700
@@ -83,8 +89,14 @@ abstract final class AppTheme {
   /// Separación pequeña — 8 px
   static const double spaceXs = 8;
 
+  /// Separación estándar — 12 px
+  static const double spaceSsm = 12;
+
   /// Separación estándar — 16 px
   static const double spaceSm = 16;
+
+  /// Separación entre elementos — 20 px
+  static const double spaceMmd = 20;
 
   /// Separación entre elementos — 24 px
   static const double spaceMd = 24;
@@ -95,11 +107,21 @@ abstract final class AppTheme {
   /// 40 px — espacio superior en páginas de bienvenida
   static const double spaceTop = 20;
 
+  /// 44 px — separación grande
+  static const double spaceXl = 44;
+
   /// 48 px — separación extra grande (fin de formulario)
-  static const double spaceXl = 48;
+  static const double spaceXxl = 48;
 
   /// 60 px — espacio previo a secciones principales (welcome)
   static const double spaceSection = 30;
+
+  // ════════════════════════════════════════════
+  //  CONATINER SIZE TOKENS
+  // ════════════════════════════════════════════
+
+  static const double containerWidth = 90;
+  static const double containerHeight = 90;
 
   // ════════════════════════════════════════════
   //  BORDER RADIUS TOKENS
@@ -108,6 +130,11 @@ abstract final class AppTheme {
   static const double radiusDefault = 12;
   static const BorderRadius borderRadiusDefault =
       BorderRadius.all(Radius.circular(radiusDefault));
+
+  /// Radio para búsqueda
+  static const double radiusSearch = 8;
+  static const BorderRadius borderRadiusSearch =
+      BorderRadius.all(Radius.circular(radiusSearch));
 
   /// Radio para tarjetas de bienvenida / modo card
   static const double radiusCard = 16;
@@ -204,6 +231,15 @@ abstract final class AppTheme {
   //  PADDING HELPERS
   // ════════════════════════════════════════════
 
+  /// Card content margin
+  static const EdgeInsets margingCard =
+      EdgeInsets.symmetric(horizontal: spaceXs, vertical: spaceXxs);
+
+  /// Card content padding
+  static const EdgeInsets paddingCard = EdgeInsets.all(spaceXxs);
+  static const EdgeInsets paddingCardHorizontal =
+      EdgeInsets.symmetric(horizontal: spaceXxs);
+
   /// Input content padding
   static const EdgeInsets paddingInput =
       EdgeInsets.symmetric(horizontal: spaceSm, vertical: spaceXs);
@@ -214,7 +250,7 @@ abstract final class AppTheme {
 
   /// Small / debug button padding
   static const EdgeInsets paddingButtonSmall =
-      EdgeInsets.symmetric(horizontal: 12, vertical: spaceXs);
+      EdgeInsets.symmetric(horizontal: spaceSsm, vertical: spaceXs);
 
   /// General container padding
   static const EdgeInsets paddingPage = EdgeInsets.all(spaceMd);
@@ -225,6 +261,23 @@ abstract final class AppTheme {
   /// Padding compacto para dropdowns en modo filtro / dense
   static const EdgeInsets paddingDropdownDense =
       EdgeInsets.symmetric(horizontal: 10, vertical: spaceXs);
+
+  /// Padding search and filter widget
+  static const EdgeInsets paddingSearchAndFilterWidget = EdgeInsets.only(
+      top: spaceXxs, bottom: spaceXxs, left: spaceXs, right: spaceXs);
+  static const EdgeInsets paddingSearch = EdgeInsets.only(
+      top: spaceSsm, bottom: spaceSsm, left: spaceMmd, right: spaceMmd);
+  static const EdgeInsets paddingFilter = EdgeInsets.only(top: spaceXxs);
+
+  /// Padding final
+  static const EdgeInsets paddingOnlyRight = EdgeInsets.only(right: spaceXxs);
+  static const EdgeInsets paddingOnlyLeft = EdgeInsets.only(left: spaceXs);
+  static const EdgeInsets paddingHorizontalXxs =
+      EdgeInsets.symmetric(horizontal: spaceXxs);
+  static const EdgeInsets paddingHorizontalXs =
+      EdgeInsets.symmetric(horizontal: spaceXs);
+  static const EdgeInsets paddingHorizontalSm =
+      EdgeInsets.symmetric(horizontal: spaceSm);
 
   // ════════════════════════════════════════════
   //  TEXT WEIGHT TOKENS
@@ -417,6 +470,21 @@ abstract final class AppTheme {
             fontSize: 24,
           );
 
+  /// Abstract del artículo
+  static TextStyle articleAbstract(BuildContext context) =>
+      Theme.of(context).textTheme.bodyLarge!.copyWith(
+            fontSize: 12,
+            height: 1.3,
+            color: neutralTextDark,
+          );
+
+  /// Categoría y subcategoría del artículo
+  static TextStyle articleCategory(BuildContext context) =>
+      Theme.of(context).textTheme.bodySmall!.copyWith(
+            fontSize: 10,
+            color: primary,
+          );
+
   /// Cuerpo / contenido del artículo
   static TextStyle articleBody(BuildContext context) =>
       Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -476,6 +544,21 @@ abstract final class AppTheme {
   static const TextStyle destructiveAction = TextStyle(
     color: error,
   );
+
+  // ── Serach and filter ────────────────
+  /// Texto de botón o acción destructiva (eliminar, descartar)
+
+  static TextStyle searchFieldText(BuildContext context) =>
+      Theme.of(context).textTheme.headlineMedium!.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.normal,
+          );
+  static TextStyle filterFieldText(BuildContext context) =>
+      Theme.of(context).textTheme.bodyLarge!.copyWith(
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: onDarkPrimary,
+          );
 
   // ════════════════════════════════════════════
   //  COMPONENT THEMES

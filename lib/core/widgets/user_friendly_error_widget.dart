@@ -1,4 +1,5 @@
 import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/core/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 
@@ -29,7 +30,7 @@ class _UserFriendlyErrorWidgetState extends State<UserFriendlyErrorWidget> {
     super.initState();
     _isExpanded = widget.showDetailsInitially;
     debugPrint(
-        '🧪 UserFriendlyErrorWidget: initState ✅ errorMessage: ${widget.errorMessage}');
+        '${fechaD('🧪')} UserFriendlyErrorWidget: initState ✅ errorMessage: ${widget.errorMessage}');
   }
 
   @override
