@@ -1,5 +1,6 @@
 // lib/features/home/presentation/widgets/association_provider.dart
 
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -66,18 +67,19 @@ class _AssociationProviderWidgetState extends State<AssociationProviderWidget> {
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: AppTheme.paddingContainer,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const Icon(Icons.error_outline,
+                  color: AppTheme.error, size: AppTheme.iconSizeError),
               const SizedBox(height: 16),
               Text(
                 l10n.errorLoadingAssociations(_error ?? ''),
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 16),
               ),
-              const SizedBox(height: 24),
+              AppTheme.sizedBoxHeightSeparatorMd,
               ElevatedButton.icon(
                 onPressed: _loadAssociations,
                 icon: const Icon(Icons.refresh),

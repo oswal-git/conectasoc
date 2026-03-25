@@ -86,11 +86,11 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       }
     } catch (e) {
       if (!e.toString().contains('permission-denied')) {
-        debugPrint('❌ UserRemoteDataSourceImpl: getUserById -> Error: $e');
+        debugPrint('❌ UserRemoteDataSourceImpl: getUserById ($userId) -> Error: $e');
       }
       debugPrint(
-          '❌ UserRemoteDataSourceImpl: getUserById (ServerException) -> Error: $e');
-      throw ServerException('Error obteniendo usuario por ID: ${e.toString()}');
+          '❌ UserRemoteDataSourceImpl: getUserById ($userId) (ServerException) -> Error: $e');
+      throw ServerException('Error obteniendo usuario por ID ($userId): ${e.toString()}');
     }
   }
 

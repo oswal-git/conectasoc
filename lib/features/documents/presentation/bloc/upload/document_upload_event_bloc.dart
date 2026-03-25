@@ -16,16 +16,19 @@ class InitializeUpload extends DocumentUploadEvent {
   final String categoryId;
   final String subcategoryId;
   final String userId;
+  final String userName;
 
   const InitializeUpload({
     required this.associationId,
     required this.categoryId,
     required this.subcategoryId,
     required this.userId,
+    required this.userName,
   });
 
   @override
-  List<Object?> get props => [associationId, categoryId, subcategoryId, userId];
+  List<Object?> get props =>
+      [associationId, categoryId, subcategoryId, userId, userName];
 }
 
 /// User selected a file from device

@@ -3,6 +3,7 @@ import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
@@ -90,11 +91,11 @@ class _UserEditViewState extends State<_UserEditView> {
         content: Text(l10n.unsavedChangesMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
+            onPressed: () => context.pop(false),
             child: Text(l10n.continueEditing),
           ),
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
+            onPressed: () => context.pop(true),
             child: Text(
               l10n.discardChanges,
               style: const TextStyle(color: Colors.red),
@@ -116,12 +117,12 @@ class _UserEditViewState extends State<_UserEditView> {
         content: Text(l10n.confirmSaveMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
+            onPressed: () => context.pop(),
             child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(dialogContext).pop();
+              context.pop();
               context.read<UserEditBloc>().add(SaveUserChanges());
             },
             child: Text(l10n.save),
@@ -141,7 +142,7 @@ class _UserEditViewState extends State<_UserEditView> {
 
         final shouldPop = await _onWillPop();
         if (shouldPop && context.mounted) {
-          Navigator.of(context).pop(result);
+          context.pop(result);
         }
       },
       child: Scaffold(
@@ -157,7 +158,7 @@ class _UserEditViewState extends State<_UserEditView> {
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2,
+                              strokeWidth: AppTheme.loadingStrokeWidth,
                               color: Colors.white,
                             ),
                           )
@@ -182,7 +183,7 @@ class _UserEditViewState extends State<_UserEditView> {
               _hasUnsavedChanges = false;
             });
             SnackBarService.showSnackBar(l10n.changesSavedSuccessfully);
-            Navigator.of(context).pop();
+            context.pop();
           } else if (state is UserEditFailure) {
             SnackBarService.showSnackBar(state.message, isError: true);
           }
@@ -647,7 +648,7 @@ class _MembershipSection extends StatelessWidget {
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
+                onPressed: () => context.pop(),
                 child: Text(l10n.cancel)),
             ElevatedButton(
               onPressed: () {
@@ -656,7 +657,7 @@ class _MembershipSection extends StatelessWidget {
                   context
                       .read<UserEditBloc>()
                       .add(AddMembership(selectedAssociationId!, selectedRole));
-                  Navigator.of(dialogContext).pop();
+                  context.pop();
                 }
               },
               child: Text(l10n.add),

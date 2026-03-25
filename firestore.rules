@@ -12,31 +12,36 @@ service cloud.firestore {
     }
     
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userPath) ? get(userPath).data : {"memberships": {}};
     }
     
     function isSuperAdmin() {
+      let data = getUserData();
       return isSignedIn() && 
-             'memberships' in getUserData() &&
-             getUserData().memberships.get('superadmin_access', '') == 'superadmin';
+             'memberships' in data &&
+             data.memberships.get('superadmin_access', '') == 'superadmin';
     }
     
     function isAdmin(associationId) {
+      let data = getUserData();
       return isSignedIn() && 
-             'memberships' in getUserData() &&
-             getUserData().memberships.get(associationId, '') == 'admin';
+             'memberships' in data &&
+             data.memberships.get(associationId, '') == 'admin';
     }  
 
     function isEditor(associationId) {
+      let data = getUserData();
       return isSignedIn() && 
-             'memberships' in getUserData() &&
-             getUserData().memberships.get(associationId, '') == 'editor';
+             'memberships' in data &&
+             data.memberships.get(associationId, '') == 'editor';
     }
     
     function isMemberOf(associationId) {
+      let data = getUserData();
       return isSignedIn() &&
-             'memberships' in getUserData() &&
-             associationId in getUserData().memberships;
+             'memberships' in data &&
+             associationId in data.memberships;
     }
 
     // =========================================
@@ -56,6 +61,8 @@ service cloud.firestore {
         request.auth.uid == userId ||
         isSuperAdmin() ||
         (
+          resource != null && 
+          'memberships' in resource.data &&
           getUserData().memberships.keys().hasAny(resource.data.memberships.keys()) &&
           getUserData().memberships.values().hasAny(['admin', 'editor'])
         )

@@ -366,11 +366,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final newState = currentState.copyWith(
           selectedCategory: event.category,
           subcategories: subcategoriesToDisplay,
-          clearSelectedSubcategory: true, // Limpiar subcategoría explícitamente
+          selectedSubcategory: event.subcategory,
+          clearSelectedSubcategory: event.subcategory == null,
         );
 
         debugPrint(
-            'DEBUG: CategorySelected - Emitting new state with ${newState.subcategories.length} subcategories');
+            'DEBUG: CategorySelected - Emitting new state with ${newState.subcategories.length} subcategories and subcategory ${newState.selectedSubcategory?.name}');
         _applyFilters(emit, newState);
       },
     );

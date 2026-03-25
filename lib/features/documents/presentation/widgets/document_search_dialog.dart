@@ -2,6 +2,7 @@ import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/documents/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:conectasoc/features/documents/domain/entities/document_entity.dart';
 import 'package:conectasoc/features/documents/presentation/bloc/bloc.dart';
 import 'package:conectasoc/injection_container.dart';
@@ -132,7 +133,7 @@ class _DocumentSearchDialogContentState
               child: Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(null),
+                  onPressed: () => context.pop(null),
                   child: Text(l10n.cancel),
                 ),
               ),
@@ -162,7 +163,7 @@ class _DocumentSearchDialogContentState
           ),
           IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(null),
+            onPressed: () => context.pop(null),
           ),
         ],
       ),
@@ -337,7 +338,7 @@ class _DocumentSearchDialogContentState
           final doc = state.filteredDocuments[index];
           return _DocumentResultTile(
             document: doc,
-            onTap: () => Navigator.of(context).pop(doc),
+            onTap: () => context.pop(doc),
           );
         },
       ),

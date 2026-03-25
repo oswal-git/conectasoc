@@ -578,6 +578,10 @@ class ArticleRepositoryImpl implements ArticleRepository {
     required List<String> associationIds,
   }) async {
     try {
+      debugPrint(
+          '${fechaD('👌')} ArticleRepositoryImpl -> getArticlesForNotification: lastNotified = $lastNotified');
+      debugPrint(
+          '${fechaD('👌')} ArticleRepositoryImpl -> getArticlesForNotification: associationIds = $associationIds');
       // 1. Filtrar artículos publicados
       Query query = firestore
           .collection('articles')
@@ -594,9 +598,28 @@ class ArticleRepositoryImpl implements ArticleRepository {
           .orderBy('fechaNotificacion', descending: true);
 
       final snapshot = await query.get();
+      debugPrint(
+          '${fechaD('👌')} ArticleRepositoryImpl -> getArticlesForNotification: snapshot = $snapshot');
 
-      final articles =
-          snapshot.docs.map((doc) => ArticleModel.fromFirestore(doc)).toList();
+      final articles = snapshot.docs
+          .map((doc) => ArticleModel.fromFirestore(doc))
+          .where((article) {
+        // Filtro adicional para asegurar que la fecha es realmente mayor
+        final articleNotifDate = article.fechaNotificacion;
+        if (articleNotifDate == null) {
+          debugPrint('⚠️ Article ${article.id} has null fechaNotificacion');
+          return false;
+        }
+        final isAfter = articleNotifDate.isAfter(lastNotified);
+        if (!isAfter) {
+          debugPrint(
+              '⏭️ Skipping article ${article.id}: notifDate=$articleNotifDate <= lastNotified=$lastNotified');
+        }
+        return isAfter;
+      }).toList();
+
+      debugPrint(
+          '${fechaD('👌')} ArticleRepositoryImpl -> getArticlesForNotification: articles = $articles');
 
       return Right(articles);
     } catch (e) {

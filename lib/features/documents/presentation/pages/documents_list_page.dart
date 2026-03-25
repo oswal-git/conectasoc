@@ -1,3 +1,4 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -349,7 +350,6 @@ class _DocumentListTile extends StatelessWidget {
             '${RouteNames.home}/${RouteNames.documentView}'
                 .replaceFirst(':documentId', document.id),
           );
-          // Si la página de upload devuelve true (upload exitoso), refrescar
           if (result == true && context.mounted) {
             context.read<DocumentBloc>().add(const RefreshDocuments());
           }
@@ -416,13 +416,39 @@ class _DocumentListTile extends StatelessWidget {
                 ),
               ),
 
-              // Flecha
-              const Icon(Icons.chevron_right, color: Colors.grey),
+              // Acción: Editar o Ver
+              _buildTrailingAction(context),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildTrailingAction(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    bool canEdit = false;
+    if (authState is AuthAuthenticated) {
+      canEdit = authState.user.isSuperAdmin ||
+          authState.user.uid == document.uploadedBy;
+    }
+
+    if (canEdit) {
+      return IconButton(
+        icon: const Icon(Icons.edit, color: AppTheme.primary),
+        onPressed: () async {
+          final result = await context.pushNamed<bool>(
+            RouteNames.documentEdit,
+            extra: document,
+          );
+          if (result == true && context.mounted) {
+            context.read<DocumentBloc>().add(const RefreshDocuments());
+          }
+        },
+      );
+    }
+
+    return const Icon(Icons.chevron_right, color: Colors.grey);
   }
 
   Color _extensionColor(String ext) {

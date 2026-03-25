@@ -1,3 +1,4 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -39,15 +40,15 @@ class DocumentPickerWidget extends StatelessWidget {
         // Etiqueta de sección
         Row(
           children: [
-            const Icon(Icons.attach_file, size: 18),
-            const SizedBox(width: 6),
+            const Icon(Icons.attach_file, size: AppTheme.iconSizeSmall),
+            AppTheme.sizedBoxWidthIconBar,
             Text(
               l10n.linkDocument,
-              style: Theme.of(context).textTheme.titleSmall,
+              style: AppTheme.labelField(context),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        AppTheme.sizedBoxHeightSeparatorXs,
 
         // Documento ya enlazado
         if (currentDocumentLink != null)
@@ -83,35 +84,35 @@ class _LinkedDocumentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ext = documentLink.fileExtension.toLowerCase();
-    final color = _extensionColor(ext);
+    final extColor = _extensionColor(ext);
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: color.withAlpha(40)),
-        borderRadius: BorderRadius.circular(8),
-        color: color.withAlpha(50),
+        border: Border.all(color: extColor.withAlpha(40)),
+        borderRadius: AppTheme.borderRadiusDefault,
+        color: extColor.withAlpha(50),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Thumbnail
           ClipRRect(
-            borderRadius:
-                const BorderRadius.horizontal(left: Radius.circular(8)),
+            borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(AppTheme.radiusDefault)),
             child: SizedBox(
-              width: 56,
-              height: 72,
+              width: AppTheme.spaceBoxImageWidth,
+              height: AppTheme.spaceBoxImageHeigjt,
               child: documentLink.urlThumb.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: documentLink.urlThumb,
                       fit: BoxFit.cover,
                       errorWidget: (_, __, ___) =>
-                          _IconFallback(ext: ext, color: color),
+                          _IconFallback(ext: ext, color: extColor),
                       httpHeaders: {
                         'Cache-Control': 'max-age=86400', // 24 horas
                       },
                     )
-                  : _IconFallback(ext: ext, color: color),
+                  : _IconFallback(ext: ext, color: extColor),
             ),
           ),
 
@@ -135,14 +136,14 @@ class _LinkedDocumentCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: color.withAlpha(120),
+                      color: extColor.withAlpha(120),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       ext.toUpperCase(),
                       style: TextStyle(
                           fontSize: 10,
-                          color: color,
+                          color: extColor,
                           fontWeight: FontWeight.bold),
                     ),
                   ),

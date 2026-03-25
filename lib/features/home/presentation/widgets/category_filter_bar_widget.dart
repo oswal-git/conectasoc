@@ -31,7 +31,7 @@ class CategoryFilterBarWidget extends StatelessWidget {
       },
       builder: (context, state) {
         if (state is! HomeLoaded) {
-          return const SizedBox(height: 30);
+          return AppTheme.sizedBoxHeightWidget;
         }
 
         final loadedState = state;

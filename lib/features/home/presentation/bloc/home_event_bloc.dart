@@ -47,11 +47,12 @@ class SearchQueryChanged extends HomeEvent {
 
 class CategorySelected extends HomeEvent {
   final CategoryEntity category;
+  final SubcategoryEntity? subcategory;
 
-  const CategorySelected(this.category);
+  const CategorySelected(this.category, {this.subcategory});
 
   @override
-  List<Object> get props => [category];
+  List<Object?> get props => [category, subcategory];
 }
 
 class SubcategorySelected extends HomeEvent {

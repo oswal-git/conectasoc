@@ -56,7 +56,10 @@ class CloudinaryDocumentService {
     required String filename,
     required String associationId,
     required String categoryId,
+    required String categoryName,
     required String subcategoryId,
+    required String subcategoryName,
+    required String uploaderName,
   }) async {
     try {
       // Validar tamaño (máximo 25MB para documentos)
@@ -94,6 +97,9 @@ class CloudinaryDocumentService {
           filename: filename,
           folder: folder,
           preset: preset,
+          categoryName: categoryName,
+          subcategoryName: subcategoryName,
+          uploaderName: uploaderName,
         );
       } else {
         debugPrint(
@@ -103,6 +109,9 @@ class CloudinaryDocumentService {
           filename: filename,
           folder: folder,
           preset: preset,
+          categoryName: categoryName,
+          subcategoryName: subcategoryName,
+          uploaderName: uploaderName,
         );
       }
 
@@ -174,6 +183,9 @@ class CloudinaryDocumentService {
     required String filename,
     required String folder,
     required String preset,
+    required String categoryName,
+    required String subcategoryName,
+    required String uploaderName,
   }) async {
     try {
       // El endpoint raw es distinto al de imágenes
@@ -194,8 +206,12 @@ class CloudinaryDocumentService {
 
       // Tags para organización
       request.fields['tags'] = 'document,app:conectasoc';
+      request.fields['context'] =
+          'categoryName=$categoryName|subcategoryName=$subcategoryName|uploaderName=$uploaderName';
       debugPrint(
           '🧪 CloudinaryDocumentService: _uploadToCloudinaryRaw ✅ tags: document,app:conectasoc');
+      debugPrint(
+          '🧪 CloudinaryDocumentService: _uploadToCloudinaryRaw ✅ context: ${request.fields['context']}');
 
       // Aspose: convierte automáticamente docs Office a PDF en Cloudinary,
       // lo que permite aplicar transformaciones de imagen (pg_1) para thumbnails.
@@ -248,6 +264,9 @@ class CloudinaryDocumentService {
     required String filename,
     required String folder,
     required String preset,
+    required String categoryName,
+    required String subcategoryName,
+    required String uploaderName,
   }) async {
     try {
       final uri = Uri.parse(CloudinaryConfig.uploadUrlImage);
@@ -256,6 +275,8 @@ class CloudinaryDocumentService {
       request.fields['upload_preset'] = preset;
       request.fields['asset_folder'] = folder;
       request.fields['tags'] = 'document,app:conectasoc';
+      request.fields['context'] =
+          'categoryName=$categoryName|subcategoryName=$subcategoryName|uploaderName=$uploaderName';
 
       request.files.add(
         http.MultipartFile.fromBytes('file', fileBytes, filename: filename),
@@ -565,6 +586,59 @@ class CloudinaryDocumentService {
 
       return false;
     } catch (e) {
+      return false;
+    }
+  }
+
+  /// Actualizar metadatos (context) de un documento en Cloudinary
+  static Future<bool> updateDocumentMetadata({
+    required String publicId,
+    required bool isPdf,
+    required String categoryName,
+    required String subcategoryName,
+    required String uploaderName,
+  }) async {
+    try {
+      final resourceType = isPdf ? 'image' : 'raw';
+      final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final context =
+          'categoryName=$categoryName|subcategoryName=$subcategoryName|uploaderName=$uploaderName';
+
+      debugPrint(
+          '🧪 CloudinaryDocumentService: updateDocumentMetadata → context: $context');
+
+      final params = {
+        'context': context,
+        'public_id': publicId,
+        'timestamp': timestamp.toString(),
+        'type': 'upload',
+      };
+
+      final signature = _generateSignature(params);
+
+      final explicitUrl =
+          'https://api.cloudinary.com/v1_1/${CloudinaryConfig.cloudName}/$resourceType/explicit';
+
+      final response = await http.post(
+        Uri.parse(explicitUrl),
+        body: {
+          ...params,
+          'api_key': CloudinaryConfig.apiKey,
+          'signature': signature,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint(
+            '🧪 CloudinaryDocumentService: updateDocumentMetadata ✅ Éxito ($publicId)');
+        return true;
+      } else {
+        debugPrint(
+            '🧪 CloudinaryDocumentService: updateDocumentMetadata ❌ Fallo (${response.statusCode}): ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('🧪 CloudinaryDocumentService: updateDocumentMetadata ❌ Error: $e');
       return false;
     }
   }

@@ -88,10 +88,13 @@ class DocumentEntity extends Equatable {
   final bool canDownload; // Indica si se puede descargar
   final String associationId; // ID de la asociación ("Todas" para superadmin)
   final String categoryId; // ID de la categoría
+  final String categoryName; // ✨ NOMBRE de la categoría
   final String subcategoryId; // ID de la subcategoría
+  final String subcategoryName; // ✨ NOMBRE de la subcategoría
   final DateTime dateCreation;
   final DateTime dateModification;
   final String uploadedBy; // User ID del que subió el documento
+  final String uploaderName; // ✨ NOMBRE del que subió el documento
   final String fileName; // Nombre original del archivo
   final String fileExtension; // Extensión del archivo (pdf, docx, xlsx)
   final int fileSize; // Tamaño en bytes
@@ -106,10 +109,13 @@ class DocumentEntity extends Equatable {
     this.canDownload = true,
     required this.associationId,
     required this.categoryId,
+    required this.categoryName,
     required this.subcategoryId,
+    required this.subcategoryName,
     required this.dateCreation,
     required this.dateModification,
     required this.uploadedBy,
+    required this.uploaderName,
     required this.fileName,
     required this.fileExtension,
     required this.fileSize,
@@ -126,10 +132,13 @@ class DocumentEntity extends Equatable {
     bool? canDownload,
     String? associationId,
     String? categoryId,
+    String? categoryName,
     String? subcategoryId,
+    String? subcategoryName,
     DateTime? dateCreation,
     DateTime? dateModification,
     String? uploadedBy,
+    String? uploaderName,
     String? fileName,
     String? fileExtension,
     int? fileSize,
@@ -144,10 +153,13 @@ class DocumentEntity extends Equatable {
       canDownload: canDownload ?? this.canDownload,
       associationId: associationId ?? this.associationId,
       categoryId: categoryId ?? this.categoryId,
+      categoryName: categoryName ?? this.categoryName,
       subcategoryId: subcategoryId ?? this.subcategoryId,
+      subcategoryName: subcategoryName ?? this.subcategoryName,
       dateCreation: dateCreation ?? this.dateCreation,
       dateModification: dateModification ?? this.dateModification,
       uploadedBy: uploadedBy ?? this.uploadedBy,
+      uploaderName: uploaderName ?? this.uploaderName,
       fileName: fileName ?? this.fileName,
       fileExtension: fileExtension ?? this.fileExtension,
       fileSize: fileSize ?? this.fileSize,
@@ -165,10 +177,13 @@ class DocumentEntity extends Equatable {
         canDownload,
         associationId,
         categoryId,
+        categoryName,
         subcategoryId,
+        subcategoryName,
         dateCreation,
         dateModification,
         uploadedBy,
+        uploaderName,
         fileName,
         fileExtension,
         fileSize,
@@ -185,14 +200,17 @@ class DocumentEntity extends Equatable {
       'canDownload': canDownload,
       'associationId': associationId,
       'categoryId': categoryId,
+      'categoryName': categoryName,
       'subcategoryId': subcategoryId,
+      'subcategoryName': subcategoryName,
       'dateCreation': dateCreation.toIso8601String(),
       'dateModification': dateModification.toIso8601String(),
       'uploadedBy': uploadedBy,
+      'uploaderName': uploaderName,
       'fileName': fileName,
       'fileExtension': fileExtension,
       'fileSize': fileSize,
-      'readScope': readScope.value, // ✨ NUEVO
+      'readScope': readScope.value,
     };
   }
 
@@ -206,17 +224,21 @@ class DocumentEntity extends Equatable {
       canDownload: json['canDownload'] ?? true,
       associationId: json['associationId'] ?? '',
       categoryId: json['categoryId'] ?? '',
+      categoryName: json['categoryName'] ?? '',
       subcategoryId: json['subcategoryId'] ?? '',
+      subcategoryName: json['subcategoryName'] ?? '',
       dateCreation: DateTime.parse(json['dateCreation']),
       dateModification: DateTime.parse(json['dateModification']),
       uploadedBy: json['uploadedBy'] ?? '',
+      uploaderName: json['uploaderName'] ?? '',
       fileName: json['fileName'] ?? '',
       fileExtension: json['fileExtension'] ?? '',
       fileSize: json['fileSize'] ?? 0,
       readScope: ReadScopeExtension.fromValue(
-          json['readScope'] ?? 'asociado'), // ✨ NUEVO
+          json['readScope'] ?? 'asociado'),
     );
   }
+
 
   /// Formatea el tamaño del archivo en formato legible
   String get formattedFileSize {
@@ -258,10 +280,13 @@ class DocumentEntity extends Equatable {
       canDownload: true,
       associationId: '',
       categoryId: '',
+      categoryName: '',
       subcategoryId: '',
+      subcategoryName: '',
       dateCreation: DateTime.now(),
       dateModification: DateTime.now(),
       uploadedBy: '',
+      uploaderName: '',
       fileName: '',
       fileExtension: '',
       fileSize: 0,

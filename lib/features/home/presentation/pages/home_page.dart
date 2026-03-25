@@ -30,8 +30,8 @@ class HomePage extends StatelessWidget {
       user = authState.localUser;
     }
 
-    return BlocProvider(
-      create: (context) => sl<HomeBloc>()
+    return BlocProvider.value(
+      value: sl<HomeBloc>()
         ..add(LoadHomeData(
           user: user,
           membership: membership,

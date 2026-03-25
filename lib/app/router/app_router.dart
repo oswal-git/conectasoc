@@ -7,6 +7,7 @@ import 'package:conectasoc/features/articles/presentation/pages/pages.dart';
 import 'package:conectasoc/features/associations/presentation/pages/pages.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/pages/pages.dart';
+import 'package:conectasoc/features/documents/domain/entities/entities.dart';
 import 'package:conectasoc/features/documents/presentation/pages/pages.dart';
 import 'package:conectasoc/features/home/presentation/pages/pages.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
@@ -162,6 +163,14 @@ class AppRouter {
             builder: (context, state) {
               final documentId = state.pathParameters['documentId']!;
               return DocumentViewPage(documentId: documentId);
+            },
+          ),
+          GoRoute(
+            path: RouteNames.documentEdit,
+            name: RouteNames.documentEdit,
+            builder: (context, state) {
+              final doc = state.extra as DocumentEntity;
+              return DocumentEditPage(document: doc);
             },
           ),
         ],

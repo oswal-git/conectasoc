@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
@@ -62,11 +63,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     content: Text(l10n.unsavedChangesMessage),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
+                        onPressed: () => context.pop(false),
                         child: Text(l10n.stay),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
+                        onPressed: () => context.pop(true),
                         child: Text(l10n.discard),
                       ),
                     ],
@@ -75,7 +76,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 false;
 
             if (discard && context.mounted) {
-              Navigator.of(context).pop();
+              context.pop();
             }
           },
           child: Scaffold(

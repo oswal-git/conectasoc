@@ -24,6 +24,7 @@ class DocumentUploadReady extends DocumentUploadState {
   final String categoryId;
   final String subcategoryId;
   final String userId;
+  final String userName;
   final String description;
   final bool canDownload;
   final ReadScope readScope;
@@ -37,6 +38,7 @@ class DocumentUploadReady extends DocumentUploadState {
     required this.categoryId,
     required this.subcategoryId,
     required this.userId,
+    required this.userName,
     this.description = '',
     this.canDownload = true,
     this.readScope = ReadScope.asociado,
@@ -51,6 +53,7 @@ class DocumentUploadReady extends DocumentUploadState {
     String? categoryId,
     String? subcategoryId,
     String? userId,
+    String? userName,
     String? description,
     bool? canDownload,
     ReadScope? readScope,
@@ -65,6 +68,7 @@ class DocumentUploadReady extends DocumentUploadState {
       categoryId: categoryId ?? this.categoryId,
       subcategoryId: subcategoryId ?? this.subcategoryId,
       userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
       description: description ?? this.description,
       canDownload: canDownload ?? this.canDownload,
       readScope: readScope ?? this.readScope,
@@ -100,6 +104,7 @@ class DocumentUploadReady extends DocumentUploadState {
         categoryId,
         subcategoryId,
         userId,
+        userName,
         description,
         canDownload,
         readScope,

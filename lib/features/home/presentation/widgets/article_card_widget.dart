@@ -191,15 +191,55 @@ class ArticleCardWidget extends StatelessWidget {
                                 children: [
                                   ClickableCategoryWidget(
                                     name: article.categoryName,
-                                    onTap: () {},
+                                    onTap: () {
+                                      final homeBloc = context.read<HomeBloc>();
+                                      final homeState = homeBloc.state;
+
+                                      if (homeState is HomeLoaded) {
+                                        if (!homeState.showFilter) {
+                                          homeBloc.add(ToggleFilter());
+                                        }
+                                        homeBloc.add(CategorySelected(
+                                          CategoryEntity(
+                                            id: article.categoryId,
+                                            name: article.categoryName,
+                                            order: 0,
+                                          ),
+                                        ));
+                                      }
+                                    },
                                   ),
                                   Text(
                                     '/',
                                     style: AppTheme.articleCategory(context),
                                   ),
                                   ClickableCategoryWidget(
-                                      name: article.subcategoryName,
-                                      onTap: () {}),
+                                    name: article.subcategoryName,
+                                    onTap: () {
+                                      final homeBloc = context.read<HomeBloc>();
+                                      final homeState = homeBloc.state;
+
+                                      if (homeState is HomeLoaded) {
+                                        if (!homeState.showFilter) {
+                                          homeBloc.add(ToggleFilter());
+                                        }
+                                        // Usamos un único evento para seleccionar categoría y subcategoría
+                                        homeBloc.add(CategorySelected(
+                                          CategoryEntity(
+                                            id: article.categoryId,
+                                            name: article.categoryName,
+                                            order: 0,
+                                          ),
+                                          subcategory: SubcategoryEntity(
+                                            id: article.subcategoryId,
+                                            name: article.subcategoryName,
+                                            order: 0,
+                                            categoryId: article.categoryId,
+                                          ),
+                                        ));
+                                      }
+                                    },
+                                  ),
                                 ],
                               ),
                       ],

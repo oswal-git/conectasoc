@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'package:conectasoc/core/utils/utils.dart';
+import 'package:conectasoc/features/users/domain/repositories/repositories.dart';
 import 'package:conectasoc/firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -9,7 +10,6 @@ import 'package:conectasoc/features/articles/domain/repositories/article_reposit
 import 'package:conectasoc/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:conectasoc/core/utils/quill_helpers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 // ─────────────────────────────────────────────────────────────
@@ -29,66 +29,163 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void callbackDispatcher() {
   if (kIsWeb) return;
   Workmanager().executeTask((task, inputData) async {
+    debugPrint(
+        '${fechaD('🔔')} callbackDispatcher: WorkManager task started: $task');
+
+// Obtener parámetros del inputData
+    final userId = inputData?['userId'] as String?;
+    final taskIndex = inputData?['taskIndex'] as int?;
+    final scheduledHour = inputData?['scheduledHour'] as int?;
+    final scheduledMinute = inputData?['scheduledMinute'] as int?;
+
+    debugPrint('${fechaD('🔔')} callbackDispatcher: userId: $userId');
+    debugPrint('${fechaD('🔔')} callbackDispatcher: taskIndex: $taskIndex');
+    debugPrint(
+        '${fechaD('🔔')} callbackDispatcher: scheduledHour: $scheduledHour');
+    debugPrint(
+        '${fechaD('🔔')} callbackDispatcher: scheduledMinute: $scheduledMinute');
+
+    if (userId == null ||
+        taskIndex == null ||
+        scheduledHour == null ||
+        scheduledMinute == null) {
+      debugPrint(
+          '${fechaD('🔔')} callbackDispatcher: WorkManager: Missing inputData params');
+      return false;
+    }
+
     // Inicializar dependencias mínimas necesarias
     await initMinimal();
 
-    final authRepository = sl<AuthRepository>();
-    final articleRepository = sl<ArticleRepository>();
+// ── Lógica de negocio ─────────────────────────────────────
+    bool taskSuccess = false;
 
-    // Obtener usuario actual
-    final userResult = await authRepository.getSavedUser();
-    return userResult.fold(
-      (failure) => false,
-      (user) async {
-        if (user == null ||
-            ((user.notificationTime1 == null ||
-                    user.notificationTime1!.isEmpty) &&
-                (user.notificationTime2 == null ||
-                    user.notificationTime2!.isEmpty) &&
-                (user.notificationTime3 == null ||
-                    user.notificationTime3!.isEmpty))) {
-          return true;
-        }
+    try {
+      final userRepository = sl<UserRepository>();
+      final authRepository = sl<AuthRepository>();
+      final articleRepository = sl<ArticleRepository>();
 
-        // Consultar artículos nuevos desde la última notificación
-        final articlesResult =
-            await articleRepository.getArticlesForNotification(
-          lastNotified:
-              user.fechaNotificada ?? DateTime.fromMillisecondsSinceEpoch(0),
-          associationIds: user.associationIds,
-        );
+      // Obtener usuario por ID en lugar del guardado
+      final userResult = await userRepository.getUserById(userId);
 
-        return articlesResult.fold(
-          (failure) => false,
-          (articles) async {
-            if (articles.isNotEmpty) {
-              final notificationService = NotificationService();
-              for (final article in articles) {
-                // Mostrar una notificación por cada artículo
-                await notificationService.showLocalNotification(
-                  id: article.id.hashCode,
-                  title: quillJsonToPlainText(article.title),
-                  body: 'Nueva noticia de ${article.associationShortName}',
-                  payload: article.id,
-                );
-              }
-
-              // 1. Encontrar la fechaNotificacion máxima de los artículos enviados
-              final maxFechaNotificacion = articles
-                  .map((a) =>
-                      a.fechaNotificacion ??
-                      DateTime.fromMillisecondsSinceEpoch(0))
-                  .reduce((a, b) => a.isAfter(b) ? a : b);
-
-              // 2. Actualizar fechaNotificada del usuario con la real de los artículos
-              await authRepository.updateUserFechaNotificada(
-                  user.uid, maxFechaNotificacion);
-            }
+      taskSuccess = await userResult.fold(
+        (failure) async {
+          debugPrint(
+              '${fechaD('❌')} callbackDispatcher: WorkManager: Failed to get user - ${failure.message}');
+          return false;
+        },
+        (user) async {
+          if (((user.notificationTime1 == null ||
+                  user.notificationTime1!.isEmpty) &&
+              (user.notificationTime2 == null ||
+                  user.notificationTime2!.isEmpty) &&
+              (user.notificationTime3 == null ||
+                  user.notificationTime3!.isEmpty))) {
+            debugPrint(
+                '${fechaD('❌')} callbackDispatcher: WorkManager: User has no notification times configured');
             return true;
-          },
-        );
-      },
-    );
+          }
+
+          // Consultar artículos nuevos desde la última notificación
+          final articlesResult =
+              await articleRepository.getArticlesForNotification(
+            lastNotified:
+                user.fechaNotificada ?? DateTime.fromMillisecondsSinceEpoch(0),
+            associationIds: user.associationIds,
+          );
+
+          return articlesResult.fold(
+            (failure) {
+              debugPrint(
+                  '${fechaD('❌')} callbackDispatcher: WorkManager: Failed to get articles - ${failure.message}');
+              return false;
+            },
+            (articles) async {
+              debugPrint(
+                  '${fechaD('🔔')} callbackDispatcher: WorkManager: Found ${articles.length} new articles');
+              if (articles.isNotEmpty) {
+                final notificationService = NotificationService();
+
+                // Ordenar por fechaNotificacion para procesar en orden cronológico
+                final sortedArticles = [...articles]..sort((a, b) {
+                    final dateA = a.fechaNotificacion ??
+                        DateTime.fromMillisecondsSinceEpoch(0);
+                    final dateB = b.fechaNotificacion ??
+                        DateTime.fromMillisecondsSinceEpoch(0);
+                    return dateA.compareTo(dateB);
+                  });
+
+                for (final article in sortedArticles) {
+                  // Mostrar una notificación por cada artículo
+                  await notificationService.showLocalNotification(
+                    id: article.id.hashCode,
+                    title: quillJsonToPlainText(article.title),
+                    body: 'Nueva noticia de ${article.associationShortName}',
+                    payload: article.id,
+                  );
+                  debugPrint(
+                      '${fechaD('🔔')} callbackDispatcher: WorkManager: Notification sent for article ${article.id}');
+                }
+
+                // 1. Encontrar la fechaNotificacion máxima de los artículos enviados
+                final maxFechaNotificacion = articles
+                    .map((a) =>
+                        a.fechaNotificacion ??
+                        DateTime.fromMillisecondsSinceEpoch(0))
+                    .reduce((a, b) => a.isAfter(b) ? a : b);
+
+                // 2. Actualizar fechaNotificada del usuario con la real de los artículos
+                await authRepository.updateUserFechaNotificada(
+                    user.uid, maxFechaNotificacion);
+                debugPrint(
+                    '${fechaD('🔔')} callbackDispatcher: WorkManager: Updated fechaNotificada for user ${user.uid} to $maxFechaNotificacion');
+              } else {
+                debugPrint(
+                    '📭 callbackDispatcher: WorkManager: No new articles found');
+              }
+              return true;
+            },
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('❌ WorkManager: Unexpected error - $e');
+      taskSuccess = false;
+    }
+
+    // ✅ Reprogramar para mañana a la misma hora, independientemente del resultado
+    // Solo si la tarea no falló por falta de parámetros
+    try {
+      final nextSchedule =
+          TimeOfDay(hour: scheduledHour, minute: scheduledMinute);
+      final nextDelay = _calculateDelayWithDeterministicOffset(
+        nextSchedule,
+        userId,
+        taskIndex,
+        // Forzar mañana: aunque la hora aún no haya pasado hoy,
+        // ya estamos dentro de la ejecución de hoy
+        forceNextDay: true,
+      );
+
+      await Workmanager().registerOneOffTask(
+        'news_task_${userId}_$taskIndex',
+        'check_news_task',
+        initialDelay: nextDelay,
+        existingWorkPolicy: ExistingWorkPolicy.replace,
+        inputData: {
+          'userId': userId,
+          'taskIndex': taskIndex,
+          'scheduledHour': scheduledHour,
+          'scheduledMinute': scheduledMinute,
+        },
+      );
+
+      debugPrint(
+          '🔁 WorkManager: Rescheduled task $taskIndex for tomorrow at $scheduledHour:$scheduledMinute (delay: ${nextDelay.inMinutes} min)');
+    } catch (e) {
+      debugPrint('❌ WorkManager: Failed to reschedule task - $e');
+    }
+    return taskSuccess;
   });
 }
 
@@ -280,20 +377,42 @@ class NotificationService {
           return true;
         }
 
+        // 🔧 FIX: Usar fechaNotificada o una fecha por defecto muy antigua
+        final lastNotified =
+            user.fechaNotificada ?? DateTime.fromMillisecondsSinceEpoch(0);
+
+        debugPrint('🔔 checkNow: lastNotified = $lastNotified');
+        debugPrint('🔔 checkNow: user associationIds = ${user.associationIds}');
+
         // Consultar artículos nuevos desde la última notificación
         final articlesResult =
             await articleRepository.getArticlesForNotification(
-          lastNotified:
-              user.fechaNotificada ?? DateTime.fromMillisecondsSinceEpoch(0),
+          lastNotified: lastNotified,
           associationIds: user.associationIds,
         );
 
         return articlesResult.fold(
-          (failure) => false,
+          (failure) {
+            debugPrint(
+                '❌ checkNow: error getting articles - ${failure.message}');
+            return false;
+          },
           (articles) async {
+            debugPrint('📰 checkNow: found ${articles.length} new articles');
+
             if (articles.isNotEmpty) {
               final notificationService = NotificationService();
-              for (final article in articles) {
+
+              // 🔧 FIX: Ordenar artículos por fechaNotificacion para asegurar que la más reciente sea la última
+              final sortedArticles = [...articles]..sort((a, b) {
+                  final dateA = a.fechaNotificacion ??
+                      DateTime.fromMillisecondsSinceEpoch(0);
+                  final dateB = b.fechaNotificacion ??
+                      DateTime.fromMillisecondsSinceEpoch(0);
+                  return dateA.compareTo(dateB);
+                });
+
+              for (final article in sortedArticles) {
                 // Mostrar una notificación por cada artículo
                 await notificationService.showLocalNotification(
                   id: article.id.hashCode,
@@ -301,14 +420,19 @@ class NotificationService {
                   body: 'Nueva noticia de ${article.associationShortName}',
                   payload: article.id,
                 );
+                debugPrint(
+                    '✅ Notificación enviada para artículo: ${article.id}');
               }
 
               // 1. Encontrar la fechaNotificacion máxima de los artículos enviados
-              final maxFechaNotificacion = articles
+              final maxFechaNotificacion = sortedArticles
                   .map((a) =>
                       a.fechaNotificacion ??
                       DateTime.fromMillisecondsSinceEpoch(0))
                   .reduce((a, b) => a.isAfter(b) ? a : b);
+
+              debugPrint(
+                  '📅 Actualizando fechaNotificada de $lastNotified a $maxFechaNotificacion');
 
               // 2. Actualizar fechaNotificada del usuario con la real de los artículos
               await authRepository.updateUserFechaNotificada(
@@ -325,6 +449,8 @@ class NotificationService {
   Future<void> scheduleNotifications(UserEntity user) async {
     if (kIsWeb) return;
     await Workmanager().cancelAll();
+    debugPrint(
+        '${fechaD('✅')} NotificationService -> scheduleNotifications: Workmanager().cancelAll()');
 
     final schedules = <TimeOfDay>[];
 
@@ -349,52 +475,65 @@ class NotificationService {
 
     for (int i = 0; i < schedules.length; i++) {
       final scheduleTime = schedules[i];
-      final delay = _calculateDelayWithRandomOffset(scheduleTime);
+      final delay =
+          _calculateDelayWithDeterministicOffset(scheduleTime, user.uid, i);
 
-      await Workmanager().registerPeriodicTask(
+      await Workmanager().registerOneOffTask(
         'news_task_${user.uid}_$i',
         'check_news_task',
         initialDelay: delay,
-        frequency: const Duration(hours: 24),
-        existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
-        inputData: {'userId': user.uid},
+        existingWorkPolicy: ExistingWorkPolicy.replace,
+        inputData: {
+          'userId': user.uid,
+          'taskIndex': i,
+          'scheduledHour': scheduleTime.hour,
+          'scheduledMinute': scheduleTime.minute,
+        },
       );
+
+      debugPrint(
+          '${fechaD('✅')} NotificationService -> scheduleNotifications: Scheduled notification for ${user.uid} at ${formatTimeOfDay(scheduleTime)} (delay: ${delay.inMinutes} min)');
     }
-  }
-
-  Duration _calculateDelayWithRandomOffset(TimeOfDay scheduledTime) {
-    final now = DateTime.now();
-    var scheduledDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      scheduledTime.hour,
-      scheduledTime.minute,
-    );
-
-    // Si la hora ya pasó hoy, programar para mañana
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    // Offset aleatorio de +- 30 minutos
-    final random = Random();
-    final offsetMinutes = random.nextInt(61) - 30; // -30 a +30
-    scheduledDate = scheduledDate.add(Duration(minutes: offsetMinutes));
-
-    // Asegurarse de que el delay no sea negativo
-    var delay = scheduledDate.difference(DateTime.now());
-    if (delay.isNegative) {
-      delay = const Duration(
-          minutes:
-              1); // Ejecutar casi de inmediato si el offset lo saca de rango
-    }
-
-    return delay;
   }
 
   Future<void> cancelNotification(int id) async {
     if (kIsWeb) return;
     await _notificationsPlugin.cancel(id: id);
   }
+}
+
+Duration _calculateDelayWithDeterministicOffset(
+  TimeOfDay scheduledTime,
+  String uid,
+  int taskIndex, {
+  bool forceNextDay = false,
+}) {
+  final now = DateTime.now();
+  var scheduledDate = DateTime(
+    now.year,
+    now.month,
+    now.day,
+    scheduledTime.hour,
+    scheduledTime.minute,
+  );
+
+  // Offset determinista: hash del uid → siempre el mismo para cada usuario
+  // Rango: -30 a +30 minutos
+  final hashValue =
+      uid.codeUnits.fold(0, (prev, c) => prev + c) + (taskIndex * 7);
+  final offsetMinutes = (hashValue % 61) - 30; // -30 a +30
+
+  debugPrint(
+      '${fechaD('✅')} NotificationService -> _calculateDelayWithDeterministicOffset: index $taskIndex, ${scheduledTime.hour}:${scheduledTime.minute} delay: $offsetMinutes min)');
+
+  scheduledDate = scheduledDate.add(Duration(minutes: offsetMinutes));
+
+  // Si tras el offset la hora ya pasó (o queda menos de 1 min), programar mañana
+  if (forceNextDay ||
+      scheduledDate.isBefore(now) ||
+      scheduledDate.difference(now).inMinutes < 1) {
+    scheduledDate = scheduledDate.add(const Duration(days: 1));
+  }
+
+  return scheduledDate.difference(DateTime.now());
 }

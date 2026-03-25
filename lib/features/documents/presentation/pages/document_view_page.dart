@@ -1,13 +1,11 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/core/utils/utils.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:conectasoc/features/articles/domain/usecases/get_categories_usecase.dart';
-import 'package:conectasoc/features/articles/domain/usecases/get_subcategories_usecase.dart';
 import 'package:conectasoc/features/documents/domain/entities/document_entity.dart';
 import 'package:conectasoc/features/documents/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/documents/presentation/widgets/document_viewer_widget.dart';
-import 'package:conectasoc/features/users/domain/usecases/get_user_by_id_usecase.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 
@@ -205,137 +203,30 @@ Future<bool> _isDocumentLinked(String documentId) async {
   );
 }
 
-// ─── Datos resueltos de nombres ───────────────────────────────────────────────
-class _ResolvedNames {
-  final String categoryName;
-  final String subcategoryName;
-  final String uploaderName;
-
-  const _ResolvedNames({
-    required this.categoryName,
-    required this.subcategoryName,
-    required this.uploaderName,
-  });
-}
-
-// ─── Widget con resolución asíncrona de nombres ───────────────────────────────
-class _DocumentViewContent extends StatefulWidget {
+// ─── Widget de contenido ──────────────────────────────────────────────────────
+class _DocumentViewContent extends StatelessWidget {
   final DocumentEntity document;
 
   const _DocumentViewContent({required this.document});
-
-  @override
-  State<_DocumentViewContent> createState() => _DocumentViewContentState();
-}
-
-class _DocumentViewContentState extends State<_DocumentViewContent> {
-  late Future<_ResolvedNames> _resolvedNamesFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _resolvedNamesFuture = _resolveNames();
-  }
-
-  Future<_ResolvedNames> _resolveNames() async {
-    final doc = widget.document;
-
-    // Categoría
-    String categoryName = doc.categoryId;
-    String subcategoryName = doc.subcategoryId;
-    String uploaderName = doc.uploadedBy;
-
-    try {
-      final categoriesResult = await sl<GetCategoriesUseCase>()();
-      categoriesResult.fold(
-        (_) {},
-        (categories) {
-          final cat = categories.firstWhere(
-            (c) => c.id == doc.categoryId,
-            orElse: () =>
-                categories.isEmpty ? categories.first : categories.first,
-          );
-          // Solo asignamos si lo encontramos de verdad
-          if (categories.any((c) => c.id == doc.categoryId)) {
-            categoryName = cat.name;
-          }
-        },
-      );
-    } catch (_) {}
-
-    try {
-      if (doc.categoryId.isNotEmpty) {
-        final subcatResult =
-            await sl<GetSubcategoriesUseCase>()(doc.categoryId);
-        subcatResult.fold(
-          (_) {},
-          (subcats) {
-            if (subcats.any((s) => s.id == doc.subcategoryId)) {
-              subcategoryName =
-                  subcats.firstWhere((s) => s.id == doc.subcategoryId).name;
-            }
-          },
-        );
-      }
-    } catch (_) {}
-
-    try {
-      if (doc.uploadedBy.isNotEmpty) {
-        final userResult = await sl<GetUserByIdUseCase>()(doc.uploadedBy);
-        userResult.fold(
-          (_) {},
-          (user) => uploaderName = user.fullName,
-        );
-      }
-    } catch (_) {}
-
-    return _ResolvedNames(
-      categoryName: categoryName,
-      subcategoryName: subcategoryName,
-      uploaderName: uploaderName,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: AppTheme.paddingContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── Visor principal ───────────────────────────────────────────
           ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 500),
-            child: DocumentViewerWidget(document: widget.document),
+            constraints: const BoxConstraints(maxHeight: 600),
+            child: DocumentViewerWidget(document: document),
           ),
-          const SizedBox(height: 24),
+          // AppTheme.sizedBoxHeightSeparatorMd,
 
           // ── Metadata ──────────────────────────────────────────────────
-          FutureBuilder<_ResolvedNames>(
-            future: _resolvedNamesFuture,
-            builder: (context, snapshot) {
-              // Mientras se resuelven los nombres, mostrar un indicador de carga
-              // en lugar de los IDs para evitar el parpadeo visual.
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                );
-              }
-
-              final names = snapshot.data ??
-                  _ResolvedNames(
-                    categoryName: widget.document.categoryId,
-                    subcategoryName: widget.document.subcategoryId,
-                    uploaderName: widget.document.uploadedBy,
-                  );
-              return _buildMetadataSection(context, l10n, names);
-            },
-          ),
+          _buildMetadataSection(context, l10n, document),
         ],
       ),
     );
@@ -344,57 +235,54 @@ class _DocumentViewContentState extends State<_DocumentViewContent> {
   Widget _buildMetadataSection(
     BuildContext context,
     AppLocalizations l10n,
-    _ResolvedNames names,
+    DocumentEntity doc,
   ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Información del documento',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 16),
-            _buildMetadataRow(
-              context,
-              icon: Icons.category_outlined,
-              label: l10n.category,
-              value: '${names.categoryName} › ${names.subcategoryName}',
-            ),
-            const Divider(height: 24),
-            _buildMetadataRow(
-              context,
-              icon: Icons.storage_outlined,
-              label: l10n.fileSize,
-              value: widget.document.formattedFileSize,
-            ),
-            const Divider(height: 24),
-            _buildMetadataRow(
-              context,
-              icon: Icons.calendar_today_outlined,
-              label: 'Fecha de subida',
-              value: formatUploadDate(context, widget.document.dateCreation),
-            ),
-            const Divider(height: 24),
-            _buildMetadataRow(
-              context,
-              icon: Icons.person_outline,
-              label: l10n.uploadedBy,
-              value: names.uploaderName,
-            ),
-            const Divider(height: 24),
-            _buildMetadataRow(
-              context,
-              icon: Icons.download_outlined,
-              label: l10n.canDownload,
-              value: widget.document.canDownload ? 'Sí' : 'No',
-            ),
-          ],
-        ),
+    return Padding(
+      padding: AppTheme.paddingCard,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Información del documento',
+            style: AppTheme.informationFileName(context),
+          ),
+          AppTheme.sizedBoxHeightSeparatorSsm,
+          _buildMetadataRow(
+            context,
+            icon: Icons.category_outlined,
+            label: l10n.category,
+            value: '${doc.categoryName} › ${doc.subcategoryName}',
+          ),
+          AppTheme.sizedBoxHeightWidget,
+          _buildMetadataRow(
+            context,
+            icon: Icons.storage_outlined,
+            label: l10n.fileSize,
+            value: doc.formattedFileSize,
+          ),
+          AppTheme.sizedBoxHeightWidget,
+          _buildMetadataRow(
+            context,
+            icon: Icons.calendar_today_outlined,
+            label: 'Fecha de subida',
+            value: formatUploadDate(context, doc.dateCreation),
+          ),
+          AppTheme.sizedBoxHeightWidget,
+          _buildMetadataRow(
+            context,
+            icon: Icons.person_outline,
+            label: l10n.uploadedBy,
+            value: doc.uploaderName,
+          ),
+          AppTheme.sizedBoxHeightWidget,
+          _buildMetadataRow(
+            context,
+            icon: Icons.download_outlined,
+            label: l10n.canDownload,
+            value: doc.canDownload ? 'Sí' : 'No',
+          ),
+          AppTheme.sizedBoxHeightWidgetXl,
+        ],
       ),
     );
   }
@@ -408,23 +296,20 @@ class _DocumentViewContentState extends State<_DocumentViewContent> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey.shade600),
-        const SizedBox(width: 12),
+        Icon(icon, size: AppTheme.iconSizeSmall, color: AppTheme.iconLabel),
+        AppTheme.sizedBoxWidthSeparator,
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
+                style: AppTheme.drawerSectionLabel,
               ),
-              const SizedBox(height: 2),
+              AppTheme.sizedBoxHeightSeparatorXxxs,
               Text(
                 value,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: AppTheme.documentDescription(context),
               ),
             ],
           ),

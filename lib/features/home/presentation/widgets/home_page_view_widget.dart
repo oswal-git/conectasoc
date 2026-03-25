@@ -1,3 +1,4 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -42,11 +43,19 @@ class HomePageViewWidget extends StatelessWidget {
                     state is HomeLoaded ? state.showSearch : false;
                 final isFilterVisible =
                     state is HomeLoaded ? state.showFilter : false;
+                final isEditMode =
+                    state is HomeLoaded ? state.isEditMode : false;
 
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    AppTheme.sizedBoxWidthIconBar,
                     IconButton(
+                      iconSize: AppTheme.iconSizeAppBar,
+                      visualDensity:
+                          const VisualDensity(horizontal: -4.0, vertical: -4.0),
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
                       icon: Icon(
                         isSearchVisible ? Icons.search_off : Icons.search,
                         color: isSearchVisible ? Colors.blue : null,
@@ -56,6 +65,11 @@ class HomePageViewWidget extends StatelessWidget {
                       tooltip: AppLocalizations.of(context).search,
                     ),
                     IconButton(
+                      iconSize: AppTheme.iconSizeAppBar,
+                      visualDensity:
+                          const VisualDensity(horizontal: -4.0, vertical: -4.0),
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
                       icon: Icon(
                         isFilterVisible
                             ? Icons.filter_alt
@@ -66,45 +80,48 @@ class HomePageViewWidget extends StatelessWidget {
                           context.read<HomeBloc>().add(ToggleFilter()),
                       tooltip: AppLocalizations.of(context).filter,
                     ),
+                    if (canEdit)
+                      IconButton(
+                        iconSize: AppTheme.iconSizeAppBar,
+                        visualDensity: VisualDensity.compact,
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                        icon: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          transitionBuilder: (child, animation) {
+                            return RotationTransition(
+                              turns: animation,
+                              child: FadeTransition(
+                                  opacity: animation, child: child),
+                            );
+                          },
+                          child: Icon(
+                            isEditMode
+                                ? Icons.check_circle
+                                : Icons.edit_outlined,
+                            key: ValueKey(isEditMode),
+                            color: isEditMode
+                                ? const Color.fromARGB(255, 149, 175, 76)
+                                : null,
+                          ),
+                        ),
+                        onPressed: () {
+                          final user = authState is AuthAuthenticated
+                              ? authState.user
+                              : null;
+                          context
+                              .read<HomeBloc>()
+                              .add(ToggleEditMode(user: user));
+                        },
+                        tooltip: isEditMode
+                            ? AppLocalizations.of(context).saveChanges
+                            : AppLocalizations.of(context).editMode,
+                      ),
+                    const SizedBox(width: AppTheme.spaceXs),
                   ],
                 );
               },
             ),
-            if (canEdit)
-              BlocBuilder<HomeBloc, HomeState>(
-                builder: (context, state) {
-                  final isEditMode =
-                      state is HomeLoaded ? state.isEditMode : false;
-                  return IconButton(
-                    icon: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, animation) {
-                        return RotationTransition(
-                          turns: animation,
-                          child:
-                              FadeTransition(opacity: animation, child: child),
-                        );
-                      },
-                      child: Icon(
-                        isEditMode ? Icons.check_circle : Icons.edit_outlined,
-                        key: ValueKey(isEditMode),
-                        color: isEditMode
-                            ? const Color.fromARGB(255, 149, 175, 76)
-                            : null,
-                      ),
-                    ),
-                    onPressed: () {
-                      final user = authState is AuthAuthenticated
-                          ? authState.user
-                          : null;
-                      context.read<HomeBloc>().add(ToggleEditMode(user: user));
-                    },
-                    tooltip: isEditMode
-                        ? AppLocalizations.of(context).saveChanges
-                        : AppLocalizations.of(context).editMode,
-                  );
-                },
-              ),
           ],
         ),
         drawer: const HomeDrawer(), // El drawer se define aquí.
@@ -178,20 +195,24 @@ class HomePageViewWidget extends StatelessWidget {
       // El Superadmin siempre ve el dropdown, incluso si no tiene membresías.
       if (authState.user.isSuperAdmin ||
           authState.user.memberships.length > 1) {
-        return InkWell(
-          onTap: () => _showMembershipSwitcher(context, authState, homeState),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  associationName,
-                  overflow: TextOverflow.ellipsis,
+        return Expanded(
+          child: InkWell(
+            onTap: () => _showMembershipSwitcher(context, authState, homeState),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    associationName,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.appBarDynamicTitleStyle(associationName),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_drop_down, size: 24),
-            ],
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_drop_down,
+                    size: 24, color: AppTheme.appBarForeground),
+              ],
+            ),
           ),
         );
       }
@@ -201,12 +222,23 @@ class HomePageViewWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(
-              child: Text(associationName, overflow: TextOverflow.ellipsis))
+              child: Text(
+            associationName,
+            overflow: TextOverflow.ellipsis,
+            style: AppTheme.appBarDynamicTitleStyle(associationName),
+          ))
         ],
       );
     }
 
-    return Text(l10n.homePage);
+    return Text(
+      l10n.homePage,
+      style: const TextStyle(
+        fontWeight: AppTheme.fontWeightBold,
+        fontSize: 20,
+        color: AppTheme.appBarForeground,
+      ),
+    );
   }
 
   void _showMembershipSwitcher(

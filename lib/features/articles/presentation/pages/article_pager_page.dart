@@ -3,6 +3,7 @@ import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/articles/presentation/pages/article_detail_page.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ArticlePagerPage extends StatefulWidget {
   final List<ArticleEntity> articles;
@@ -93,7 +94,7 @@ class _ArticlePagerPageState extends State<ArticlePagerPage> {
               articleId: article.id,
               // Le pasamos una forma de volver con el ID actual
               onBackOverride: () {
-                Navigator.of(context).pop(widget.articles[_currentIndex].id);
+                context.pop(widget.articles[_currentIndex].id);
               },
             );
           },

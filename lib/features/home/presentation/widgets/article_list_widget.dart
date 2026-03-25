@@ -1,3 +1,4 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/core/widgets/user_friendly_error_widget.dart';
 import 'package:conectasoc/features/home/presentation/widgets/article_card_widget.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';
@@ -104,6 +105,8 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         if (state is HomeLoading || state is HomeInitial) {
@@ -145,8 +148,8 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
                       child: Center(
                         child: Text(
                           state.searchTerm.isNotEmpty
-                              ? AppLocalizations.of(context).noResultsFound
-                              : AppLocalizations.of(context).noArticlesYet,
+                              ? l10n.noResultsFound
+                              : l10n.noArticlesYet,
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -161,7 +164,7 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
             child: ScrollablePositionedList.builder(
               itemScrollController: _itemScrollController,
               itemPositionsListener: _itemPositionsListener,
-              padding: const EdgeInsets.only(bottom: 80), // For FAB
+              padding: AppTheme.paddingButtonFab,
               physics:
                   const AlwaysScrollableScrollPhysics(), // Ensure refresh works even with short lists
               itemCount: state.hasMore
@@ -171,7 +174,7 @@ class ArticleListWidgetState extends State<ArticleListWidget> {
                 if (index >= state.filteredArticles.length) {
                   return const Center(
                     child: Padding(
-                      padding: EdgeInsets.all(16.0),
+                      padding: AppTheme.paddingProgressIndicator,
                       child: CircularProgressIndicator(),
                     ),
                   );

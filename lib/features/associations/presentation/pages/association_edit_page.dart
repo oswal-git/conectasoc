@@ -4,6 +4,7 @@ import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:conectasoc/core/services/image_picker_service.dart';
@@ -87,11 +88,11 @@ class _AssociationEditViewState extends State<AssociationEditView> {
         content: Text(l10n.unsavedChangesMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
+            onPressed: () => context.pop(false),
             child: Text(l10n.continueEditing),
           ),
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
+            onPressed: () => context.pop(true),
             child: Text(
               l10n.discardChanges,
               style: AppTheme.destructiveAction,
@@ -113,12 +114,12 @@ class _AssociationEditViewState extends State<AssociationEditView> {
         content: Text(l10n.confirmSaveMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
+            onPressed: () => context.pop(),
             child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(dialogContext).pop();
+              context.pop();
               if (isCreating) {
                 context.read<AssociationEditBloc>().add(CreateAssociation());
               } else {
@@ -142,7 +143,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
 
         final shouldPop = await _onWillPop();
         if (shouldPop && context.mounted) {
-          Navigator.of(context).pop();
+          context.pop();
         }
       },
       child: Scaffold(
@@ -237,7 +238,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
     // Refresca el estado de autenticación por si los roles o membresías cambiaron
     context.read<AuthBloc>().add(AuthUserRefreshRequested());
     // Vuelve a la pantalla anterior (lista de asociaciones o home)
-    Navigator.of(context).pop();
+    context.pop();
   }
 
   void _handleDeleteSuccess(BuildContext context, AppLocalizations l10n) {
@@ -249,7 +250,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
     // Refresca el estado de autenticación por si el usuario ya no tiene membresías
     context.read<AuthBloc>().add(AuthCheckRequested());
     // Cierra la página de edición para volver a la lista
-    Navigator.of(context).pop();
+    context.pop();
   }
 
   Widget _buildForm(BuildContext context, AssociationEditLoaded state,

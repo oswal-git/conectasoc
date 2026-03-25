@@ -157,7 +157,7 @@ class _AssociationListItem extends StatelessWidget {
           ),
         ),
         child: Card(
-          elevation: AppTheme.elevationCard,
+          elevation: AppTheme.elevationCardSmall,
           shape: RoundedRectangleBorder(
             borderRadius: AppTheme.borderRadiusDefault,
           ),

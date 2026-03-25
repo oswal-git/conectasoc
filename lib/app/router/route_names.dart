@@ -21,4 +21,5 @@ class RouteNames {
   static const String documentUpload = 'document-upload';
   static const String documentList = 'document-list';
   static const String documentView = 'document-view/:documentId';
+  static const String documentEdit = 'document-edit';
 }

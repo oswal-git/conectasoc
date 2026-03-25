@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:conectasoc/features/articles/domain/entities/entities.dart';
 import 'package:conectasoc/features/articles/domain/usecases/usecases.dart';
 import 'package:conectasoc/features/documents/domain/entities/entities.dart';
 import 'package:conectasoc/features/documents/domain/usecases/usecases.dart';
@@ -58,6 +59,7 @@ class DocumentUploadBloc
                   categoryId: event.categoryId,
                   subcategoryId: event.subcategoryId,
                   userId: event.userId,
+                  userName: event.userName,
                   categories: categories,
                   subcategories: subcategories,
                 ));
@@ -69,6 +71,7 @@ class DocumentUploadBloc
               categoryId: '',
               subcategoryId: '',
               userId: event.userId,
+              userName: event.userName,
               categories: categories,
               subcategories: [],
             ));
@@ -189,6 +192,17 @@ class DocumentUploadBloc
     try {
       emit(const DocumentUploadInProgress(0.1));
 
+      // Resolve names for denormalization
+      final categoryName = currentState.categories
+          .firstWhere((c) => c.id == currentState.categoryId,
+              orElse: () => CategoryEntity.empty())
+          .name;
+
+      final subcategoryName = currentState.subcategories
+          .firstWhere((s) => s.id == currentState.subcategoryId,
+              orElse: () => SubcategoryEntity.empty())
+          .name;
+
       // Upload to Cloudinary
       emit(const DocumentUploadInProgress(0.2));
       final cloudinaryResponse = await CloudinaryDocumentService.uploadDocument(
@@ -196,7 +210,10 @@ class DocumentUploadBloc
         filename: currentState.selectedFileName!,
         associationId: currentState.associationId,
         categoryId: currentState.categoryId,
+        categoryName: categoryName,
         subcategoryId: currentState.subcategoryId,
+        subcategoryName: subcategoryName,
+        uploaderName: currentState.userName,
       );
 
       if (!cloudinaryResponse.success) {
@@ -219,10 +236,13 @@ class DocumentUploadBloc
         canDownload: currentState.canDownload,
         associationId: currentState.associationId,
         categoryId: currentState.categoryId,
+        categoryName: categoryName,
         subcategoryId: currentState.subcategoryId,
+        subcategoryName: subcategoryName,
         dateCreation: now,
         dateModification: now,
         uploadedBy: currentState.userId,
+        uploaderName: currentState.userName,
         fileName: currentState.selectedFileName!,
         fileExtension: currentState.fileExtension!,
         fileSize: currentState.selectedFileBytes!.length,

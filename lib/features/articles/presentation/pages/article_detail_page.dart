@@ -11,6 +11,10 @@ import 'package:conectasoc/features/articles/presentation/bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/core/utils/quill_helpers.dart';
+import 'package:conectasoc/features/home/presentation/widgets/widgets.dart';
+import 'package:conectasoc/features/home/presentation/bloc/bloc.dart';
+import 'package:conectasoc/app/router/route_names.dart';
+import 'package:go_router/go_router.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:conectasoc/features/articles/presentation/widgets/widgets.dart';
@@ -140,9 +144,60 @@ class _WebLayout extends StatelessWidget {
                   // Fila 2: Metadata
                   _AuthorInfo(article: article),
                   const SizedBox(height: AppTheme.spaceXxs),
-                  Text(
-                    '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
-                    style: AppTheme.articleMeta(context),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        '${l10n.category}: ',
+                        style: AppTheme.articleMeta(context),
+                      ),
+                      ClickableCategoryWidget(
+                        name: article.categoryName,
+                        onTap: () {
+                          final homeBloc = sl<HomeBloc>();
+                          if (homeBloc.state is HomeLoaded) {
+                            final state = homeBloc.state as HomeLoaded;
+                            if (!state.showFilter) homeBloc.add(ToggleFilter());
+                            homeBloc.add(CategorySelected(
+                              CategoryEntity(
+                                id: article.categoryId,
+                                name: article.categoryName,
+                                order: 0,
+                              ),
+                            ));
+                            context.goNamed(RouteNames.home);
+                          }
+                        },
+                      ),
+                      Text(
+                        ' / ',
+                        style: AppTheme.articleMeta(context),
+                      ),
+                      ClickableCategoryWidget(
+                        name: article.subcategoryName,
+                        onTap: () {
+                          final homeBloc = sl<HomeBloc>();
+                          if (homeBloc.state is HomeLoaded) {
+                            final state = homeBloc.state as HomeLoaded;
+                            if (!state.showFilter) homeBloc.add(ToggleFilter());
+                            homeBloc.add(CategorySelected(
+                              CategoryEntity(
+                                id: article.categoryId,
+                                name: article.categoryName,
+                                order: 0,
+                              ),
+                              subcategory: SubcategoryEntity(
+                                id: article.subcategoryId,
+                                name: article.subcategoryName,
+                                order: 0,
+                                categoryId: article.categoryId,
+                              ),
+                            ));
+                            context.goNamed(RouteNames.home);
+                          }
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppTheme.spaceXs),
 
@@ -323,9 +378,60 @@ class _MobileLayout extends StatelessWidget {
             // Fila 2: Metadata
             _AuthorInfo(article: article),
             const SizedBox(height: AppTheme.spaceXxs),
-            Text(
-              '${l10n.category}: ${article.categoryName} / ${article.subcategoryName}',
-              style: AppTheme.articleMeta(context),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  '${l10n.category}: ',
+                  style: AppTheme.articleMeta(context),
+                ),
+                ClickableCategoryWidget(
+                  name: article.categoryName,
+                  onTap: () {
+                    final homeBloc = sl<HomeBloc>();
+                    if (homeBloc.state is HomeLoaded) {
+                      final state = homeBloc.state as HomeLoaded;
+                      if (!state.showFilter) homeBloc.add(ToggleFilter());
+                      homeBloc.add(CategorySelected(
+                        CategoryEntity(
+                          id: article.categoryId,
+                          name: article.categoryName,
+                          order: 0,
+                        ),
+                      ));
+                      context.goNamed(RouteNames.home);
+                    }
+                  },
+                ),
+                Text(
+                  ' / ',
+                  style: AppTheme.articleMeta(context),
+                ),
+                ClickableCategoryWidget(
+                  name: article.subcategoryName,
+                  onTap: () {
+                    final homeBloc = sl<HomeBloc>();
+                    if (homeBloc.state is HomeLoaded) {
+                      final state = homeBloc.state as HomeLoaded;
+                      if (!state.showFilter) homeBloc.add(ToggleFilter());
+                      homeBloc.add(CategorySelected(
+                        CategoryEntity(
+                          id: article.categoryId,
+                          name: article.categoryName,
+                          order: 0,
+                        ),
+                        subcategory: SubcategoryEntity(
+                          id: article.subcategoryId,
+                          name: article.subcategoryName,
+                          order: 0,
+                          categoryId: article.categoryId,
+                        ),
+                      ));
+                      context.goNamed(RouteNames.home);
+                    }
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: AppTheme.spaceXs),
 

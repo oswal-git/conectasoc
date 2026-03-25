@@ -27,6 +27,13 @@ class HomeViewWidgetState extends State<HomeViewWidget> {
               ),
             if (state is HomeLoaded) ...[
               Visibility(
+                visible: state.showFilter,
+                child: Padding(
+                  padding: AppTheme.paddingFilter,
+                  child: const CategoryFilterBarWidget(),
+                ),
+              ),
+              Visibility(
                 visible: state.showSearch,
                 maintainState: true,
                 child: SearchFieldWidget(
@@ -35,13 +42,6 @@ class HomeViewWidgetState extends State<HomeViewWidget> {
                   fillColor: AppTheme.neutralBg,
                   textStyle: AppTheme.searchFieldText(context),
                   borderRadius: AppTheme.borderRadiusSearch,
-                ),
-              ),
-              Visibility(
-                visible: state.showFilter,
-                child: Padding(
-                  padding: AppTheme.paddingFilter,
-                  child: const CategoryFilterBarWidget(),
                 ),
               ),
             ],

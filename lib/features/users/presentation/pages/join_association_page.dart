@@ -6,6 +6,7 @@ import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:conectasoc/injection_container.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class JoinAssociationPage extends StatelessWidget {
@@ -46,7 +47,7 @@ class JoinAssociationView extends StatelessWidget {
           ..showSnackBar(const SnackBar(
               content: Text('¡Te has unido a la asociación!'),
               backgroundColor: AppTheme.success));
-        Navigator.of(context).pop();
+        context.pop();
       }
     }, child: BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {

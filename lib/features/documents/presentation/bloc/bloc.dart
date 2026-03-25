@@ -7,3 +7,6 @@ export 'upload/document_upload_state_bloc.dart';
 export 'search/document_search_bloc.dart';
 export 'search/document_search_event_bloc.dart';
 export 'search/document_search_state_bloc.dart';
+export 'edit/document_edit_bloc.dart';
+export 'edit/document_edit_event_bloc.dart';
+export 'edit/document_edit_state_bloc.dart';

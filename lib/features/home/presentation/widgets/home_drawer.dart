@@ -15,6 +15,8 @@ class HomeDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Drawer(
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
@@ -43,7 +45,7 @@ class HomeDrawer extends StatelessWidget {
                         _buildDrawerItem(
                           context: context,
                           icon: Icons.people_outline,
-                          text: AppLocalizations.of(context).usersListTitle,
+                          text: l10n.usersListTitle,
                           onTap: () {
                             GoRouter.of(context).pop();
                             GoRouter.of(context).push(
@@ -56,8 +58,7 @@ class HomeDrawer extends StatelessWidget {
                           _buildDrawerItem(
                             context: context,
                             icon: Icons.business_outlined,
-                            text: AppLocalizations.of(context)
-                                .associationsListTitle,
+                            text: l10n.associationsListTitle,
                             onTap: () {
                               GoRouter.of(context).pop();
                               GoRouter.of(context).go(
@@ -68,7 +69,7 @@ class HomeDrawer extends StatelessWidget {
                           _buildDrawerItem(
                             context: context,
                             icon: Icons.business_outlined,
-                            text: AppLocalizations.of(context).association,
+                            text: l10n.association,
                             onTap: () {
                               GoRouter.of(context).pop();
                               GoRouter.of(context).go(
@@ -79,11 +80,10 @@ class HomeDrawer extends StatelessWidget {
                           _buildDrawerItem(
                             context: context,
                             icon: Icons.business_outlined,
-                            text: AppLocalizations.of(context).association,
+                            text: l10n.association,
                             onTap: () {
                               SnackBarService.showSnackBar(
-                                AppLocalizations.of(context)
-                                    .noAssociationAvailable,
+                                l10n.noAssociationAvailable,
                                 isError: true,
                               );
                             },
@@ -98,14 +98,14 @@ class HomeDrawer extends StatelessWidget {
                           padding: const EdgeInsets.fromLTRB(
                               AppTheme.spaceSm, 0, AppTheme.spaceSm, 0),
                           child: Text(
-                            AppLocalizations.of(context).documents,
+                            l10n.documents,
                             style: AppTheme.drawerSectionLabel,
                           ),
                         ),
                         _buildDrawerItem(
                           context: context,
                           icon: Icons.upload_file_outlined,
-                          text: AppLocalizations.of(context).uploadDocuments,
+                          text: l10n.uploadDocuments,
                           onTap: () {
                             GoRouter.of(context).pop();
                             GoRouter.of(context).push(
@@ -115,7 +115,7 @@ class HomeDrawer extends StatelessWidget {
                         _buildDrawerItem(
                           context: context,
                           icon: Icons.folder_outlined,
-                          text: AppLocalizations.of(context).documentList,
+                          text: l10n.documentList,
                           onTap: () {
                             GoRouter.of(context).pop();
                             GoRouter.of(context).push(
@@ -131,7 +131,7 @@ class HomeDrawer extends StatelessWidget {
                       _buildDrawerItem(
                         context: context,
                         icon: Icons.settings_outlined,
-                        text: AppLocalizations.of(context).configuration,
+                        text: l10n.configuration,
                         onTap: () {
                           GoRouter.of(context).pop();
                           GoRouter.of(context).push(
@@ -146,7 +146,7 @@ class HomeDrawer extends StatelessWidget {
                       _buildDrawerItem(
                         context: context,
                         icon: Icons.person_outline,
-                        text: AppLocalizations.of(context).myProfile,
+                        text: l10n.myProfile,
                         onTap: () {
                           GoRouter.of(context).pop();
                           GoRouter.of(context)
@@ -157,7 +157,7 @@ class HomeDrawer extends StatelessWidget {
                       _buildDrawerItem(
                         context: context,
                         icon: Icons.add_business_outlined,
-                        text: AppLocalizations.of(context).joinAssociation,
+                        text: l10n.joinAssociation,
                         onTap: () {
                           GoRouter.of(context).pop();
                           GoRouter.of(context).push(
@@ -259,7 +259,7 @@ class HomeDrawer extends StatelessWidget {
         icon: Icons.logout,
         text: l10n.logout,
         onTap: () {
-          Navigator.pop(context);
+          context.pop();
           context.read<AuthBloc>().add(AuthSignOutRequested());
         },
       );
@@ -270,7 +270,7 @@ class HomeDrawer extends StatelessWidget {
         icon: Icons.exit_to_app,
         text: l10n.exitReadOnlyMode,
         onTap: () {
-          Navigator.pop(context);
+          context.pop();
           context.read<AuthBloc>().add(AuthDeleteLocalUser());
         },
       );
@@ -280,7 +280,7 @@ class HomeDrawer extends StatelessWidget {
       icon: Icons.login,
       text: l10n.login,
       onTap: () {
-        Navigator.pop(context);
+        context.pop();
         GoRouter.of(context).go(RouteNames.welcome);
       },
     );

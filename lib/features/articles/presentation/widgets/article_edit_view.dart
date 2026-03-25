@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_bloc.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_event.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_state.dart';
@@ -200,14 +201,14 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                         TextButton(
                           onPressed: () {
                             bloc.add(DiscardDraft(state.originalArticle));
-                            Navigator.of(dialogContext).pop();
+                            context.pop();
                           },
                           child: Text(l10n.discard),
                         ),
                         ElevatedButton(
                           onPressed: () {
                             bloc.add(const RestoreDraft());
-                            Navigator.of(dialogContext).pop();
+                            context.pop();
                           },
                           child: Text(l10n.restore),
                         ),
@@ -254,7 +255,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                          strokeWidth: AppTheme.loadingStrokeWidth,
                           color: Colors.white,
                         ),
                       ),
@@ -513,11 +514,11 @@ class _ArticleEditViewState extends State<ArticleEditView> {
         content: Text(l10n.unsavedChangesMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
+            onPressed: () => context.pop(false),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
+            onPressed: () => context.pop(true),
             child:
                 Text(l10n.discard, style: const TextStyle(color: Colors.red)),
           ),

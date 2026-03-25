@@ -12,7 +12,6 @@
 ├── firebase.json
 ├── firestore.rules
 ├── google-services.json
-├── GoogleService-Info.plist
 ├── l10n.yaml
 ├── novacios.ps1
 ├── * novacios.txt
@@ -72,7 +71,7 @@
         ├── utils.dart
         ├── validators.dart
     ├── widgets
-        ├── dropdown_widget.dart
+        ├── app_dropdown_widget.dart
         ├── user_friendly_error_widget.dart
         ├── widgets.dart
   ├── debug
@@ -104,6 +103,7 @@
             ├── get_articles_usecase.dart
             ├── get_categories_usecase.dart
             ├── get_subcategories_usecase.dart
+            ├── prefetch_articles_usecase.dart
             ├── update_article_usecase.dart
             ├── usecases.dart
       ├── presentation
@@ -126,7 +126,6 @@
             ├── article_pager_page.dart
             ├── pages.dart
         ├── widgets
-            ├── article_edit_view copy.dar
             ├── article_edit_view.dart
             ├── article_preview.dart
             ├── article_quill_editor_field.dart
@@ -274,6 +273,7 @@
             ├── get_document_by_id_usecase.dart
             ├── is_document_linked_usecase.dart
             ├── search_document_usecase.dart
+            ├── update_document_usecase.dart
             ├── usecases.dart
       ├── presentation
         ├── bloc
@@ -281,6 +281,10 @@
             ├── document_bloc.dart
             ├── document_event_bloc.dart
             ├── document_state_bloc.dart
+          ├── edit
+              ├── document_edit_bloc.dart
+              ├── document_edit_event_bloc.dart
+              ├── document_edit_state_bloc.dart
           ├── search
               ├── document_search_bloc.dart
               ├── document_search_event_bloc.dart
@@ -290,6 +294,7 @@
               ├── document_upload_event_bloc.dart
               ├── document_upload_state_bloc.dart
         ├── pages
+            ├── document_edit_page.dart
             ├── document_view_page.dart
             ├── documents_list_page.dart
             ├── documents_upload_page.dart

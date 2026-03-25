@@ -1,8 +1,6 @@
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/domain/repositories/users_repository.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
-import 'package:conectasoc/injection_container.dart';
-import 'package:conectasoc/services/notification_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
@@ -157,9 +155,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             authBloc
                 .add(AuthUserUpdated(updatedUser.toAuthUser(originalAuthUser)));
             // Reprogramar notificaciones con los nuevos horarios
-            sl<NotificationService>().scheduleNotifications(
-              updatedUser.toAuthUser(originalAuthUser),
-            ); // UserEntity
+            // sl<NotificationService>().scheduleNotifications(
+            //   updatedUser.toAuthUser(originalAuthUser),
+            // ) // UserEntity
             // Emitir un estado de éxito para que la UI pueda reaccionar (mostrar SnackBar).
             emit(ProfileUpdateSuccess());
             // Volver al estado cargado, asegurando que la UI tenga los datos más recientes,

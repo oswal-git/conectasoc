@@ -4,6 +4,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -110,7 +111,7 @@ class _RegisterPageState extends State<RegisterPage> {
               isError: false,
             );
             // Navegar de vuelta al login o a una página de verificación
-            Navigator.of(context).pop();
+            context.pop();
           }
         },
         // Usamos un BlocBuilder que solo reconstruya la UI cuando sea estrictamente necesario.

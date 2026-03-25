@@ -1,650 +1,290 @@
+// 📁 lib/theme/app_theme.dart
 import 'package:flutter/material.dart';
-
-// ─────────────────────────────────────────────
-//  AppTheme — Single source of truth
-//  Material Design 3 · Blue primary palette
-// ─────────────────────────────────────────────
+import 'app_colors.dart';
+import 'app_spacing.dart';
+import 'app_text_styles.dart';
 
 abstract final class AppTheme {
-  // ── Prevent instantiation ──────────────────
   const AppTheme._();
 
-  // ════════════════════════════════════════════
-  //  COLOR TOKENS — Primarios
-  // ════════════════════════════════════════════
+  static const Color _seedPrimary = Color(0xFF5E7E99);
+  static const Color _seedSecondary = Color(0xFFA5CBEB);
 
-  static const Color primary = Color.fromARGB(255, 94, 126, 153);
-  static const Color secondary = Color.fromARGB(255, 165, 203, 235);
+  static ThemeData get light {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: _seedPrimary,
+      secondary: _seedSecondary,
+      error: AppColors.light().errorText,
+      brightness: Brightness.light,
+    );
 
-  // Backgrounds
-  static const Color background = Colors.white;
-  static const Color surface = Colors.white;
-  static const Color inputBackground = Color(0xFFFAFAFA); // grey[50]
+    final colors = AppColors.light();
 
-  // Borders
-  static const Color border = Color(0xFFE0E0E0); // grey[300]
-  static const Color borderFocus = primary;
+    return ThemeData(
+      useMaterial3: true,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colors.surface,
+      canvasColor: colors.surface,
+      textTheme: AppTextStyles.light,
+      primaryTextTheme: AppTextStyles.light.apply(
+        bodyColor: colorScheme.onPrimary,
+        displayColor: colorScheme.onPrimary,
+      ),
+      appBarTheme: _appBarTheme(colorScheme, colors),
+      inputDecorationTheme: _inputDecorationTheme(colors),
+      elevatedButtonTheme: _elevatedButtonTheme,
+      outlinedButtonTheme: _outlinedButtonTheme,
+      textButtonTheme: _textButtonTheme,
+      cardTheme: _cardTheme(colors),
+      listTileTheme: _listTileTheme(colorScheme),
+      dividerTheme: _dividerTheme(colors),
+      chipTheme: _chipTheme(colorScheme),
+      snackBarTheme: _snackBarTheme,
+      floatingActionButtonTheme: _floatingActionButtonTheme,
+      extensions: [colors],
+    );
+  }
 
-  // AppBar
-  static const Color appBarBackground = primary;
-  static const Color appBarForeground = Colors.white;
+  static ThemeData get dark {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: _seedPrimary,
+      secondary: _seedSecondary,
+      error: AppColors.dark().errorText,
+      brightness: Brightness.dark,
+    );
 
-  // Text
-  static const Color textPrimary = Colors.black87;
-  static const Color textSecondary = Colors.black54;
+    final colors = AppColors.dark();
 
-  // Text Field
-  static const Color textFieldEnabled = inputBackground;
-  static const Color textFieldDisabled = Color(0xFFE0E0E0); // grey[300]
-  static const Color textFieldHint = Color.fromARGB(255, 126, 125, 125);
-
-  // Image icon
-  static const Color imageIconHint = Color.fromARGB(255, 126, 125, 125);
-
-  // Article Status
-  static const Color redaccion = Color(0xFFE3F2FD);
-  static const Color revision = Color(0xFFFFFDE7);
-  static const Color expirado = Color(0xFFFFF3E0);
-  static const Color anulado = Color(0xFFFFEBEE);
-
-  // Status
-  static const Color error = Colors.red;
-  static const Color success = Colors.green;
-  static const Color warning = Colors.orange;
-
-// Info banner (blue tints) 0xFFFFFDE7
-  static const Color infoBg = Color(0xFFE3F2FD); // blue.shade50
-  static const Color infoBorder = secondary; // blue.shade200
-  static const Color infoIcon = primary; // blue.shade700
-  static const Color infoTextBody = Color(0xFF1565C0); // blue.shade800
-  static const Color infoTextTitle = Color(0xFF0D47A1); // blue.shade900
-
-  // Success banner (green tints)
-  static const Color successBg = Color(0xFFE8F5E9); // green.shade50
-  static const Color successIcon = Color(0xFF388E3C); // green.shade700
-
-  // Warning banner (orange tints)
-  static const Color warningBg = Color(0xFFFFF3E0); // orange.shade50
-  static const Color warningBorder = Color(0xFFFFCC80); // orange.shade200
-
-  // On-dark surfaces
-  static const Color onDarkPrimary = Colors.white;
-  static const Color onDarkSecondary = Color(0xB3FFFFFF); // white70
-  static const Color overlayDark = Color(0x80000000); // black 50%
-  static const Color overlayLoading = Color(0x03000000); // black ~1%
-
-  // Neutral tints
-  static const Color neutralBg = Color(0xFFF5F5F5); // grey.shade100
-  static const Color neutralText = Color(0xFF757575); // grey.shade600
-  static const Color neutralTextDark = Color(0xFF616161); // grey.shade700
-  static const Color neutralDivider = border; // grey.shade300 (= border)
-
-  // ════════════════════════════════════════════
-  //  SPACING TOKENS
-  // ════════════════════════════════════════════
-
-  /// Separación mínima — 4 px
-  static const double spaceXxs = 4;
-
-  /// Separación pequeña — 8 px
-  static const double spaceXs = 8;
-
-  /// Separación estándar — 12 px
-  static const double spaceSsm = 12;
-
-  /// Separación estándar — 16 px
-  static const double spaceSm = 16;
-
-  /// Separación entre elementos — 20 px
-  static const double spaceMmd = 20;
-
-  /// Separación entre elementos — 24 px
-  static const double spaceMd = 24;
-
-  /// Separación entre secciones — 32 px
-  static const double spaceLg = 32;
-
-  /// 40 px — espacio superior en páginas de bienvenida
-  static const double spaceTop = 20;
-
-  /// 44 px — separación grande
-  static const double spaceXl = 44;
-
-  /// 48 px — separación extra grande (fin de formulario)
-  static const double spaceXxl = 48;
-
-  /// 60 px — espacio previo a secciones principales (welcome)
-  static const double spaceSection = 30;
+    return ThemeData(
+      useMaterial3: true,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colors.surface,
+      canvasColor: colors.surface,
+      textTheme: AppTextStyles.dark,
+      primaryTextTheme: AppTextStyles.dark.apply(
+        bodyColor: colorScheme.onPrimary,
+        displayColor: colorScheme.onPrimary,
+      ),
+      appBarTheme: _appBarTheme(colorScheme, colors),
+      inputDecorationTheme: _inputDecorationTheme(colors),
+      elevatedButtonTheme: _elevatedButtonTheme,
+      outlinedButtonTheme: _outlinedButtonTheme,
+      textButtonTheme: _textButtonTheme,
+      cardTheme: _cardTheme(colors),
+      listTileTheme: _listTileTheme(colorScheme),
+      dividerTheme: _dividerTheme(colors),
+      chipTheme: _chipTheme(colorScheme),
+      snackBarTheme: _snackBarTheme,
+      floatingActionButtonTheme: _floatingActionButtonTheme,
+      extensions: [colors],
+    );
+  }
 
   // ════════════════════════════════════════════
-  //  CONATINER SIZE TOKENS
+  //  COMPONENT THEMES (usan AppColors)
   // ════════════════════════════════════════════
 
-  static const double containerWidth = 90;
-  static const double containerHeight = 90;
-
-  // ════════════════════════════════════════════
-  //  BORDER RADIUS TOKENS
-  // ════════════════════════════════════════════
-
-  static const double radiusDefault = 12;
-  static const BorderRadius borderRadiusDefault =
-      BorderRadius.all(Radius.circular(radiusDefault));
-
-  /// Radio para búsqueda
-  static const double radiusSearch = 8;
-  static const BorderRadius borderRadiusSearch =
-      BorderRadius.all(Radius.circular(radiusSearch));
-
-  /// Radio para tarjetas de bienvenida / modo card
-  static const double radiusCard = 16;
-  static const BorderRadius borderRadiusCard =
-      BorderRadius.all(Radius.circular(radiusCard));
-
-  /// Radio para contenedor logo (splash / welcome)
-  static const double radiusLogo = 20;
-  static const BorderRadius borderRadiusLogo =
-      BorderRadius.all(Radius.circular(radiusLogo));
-
-  /// Radio para contenedor logo grande (welcome)
-  static const double radiusLogoLg = 30;
-  static const BorderRadius borderRadiusLogoLg =
-      BorderRadius.all(Radius.circular(radiusLogoLg));
-
-  // ════════════════════════════════════════════
-  //  AVATAR RADIUS TOKENS
-  // ════════════════════════════════════════════
-
-  /// Avatar estándar (autor, perfil inline)
-  static const double avatarRadiusDefault = 20;
-
-  /// Avatar logo grande (logo picker, perfil principal)
-  static const double avatarRadiusLarge = 60;
-
-  // ════════════════════════════════════════════
-  //  ICON SIZE TOKENS
-  // ════════════════════════════════════════════
-
-  /// Icono hero (e.g. email verification)
-  static const double iconSizeLarge = 100;
-
-  /// Icono app en login / splash
-  static const double iconSizeApp = 80;
-
-  /// Icono placeholder de entidad (negocio, avatar vacío)
-  static const double iconSizeMedium = 60;
-
-  /// Icono en welcome cards
-  static const double iconSizeCard = 32;
-
-  /// Icono de acción en lista (delete Dismissible)
-  static const double iconSizeAction = 32;
-
-  /// Icono en filas de ajustes / edición inline
-  static const double iconSizeXs = 24;
-
-  /// Icono en botones pequeños / debug
-  static const double iconSizeSmall = 16;
-
-  /// Tamaño del contenedor de logo (splash / welcome)
-  static const double logoContainerSize = 120;
-
-  /// Tamaño del contenedor de icono en welcome cards
-  static const double cardIconContainerSize = 56;
-
-  // ════════════════════════════════════════════
-  //  LAYOUT CONSTRAINTS
-  // ════════════════════════════════════════════
-
-  /// Ancho máximo del contenedor web principal
-  static const double maxWidthWebContent = 1300;
-
-  /// Ancho máximo de imagen cover en web
-  static const double maxWidthCoverImage = 400;
-
-  /// Ancho máximo de sección solo-imagen en web
-  static const double maxWidthSectionImage = 600;
-
-  /// Breakpoint mobile → web
-  static const double breakpointWeb = 768;
-
-  // ════════════════════════════════════════════
-  //  ELEVATION TOKENS
-  // ════════════════════════════════════════════
-
-  static const double elevationAppBar = 0;
-  static const double elevationCard = 2;
-  static const double elevationButton = 2;
-  static const double elevationCardHigh = 8;
-
-  // ════════════════════════════════════════════
-  //  LOADING INDICATOR TOKENS
-  // ════════════════════════════════════════════
-
-  /// Tamaño del CircularProgressIndicator inline (AppBar, botones)
-  static const double loadingIndicatorSize = 24;
-
-  /// Grosor del trazo del indicador inline
-  static const double loadingStrokeWidth = 2;
-
-  // ════════════════════════════════════════════
-  //  PADDING HELPERS
-  // ════════════════════════════════════════════
-
-  /// Card content margin
-  static const EdgeInsets margingCard =
-      EdgeInsets.symmetric(horizontal: spaceXs, vertical: spaceXxs);
-
-  /// Card content padding
-  static const EdgeInsets paddingCard = EdgeInsets.all(spaceXxs);
-  static const EdgeInsets paddingCardHorizontal =
-      EdgeInsets.symmetric(horizontal: spaceXxs);
-
-  /// Input content padding
-  static const EdgeInsets paddingInput =
-      EdgeInsets.symmetric(horizontal: spaceSm, vertical: spaceXs);
-
-  /// ElevatedButton primary padding
-  static const EdgeInsets paddingButtonPrimary =
-      EdgeInsets.symmetric(horizontal: spaceMd, vertical: spaceSm);
-
-  /// Small / debug button padding
-  static const EdgeInsets paddingButtonSmall =
-      EdgeInsets.symmetric(horizontal: spaceSsm, vertical: spaceXs);
-
-  /// General container padding
-  static const EdgeInsets paddingPage = EdgeInsets.all(spaceMd);
-
-  /// Info-container padding
-  static const EdgeInsets paddingContainer = EdgeInsets.all(spaceSm);
-
-  /// Padding compacto para dropdowns en modo filtro / dense
-  static const EdgeInsets paddingDropdownDense =
-      EdgeInsets.symmetric(horizontal: 10, vertical: spaceXs);
-
-  /// Padding search and filter widget
-  static const EdgeInsets paddingSearchAndFilterWidget = EdgeInsets.only(
-      top: spaceXxs, bottom: spaceXxs, left: spaceXs, right: spaceXs);
-  static const EdgeInsets paddingSearch = EdgeInsets.only(
-      top: spaceSsm, bottom: spaceSsm, left: spaceMmd, right: spaceMmd);
-  static const EdgeInsets paddingFilter = EdgeInsets.only(top: spaceXxs);
-
-  /// Padding final
-  static const EdgeInsets paddingOnlyRight = EdgeInsets.only(right: spaceXxs);
-  static const EdgeInsets paddingOnlyLeft = EdgeInsets.only(left: spaceXs);
-  static const EdgeInsets paddingHorizontalXxs =
-      EdgeInsets.symmetric(horizontal: spaceXxs);
-  static const EdgeInsets paddingHorizontalXs =
-      EdgeInsets.symmetric(horizontal: spaceXs);
-  static const EdgeInsets paddingHorizontalSm =
-      EdgeInsets.symmetric(horizontal: spaceSm);
-
-  // ════════════════════════════════════════════
-  //  TEXT WEIGHT TOKENS
-  // ════════════════════════════════════════════
-
-  static const FontWeight fontWeightBold = FontWeight.bold;
-  static const FontWeight fontWeightSemi = FontWeight.w600;
-
-  // ════════════════════════════════════════════
-  //  TEXT STYLES
-  // ════════════════════════════════════════════
-
-  static const TextTheme _textTheme = TextTheme(
-    // Títulos principales
-    headlineMedium: TextStyle(
-      fontWeight: FontWeight.bold,
-      color: textPrimary,
-    ),
-    // Texto destacado / subtítulos
-    titleMedium: TextStyle(
-      fontWeight: FontWeight.bold,
-      color: textPrimary,
-    ),
-    // Texto descriptivo
-    bodyLarge: TextStyle(
-      color: textPrimary,
-    ),
-    // Texto secundario / auxiliar
-    bodySmall: TextStyle(
-      color: textSecondary,
-    ),
-    // Etiquetas (drawer, chips, etc.)
-    labelMedium: TextStyle(
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.8,
-      color: textPrimary,
-    ),
-    // Hint / placeholders
-    bodyMedium: TextStyle(
-      color: textFieldHint,
-    ),
-  );
-
-  // ════════════════════════════════════════════
-  //  SEMANTIC TEXT STYLES
-  //
-  //  Capa semántica sobre Material TextTheme.
-  //  Los widgets consumen estos estilos, nunca
-  //  textTheme.bodyLarge directamente.
-  //  Para cambiar el texto de los artículos:
-  //    → modifica articleTitle / articleBody
-  //  Para cambiar botones:
-  //    → modifica buttonLabel
-  //  Los tipos Material (headlineMedium...) solo
-  //  se tocan si cambia el sistema de diseño global.
-  // ════════════════════════════════════════════
-
-  // ── Splash / Welcome ─────────────────────
-  /// Título principal splash (app name)
-  static const TextStyle splashTitle = TextStyle(
-    fontSize: 32,
-    fontWeight: fontWeightBold,
-    color: onDarkPrimary,
-  );
-
-  /// Subtítulo splash
-  static const TextStyle splashSubtitle = TextStyle(
-    fontSize: 16,
-    color: onDarkSecondary,
-  );
-
-  /// Título hero en welcome (app name grande)
-  static const TextStyle welcomeTitle = TextStyle(
-    fontSize: 40,
-    fontWeight: fontWeightBold,
-    color: onDarkPrimary,
-  );
-
-  /// Subtítulo welcome
-  static const TextStyle welcomeSubtitle = TextStyle(
-    fontSize: 18,
-    color: onDarkSecondary,
-  );
-
-  // ── Login / Auth ─────────────────────────
-  /// Título de página de login (app name)
-  static TextStyle loginTitle(BuildContext context) =>
-      Theme.of(context).textTheme.headlineLarge!.copyWith(
-            fontWeight: fontWeightBold,
-            color: AppTheme.primary,
-          );
-
-  /// Subtítulo de login
-  static TextStyle loginSubtitle(BuildContext context) =>
-      Theme.of(context).textTheme.titleMedium!.copyWith(
-            color: neutralText,
-          );
-
-  /// Texto separador 'O' en login
-  static const TextStyle loginDividerLabel = TextStyle(
-    color: neutralText,
-  );
-
-  /// Texto de enlace secundario (sin registrarse)
-  static const TextStyle loginSecondaryLink = TextStyle(
-      fontStyle: FontStyle.italic,
-      // decoration: TextDecoration.underline,
-      // decorationColor:
-      //     Colors.blue, // color de la línea (por defecto hereda el del texto)
-      // decorationThickness: 2.0, // grosor
-      // decorationStyle: TextDecorationStyle.solid,
-      fontSize: 14);
-
-  // ── Botones ───────────────────────────────
-  /// Label de botón primario / outline
-  static const TextStyle buttonLabel = TextStyle(
-    fontSize: 16,
-    fontWeight: fontWeightBold,
-  );
-
-  // ── Info / banners ────────────────────────
-  /// Título de banner informativo
-  static const TextStyle infoBannerTitle = TextStyle(
-    fontWeight: fontWeightBold,
-    color: infoTextTitle,
-  );
-
-  /// Cuerpo de banner informativo
-  static const TextStyle infoBannerBody = TextStyle(
-    fontSize: 13,
-    color: infoTextBody,
-  );
-
-  /// Texto de banner de aviso (warning/neutral)
-  static const TextStyle warningBannerBody = TextStyle(
-    fontSize: 13,
-    color: neutralText,
-  );
-
-  // ── Cards (welcome) ───────────────────────
-  /// Título de card de modo de acceso
-  static const TextStyle cardTitle = TextStyle(
-    fontSize: 16,
-    fontWeight: fontWeightBold,
-  );
-
-  static const TextStyle cardSubTitle = TextStyle(
-    fontSize: 16,
-    fontWeight: fontWeightBold,
-  );
-
-  /// Descripción de card de modo de acceso
-  static const TextStyle cardDescription = TextStyle(
-    fontSize: 12,
-    color: neutralText,
-  );
-
-  // ── Captions ─────────────────────────────
-  /// Texto pequeño explicativo / caption
-  static const TextStyle caption = TextStyle(
-    fontSize: 13,
-    color: neutralText,
-  );
-
-  /// Etiqueta de sección en el Drawer (documentos, admin, etc.)
-  static const TextStyle drawerSectionLabel = TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    color: neutralText,
-    letterSpacing: 0.8,
-  );
-
-  // ── Email verification ────────────────────
-  /// Email destacado en verificación
-  static TextStyle verificationEmail(BuildContext context) =>
-      Theme.of(context).textTheme.titleMedium!.copyWith(
-            color: AppTheme.primary,
-            fontWeight: fontWeightBold,
-          );
-
-  /// Instrucción en panel de verificación
-  static const TextStyle verificationInstruction = TextStyle(
-    color: infoTextTitle,
-  );
-
-  // ── Artículo ─────────────────────────────
-  /// Título principal del artículo
-  static TextStyle articleTitle(BuildContext context) =>
-      Theme.of(context).textTheme.headlineMedium!.copyWith(
-            fontSize: 24,
-          );
-
-  /// Abstract del artículo
-  static TextStyle articleAbstract(BuildContext context) =>
-      Theme.of(context).textTheme.bodyLarge!.copyWith(
-            fontSize: 12,
-            height: 1.3,
-            color: neutralTextDark,
-          );
-
-  /// Categoría y subcategoría del artículo
-  static TextStyle articleCategory(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall!.copyWith(
-            fontSize: 10,
-            color: primary,
-          );
-
-  /// Cuerpo / contenido del artículo
-  static TextStyle articleBody(BuildContext context) =>
-      Theme.of(context).textTheme.bodyLarge!.copyWith(
-            color: textPrimary,
-            fontSize: 14,
-          );
-
-  /// Metadatos del artículo (autor, fecha, categoría)
-  static TextStyle articleMeta(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall!;
-
-  /// Pie de artículo con énfasis en vigencia (italic)
-  static TextStyle articleFooter(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall!.copyWith(
-            fontStyle: FontStyle.italic,
-          );
-
-  // ── Página / sección ─────────────────────
-  /// Título de sección dentro de una página
-  static TextStyle sectionTitle(BuildContext context) =>
-      Theme.of(context).textTheme.headlineSmall!;
-
-  // ── Feedback / errores ───────────────────
-  /// Mensaje de error amigable al usuario
-  static TextStyle errorMessage(BuildContext context) =>
-      Theme.of(context).textTheme.titleMedium!.copyWith(
-            color: textSecondary,
-          );
-
-  /// Detalle técnico de error (monospace)
-  static const TextStyle errorDetail = TextStyle(
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: error,
-  );
-
-  /// Label de toggle para expandir/colapsar detalles
-  /// Texto de item en dropdown compacto (filtros)
-  static const TextStyle dropdownDenseItem = TextStyle(fontSize: 13);
-  static const TextStyle toggleLabel = TextStyle(fontSize: 12);
-
-  // ── Listas ───────────────────────────────
-  /// Nombre principal de un item en lista
-  static const TextStyle listCaptionTitle = TextStyle(
-    fontWeight: fontWeightBold,
-    fontSize: 14,
-  );
-
-  /// Nombre de un item en lista
-  static const TextStyle listItemTitle = TextStyle(
-    fontWeight: FontWeight.normal,
-    fontSize: 14,
-  );
-
-  // ── Acciones destructivas ────────────────
-  /// Texto de botón o acción destructiva (eliminar, descartar)
-  static const TextStyle destructiveAction = TextStyle(
-    color: error,
-  );
-
-  // ── Serach and filter ────────────────
-  /// Texto de botón o acción destructiva (eliminar, descartar)
-
-  static TextStyle searchFieldText(BuildContext context) =>
-      Theme.of(context).textTheme.headlineMedium!.copyWith(
-            fontSize: 16,
-            fontWeight: FontWeight.normal,
-          );
-  static TextStyle filterFieldText(BuildContext context) =>
-      Theme.of(context).textTheme.bodyLarge!.copyWith(
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
-            color: onDarkPrimary,
-          );
-
-  // ════════════════════════════════════════════
-  //  COMPONENT THEMES
-  // ════════════════════════════════════════════
-
-  static AppBarTheme get _appBarTheme => const AppBarTheme(
-        backgroundColor: appBarBackground,
-        foregroundColor: appBarForeground,
-        elevation: elevationAppBar,
+  static AppBarTheme _appBarTheme(ColorScheme colorScheme, AppColors colors) =>
+      AppBarTheme(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        foregroundColor: colors.textPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 2,
         centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: colors.textPrimary,
+          height: 1.2,
+        ),
+        iconTheme: IconThemeData(color: colors.textPrimary, size: 24),
+        actionsIconTheme: IconThemeData(color: colors.textPrimary, size: 24),
       );
 
-  static InputDecorationTheme get _inputDecorationTheme => InputDecorationTheme(
-        filled: true,
-        fillColor: inputBackground,
-        contentPadding: paddingInput,
-        border: OutlineInputBorder(
-          borderRadius: borderRadiusDefault,
-          borderSide: const BorderSide(color: border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: borderRadiusDefault,
-          borderSide: const BorderSide(color: border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: borderRadiusDefault,
-          borderSide: const BorderSide(color: borderFocus, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: borderRadiusDefault,
-          borderSide: const BorderSide(color: error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: borderRadiusDefault,
-          borderSide: const BorderSide(color: error, width: 2),
-        ),
-        hintStyle: TextStyle(color: textFieldHint),
-      );
+  static InputDecorationTheme _inputDecorationTheme(AppColors colors) {
+    const borderRadius = BorderRadius.all(Radius.circular(12));
 
-  static ElevatedButtonThemeData get _elevatedButtonTheme =>
-      ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          elevation: elevationButton,
-          padding: paddingButtonPrimary,
-          shape: const RoundedRectangleBorder(
-            borderRadius: borderRadiusDefault,
-          ),
-        ),
-      );
+    final border = OutlineInputBorder(
+      borderRadius: borderRadius,
+      borderSide: BorderSide(color: colors.border),
+    );
 
-  static CardThemeData get _cardTheme => CardThemeData(
-        elevation: elevationCard,
-        color: surface,
+    return InputDecorationTheme(
+      hintStyle: TextStyle(
+        fontSize: 14,
+        color: colors.textHint, // ✅ Centralizado
+        fontWeight: FontWeight.normal,
+      ),
+      filled: true,
+      fillColor: colors.inputBackground,
+      contentPadding: AppSpacing.inputPadding(),
+      border: border,
+      enabledBorder: border,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: borderRadius,
+        borderSide: BorderSide(color: colors.borderFocus, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: borderRadius,
+        borderSide: BorderSide(color: colors.errorText),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: borderRadius,
+        borderSide: BorderSide(color: colors.errorText, width: 2),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: borderRadius,
+        borderSide: BorderSide(color: colors.border),
+      ),
+      labelStyle: TextStyle(fontSize: 14, color: colors.textSecondary),
+      floatingLabelStyle: TextStyle(fontSize: 12, color: colors.borderFocus),
+      helperStyle: TextStyle(fontSize: 12, color: colors.textSecondary),
+      errorStyle: TextStyle(
+          fontSize: 12, color: colors.errorText, fontWeight: FontWeight.w500),
+      prefixIconColor: colors.textSecondary,
+      suffixIconColor: colors.textSecondary,
+    );
+  }
+
+  static ElevatedButtonThemeData get _elevatedButtonTheme {
+    return ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        elevation: 2,
+        padding: AppSpacing.buttonPadding(),
+        backgroundColor: _seedPrimary,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: AppColors.light().textDisabled,
+        disabledForegroundColor: AppColors.light().textSecondary,
         shape: const RoundedRectangleBorder(
-          borderRadius: borderRadiusDefault,
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
-      );
+        textStyle: AppTextStyles.buttonLabel,
+      ),
+    );
+  }
 
-  // ════════════════════════════════════════════
-  //  THEME DATA  (public entry point)
-  // ════════════════════════════════════════════
+  static OutlinedButtonThemeData get _outlinedButtonTheme {
+    return OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        padding: AppSpacing.buttonPadding(),
+        foregroundColor: _seedPrimary,
+        disabledForegroundColor: AppColors.light().textDisabled,
+        side: const BorderSide(color: _seedPrimary, width: 1.5),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        textStyle: AppTextStyles.buttonLabel,
+      ),
+    );
+  }
 
-  static ThemeData get light => ThemeData(
-        useMaterial3: true,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primary,
-          secondary: secondary,
-          error: error,
-          surface: surface,
-          onSurface: textPrimary,
-        ),
-        scaffoldBackgroundColor: background,
-        textTheme: _textTheme,
-        appBarTheme: _appBarTheme,
-        inputDecorationTheme: _inputDecorationTheme,
-        elevatedButtonTheme: _elevatedButtonTheme,
-        cardTheme: _cardTheme,
-        listTileTheme: ListTileThemeData(
-          textColor: textPrimary,
-          iconColor: textPrimary,
-          titleTextStyle: listItemTitle.copyWith(
-            fontSize: 12.0,
-          ),
-          contentPadding: EdgeInsets.symmetric(horizontal: spaceSm),
-          visualDensity: const VisualDensity(vertical: -4),
-        ),
-      );
+  static TextButtonThemeData get _textButtonTheme {
+    return TextButtonThemeData(
+      style: TextButton.styleFrom(
+        padding: AppSpacing.symmetric(
+            horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+        foregroundColor: _seedPrimary,
+        disabledForegroundColor: AppColors.light().textDisabled,
+        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  static CardThemeData _cardTheme(AppColors colors) {
+    return CardThemeData(
+      elevation: 2,
+      clipBehavior: Clip.antiAlias,
+      color: colors.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      margin: AppSpacing.symmetric(
+          vertical: AppSpacing.xxs, horizontal: AppSpacing.sm),
+    );
+  }
+
+  static ListTileThemeData _listTileTheme(ColorScheme colorScheme) {
+    return ListTileThemeData(
+      textColor: colorScheme.onSurface,
+      iconColor: colorScheme.onSurfaceVariant,
+      titleTextStyle: AppTextStyles.listItemTitle.copyWith(fontSize: 14),
+      subtitleTextStyle:
+          TextStyle(fontSize: 13, color: AppColors.light().textSecondary),
+      contentPadding: AppSpacing.symmetric(horizontal: AppSpacing.sm),
+      visualDensity: const VisualDensity(vertical: -4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    );
+  }
+
+  static DividerThemeData _dividerTheme(AppColors colors) {
+    return DividerThemeData(
+      color: colors.divider, // ✅ Centralizado
+      thickness: 1,
+      space: AppSpacing.md,
+      indent: AppSpacing.sm,
+      endIndent: AppSpacing.sm,
+    );
+  }
+
+  static ChipThemeData _chipTheme(ColorScheme colorScheme) {
+    return ChipThemeData(
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      deleteIconColor: colorScheme.onSurfaceVariant,
+      disabledColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+      labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+      padding: AppSpacing.symmetric(
+          horizontal: AppSpacing.xxs, vertical: AppSpacing.xxxs),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    );
+  }
+
+  static SnackBarThemeData get _snackBarTheme {
+    return SnackBarThemeData(
+      backgroundColor: AppColors.dark().surfaceElevated, // ✅ Usar AppColors
+      contentTextStyle: const TextStyle(color: Colors.white, fontSize: 14),
+      actionTextColor: _seedSecondary,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      behavior: SnackBarBehavior.floating,
+    );
+  }
+
+  static FloatingActionButtonThemeData get _floatingActionButtonTheme {
+    return FloatingActionButtonThemeData(
+      backgroundColor: _seedPrimary,
+      foregroundColor: Colors.white,
+      elevation: 4,
+      highlightElevation: 8,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+      ),
+    );
+  }
+
+  static ThemeData fromBrightness(Brightness brightness) {
+    return brightness == Brightness.dark ? dark : light;
+  }
+
+  static ThemeData custom({
+    Brightness brightness = Brightness.light,
+    Color? seedColor,
+    Color? secondaryColor,
+    double? spacingScale,
+  }) {
+    if (spacingScale != null) {
+      AppSpacing.setGlobalScale(spacingScale);
+    }
+
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor ?? _seedPrimary,
+      secondary: secondaryColor ?? _seedSecondary,
+      brightness: brightness,
+    );
+
+    final baseTheme = brightness == Brightness.dark ? dark : light;
+
+    return baseTheme.copyWith(colorScheme: colorScheme);
+  }
 }

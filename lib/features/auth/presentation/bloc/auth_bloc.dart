@@ -270,7 +270,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       logger.t("➡️ AuthBloc-_onAuthCheckRequested: emit(AuthAuthenticated)");
       emit(AuthAuthenticated(user, currentMembership));
       // Programar notificaciones
-      sl<NotificationService>().scheduleNotifications(user);
+      // sl<NotificationService>().scheduleNotifications(user);
 
       // Iniciar listener del documento del usuario
       if (!_isLoggingOut && !_isRegistering) {

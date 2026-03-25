@@ -2,6 +2,7 @@ import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:conectasoc/injection_container.dart';
 
@@ -39,6 +40,7 @@ class DocumentUploadPage extends StatelessWidget {
           categoryId: '',
           subcategoryId: '',
           userId: user.uid,
+          userName: user.fullName,
         )),
       child: const DocumentUploadView(),
     );
@@ -112,7 +114,7 @@ class _DocumentUploadViewState extends State<DocumentUploadView> {
             SnackBarService.showSnackBar(l10n.documentUploaded);
             // Pequeño retardo para que el usuario vea que ha terminado
             Future.delayed(const Duration(milliseconds: 500), () {
-              if (context.mounted) Navigator.of(context).pop(true);
+              if (context.mounted) context.pop(true);
             });
           } else if (state is DocumentUploadFailure) {
             SnackBarService.showSnackBar(state.error, isError: true);

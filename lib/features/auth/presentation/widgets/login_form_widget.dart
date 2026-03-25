@@ -2,6 +2,7 @@
 
 import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import 'auth_text_field_widget.dart';
@@ -157,7 +158,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
@@ -168,7 +169,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                     emailController.text.trim(),
                   ),
                 );
-                Navigator.pop(context);
+                context.pop();
               }
             },
             child: const Text('Enviar'),

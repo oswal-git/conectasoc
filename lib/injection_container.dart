@@ -1,7 +1,9 @@
 // lib/injection_container.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:conectasoc/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -218,7 +220,7 @@ Future<void> init() async {
   // ============================================
 
   // Bloc
-  sl.registerFactory(
+  sl.registerLazySingleton(
     () => HomeBloc(
         getArticlesUseCase: sl(),
         getCategoriesUseCase: sl(),
@@ -288,6 +290,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SearchDocumentsUseCase(sl()));
   sl.registerLazySingleton(() => DeleteDocumentUseCase(sl()));
   sl.registerLazySingleton(() => IsDocumentLinkedUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateDocumentUseCase(sl()));
 
 // BLoCs
   sl.registerFactory(
@@ -302,6 +305,14 @@ Future<void> init() async {
     () => DocumentSearchBloc(
       getDocumentsByAssociationUseCase: sl(),
       searchDocumentsUseCase: sl(),
+      getCategoriesUseCase: sl(),
+      getSubcategoriesUseCase: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => DocumentEditBloc(
+      updateDocumentUseCase: sl(),
       getCategoriesUseCase: sl(),
       getSubcategoriesUseCase: sl(),
     ),
@@ -376,6 +387,13 @@ Future<void> init() async {
 /// Inicialización mínima necesaria para tareas en segundo plano.
 Future<void> initMinimal() async {
   if (sl.isRegistered<FirebaseFirestore>()) return;
+
+  // ✅ Inicializar Firebase ANTES de cualquier uso
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => FirebaseAuth.instance);

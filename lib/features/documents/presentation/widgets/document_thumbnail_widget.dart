@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:conectasoc/features/documents/domain/entities/document_entity.dart';
 
@@ -44,7 +45,9 @@ class DocumentThumbnailWidget extends StatelessWidget {
   Widget _buildPlaceholder(BuildContext context) {
     return Container(
       color: Colors.grey.shade200,
-      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      child: const Center(
+          child: CircularProgressIndicator(
+              strokeWidth: AppTheme.loadingStrokeWidth)),
     );
   }
 

@@ -1,6 +1,8 @@
+import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/services/cloudinary_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -272,7 +274,8 @@ class _TestCloudinaryPageState extends State<TestCloudinaryPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(strokeWidth: 3),
+          const CircularProgressIndicator(
+              strokeWidth: AppTheme.loadingStrokeWidth),
           const SizedBox(height: 16),
           const Text(
             'Procesando imagen...',
@@ -530,7 +533,7 @@ class _TestCloudinaryPageState extends State<TestCloudinaryPage> {
               automaticallyImplyLeading: false,
               actions: [
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(Icons.close),
                 ),
               ],
