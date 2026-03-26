@@ -286,6 +286,48 @@ abstract final class AppTextStyles {
           ) ??
       TextStyle(color: Theme.of(context).colorScheme.error);
 
+  /// 🔹 Email verification
+  static TextStyle verificationEmail(BuildContext context) =>
+      Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w700,
+          ) ??
+      const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF5E7E99),
+      );
+
+  // ════════════════════════════════════════════
+  //  BÚSQUEDA / FILTROS
+  // ════════════════════════════════════════════
+  /// 🔹 Filtros de búsqueda
+  static TextStyle filterFieldText(BuildContext context) =>
+      Theme.of(context).textTheme.bodyLarge?.copyWith(
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: Colors
+                .white, // o usar AppColors.of(context).onDarkPrimary si existe
+          ) ??
+      const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: Colors.white,
+      );
+
+  // ════════════════════════════════════════════
+  //  DOCUMENTOS / ARCHIVOS
+  // ════════════════════════════════════════════
+  /// 🔹 Nombre de archivo en información de documentos
+  static TextStyle informationFileName(BuildContext context) =>
+      Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ) ??
+      const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+      );
+
   // ════════════════════════════════════════════
   //  HELPERS
   // ════════════════════════════════════════════

@@ -1,36 +1,97 @@
 // 📁 scripts/migrate_colors.dart
-// ignore_for_file: avoid_print
+// ✅ VERSIÓN CON LOGGING DETALLADO PARA DEBUG
 
 import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'color_mapping.dart';
 
-/// 🚀 Script de migración de colores hardcoded → AppColors
-///
-/// ## Uso:
-/// ```bash
-/// # Dry run (solo ver cambios)
-/// dart run scripts/migrate_colors.dart --dry-run
-///
-/// # Migración real (crea backups)
-/// dart run scripts/migrate_colors.dart --migrate
-///
-/// # Migración con backup custom
-/// dart run scripts/migrate_colors.dart --migrate --backup-dir=./backups
-/// ```
+// ════════════════════════════════════════════
+//  NIVELES DE LOGGING
+// ════════════════════════════════════════════
+
+enum LogLevel {
+  silent, // 0: Sin logs
+  error, // 1: Solo errores
+  warning, // 2: Errores + warnings
+  info, // 3: Errores + warnings + info (default)
+  verbose, // 4: Todo + detalles
+  debug, // 5: Todo + debug interno
+}
+
+class Logger {
+  static LogLevel level = LogLevel.info;
+  static final List<String> _logs = [];
+  static final Stopwatch _stopwatch = Stopwatch();
+
+  static void startTimer() => _stopwatch.start();
+  static String get elapsed => _stopwatch.elapsed.inSeconds.toString();
+
+  static void _log(LogLevel logLevel, String message) {
+    final timestamp = DateTime.now().toString().substring(11, 19);
+    final levelName = logLevel.name.toUpperCase().padRight(5);
+    final log = '[$timestamp] [$levelName] $message';
+    _logs.add(log);
+
+    if (_shouldPrint(logLevel)) {
+      debugPrint(log);
+    }
+  }
+
+  static bool _shouldPrint(LogLevel logLevel) {
+    return logLevel.index <= level.index;
+  }
+
+  static void error(String msg) => _log(LogLevel.error, msg);
+  static void warn(String msg) => _log(LogLevel.warning, msg);
+  static void info(String msg) => _log(LogLevel.info, msg);
+  static void verbose(String msg) => _log(LogLevel.verbose, msg);
+  static void debug(String msg) => _log(LogLevel.debug, msg);
+
+  static void success(String msg) => _log(LogLevel.info, '✅ $msg');
+  static void section(String title) {
+    _log(LogLevel.info, '');
+    _log(LogLevel.info, '═' * 60);
+    _log(LogLevel.info, title);
+    _log(LogLevel.info, '═' * 60);
+  }
+
+  static void saveToFile(String path) {
+    try {
+      File(path).writeAsStringSync(_logs.join('\n'));
+      debugPrint('📄 Log guardado en: $path');
+    } catch (e) {
+      debugPrint('❌ Error guardando log: $e');
+    }
+  }
+
+  static void clear() {
+    _logs.clear();
+    _stopwatch.reset();
+  }
+}
+
+// ════════════════════════════════════════════
+//  MIGRATOR CON LOGGING
+// ════════════════════════════════════════════
+
 class ColorMigrator {
   final String projectRoot;
   final Directory scanDir;
   final bool dryRun;
   final String? backupDir;
+  final LogLevel logLevel;
 
   // Estadísticas
   int _filesScanned = 0;
   int _filesModified = 0;
+  int _filesSkipped = 0;
   int _colorsReplaced = 0;
+  int _errors = 0;
   final Map<String, int> _colorUsageCount = {};
   final List<String> _unmappedColors = [];
+  final List<String> _errorFiles = [];
+  final Map<String, List<String>> _fileChanges = {};
 
   static const List<String> _excludedDirs = [
     '/test/',
@@ -52,260 +113,350 @@ class ColorMigrator {
     '/node_modules/',
   ];
 
-  static const List<String> _excludedFiles = [
-    'pubspec.lock',
-    '.packages',
-    '.flutter-plugins',
-  ];
-
   ColorMigrator({
     required this.projectRoot,
     required this.scanDir,
     this.dryRun = true,
     this.backupDir,
-  });
+    this.logLevel = LogLevel.info,
+  }) {
+    Logger.level = logLevel;
+  }
 
   Future<void> run() async {
-    debugPrint('🎨 Color Migration Tool');
-    debugPrint('═' * 60);
-    debugPrint('📁 Project root: $projectRoot');
-    debugPrint('🔍 Scan directory: ${scanDir.path}');
-    debugPrint('🔍 Mode: ${dryRun ? "DRY RUN (no changes)" : "MIGRATION"}');
-    debugPrint('🚫 Excluded dirs: ${_excludedDirs.length}');
-    debugPrint('🚫 Excluded files: ${_excludedFiles.length}');
-    debugPrint('═' * 60);
-    debugPrint('');
+    Logger.startTimer();
 
-    // ✅ VALIDACIÓN: Asegurar que scanDir existe
-    // if (!await scanDir.exists()) {
-    //   debugPrint('❌ Error: Scan directory does not exist: ${scanDir.path}');
-    //   exit(1);
-    // }
+    Logger.section('🎨 COLOR MIGRATION TOOL');
+    Logger.info('📁 Project root: $projectRoot');
+    Logger.info('🔍 Scan directory: ${scanDir.path}');
+    Logger.info('🔍 Mode: ${dryRun ? "DRY RUN (no changes)" : "MIGRATION"}');
+    Logger.info('📊 Log level: ${logLevel.name.toUpperCase()}');
+    Logger.info('🚫 Excluded dirs: ${_excludedDirs.length}');
+    Logger.info(
+        '⏱️  Start time: ${DateTime.now().toString().substring(0, 19)}');
+    Logger.info('═' * 60);
 
-    // // ✅ VALIDACIÓN: Asegurar que scanDir está dentro de projectRoot
-    // if (!scanDir.path.startsWith(projectRoot)) {
-    //   debugPrint('❌ Error: Scan directory must be within project root');
-    //   debugPrint('   Scan dir: ${scanDir.path}');
-    //   debugPrint('   Project root: $projectRoot');
-    //   exit(1);
-    // }
+    // ✅ VALIDACIONES
+    if (!await scanDir.exists()) {
+      Logger.error('❌ Scan directory does not exist: ${scanDir.path}');
+      exit(1);
+    }
 
-    // await _scanDirectory(scanDir);
+    if (!scanDir.path.startsWith(projectRoot)) {
+      Logger.error('❌ Scan directory must be within project root');
+      exit(1);
+    }
 
+    final pubspecFile = File('$projectRoot/pubspec.yaml');
+    if (!await pubspecFile.exists()) {
+      Logger.error('❌ pubspec.yaml not found at $projectRoot');
+      exit(1);
+    }
+
+    Logger.success('Validations passed');
+    Logger.info('');
+
+    // ✅ ESCANEO
+    await _scanDirectory(scanDir);
+
+    // ✅ REPORTE
     _printReport();
   }
 
   Future<void> _scanDirectory(Directory dir) async {
-    // ✅ VALIDACIÓN: Verificar si el directorio debe ser excluido
+    Logger.debug('📂 Entering directory: ${dir.path}');
+
     if (_shouldExcludeDir(dir.path)) {
-      debugPrint('  🚫 Skipping excluded directory: ${dir.path}');
+      Logger.verbose('🚫 Skipping excluded directory: ${dir.path}');
+      _filesSkipped++;
       return;
     }
 
     try {
-      await for (final entity
-          in dir.list(recursive: true, followLinks: false)) {
-        // ✅ VALIDACIÓN: Solo procesar archivos .dart
-        if (entity is! File || !entity.path.endsWith('.dart')) {
-          continue;
-        }
+      final entities = await dir.list(followLinks: false).toList();
+      Logger.debug('📁 Found ${entities.length} entities in ${dir.path}');
 
-        // ✅ VALIDACIÓN: Verificar si el archivo debe ser excluido
-        if (_shouldExcludeFile(entity.path)) {
-          continue;
+      for (final entity in entities) {
+        if (entity is Directory) {
+          await _scanDirectory(entity);
+        } else if (entity is File) {
+          await _processFile(entity);
         }
-
-        // ✅ VALIDACIÓN: Excluir directorio theme/ (no migrar el sistema de temas)
-        if (entity.path.contains('/theme/')) {
-          debugPrint('  🎨 Skipping theme file: ${entity.path}');
-          continue;
-        }
-
-        // ✅ VALIDACIÓN: Excluir directorio scripts/
-        if (entity.path.contains('/scripts/')) {
-          continue;
-        }
-
-        await _processFile(entity);
       }
     } catch (e) {
-      debugPrint('  ⚠️  Error scanning ${dir.path}: $e');
+      Logger.error('⚠️  Error scanning ${dir.path}: $e');
+      _errors++;
     }
   }
 
-  // ✅ NUEVO: Verificar si un directorio debe ser excluido
   bool _shouldExcludeDir(String path) {
     final normalizedPath = path.replaceAll('\\', '/');
     return _excludedDirs.any((excluded) => normalizedPath.contains(excluded));
   }
 
-  // ✅ NUEVO: Verificar si un archivo debe ser excluido
-  bool _shouldExcludeFile(String path) {
-    final fileName = path.split('/').last;
-    return _excludedFiles.contains(fileName);
-  }
-
   Future<void> _processFile(File file) async {
+    Logger.debug('📄 Processing file: ${file.path}');
+
     _filesScanned++;
 
-    final content = await file.readAsString();
-    final originalContent = content;
+    // ✅ Progress indicator cada 50 archivos
+    if (_filesScanned % 50 == 0) {
+      Logger.info(
+          '📊 Progress: $_filesScanned files scanned, $_colorsReplaced colors replaced...');
+    }
 
-    String modifiedContent = content;
+    try {
+      final content = await file.readAsString();
+      final originalContent = content;
 
-    // ── 1. Reemplazar Color(0xFF...) ───────────────────
-    final hexColorRegex = RegExp(r'Color\(0x([0-9A-Fa-f]+)\)');
-    final hexMatches = hexColorRegex.allMatches(modifiedContent);
+      Logger.verbose('  📏 File size: ${content.length} characters');
 
-    for (final match in hexMatches) {
-      final hexValue = '0x${match.group(1)}';
-      final fullMatch = match.group(0)!;
+      String modifiedContent = content;
+      int fileReplacements = 0;
+      final List<String> fileChanges = [];
 
-      final appColorsProp = ColorMapping.getAppColorsProperty(hexValue);
+      // ── 1. Reemplazar Color(0xFF...) ───────────────────
+      Logger.debug('  🔍 Searching for Color(0x...) patterns...');
 
-      if (appColorsProp != null) {
-        final replacement = 'AppColors.of(context).$appColorsProp';
-        modifiedContent = modifiedContent.replaceFirst(fullMatch, replacement);
-        _colorsReplaced++;
-        _colorUsageCount[appColorsProp] =
-            (_colorUsageCount[appColorsProp] ?? 0) + 1;
+      final hexColorRegex = RegExp(r'Color\(0x([0-9A-Fa-f]+)\)');
+      final hexMatches = hexColorRegex.allMatches(modifiedContent);
+
+      Logger.debug('  📊 Found ${hexMatches.length} Color(0x...) matches');
+
+      for (final match in hexMatches) {
+        final hexValue = '0x${match.group(1)}';
+        final fullMatch = match.group(0)!;
+
+        Logger.verbose('    🎨 Found: $fullMatch at position ${match.start}');
+
+        final appColorsProp =
+            ColorMapping.getContextualProperty(hexValue, file.path);
+
+        if (appColorsProp != null) {
+          final replacement = 'AppColors.of(context).$appColorsProp';
+          modifiedContent =
+              modifiedContent.replaceFirst(fullMatch, replacement);
+
+          _colorsReplaced++;
+          fileReplacements++;
+          _colorUsageCount[appColorsProp] =
+              (_colorUsageCount[appColorsProp] ?? 0) + 1;
+
+          fileChanges.add('$fullMatch → $replacement');
+
+          Logger.verbose('    ✅ Replaced: $appColorsProp');
+        } else {
+          if (!_unmappedColors.contains(hexValue)) {
+            _unmappedColors.add(hexValue);
+            Logger.verbose('    ⚠️  Unmapped color: $hexValue');
+          }
+        }
+      }
+
+      // ── 2. Reemplazar Colors.xxx ──────────────────────
+      Logger.debug('  🔍 Searching for Colors.xxx patterns...');
+
+      final materialColorRegex = RegExp(
+        r'Colors\.(white|black|black87|black54|black45|black38|black26|black12|white70|white60|white54|white38|white24|white12|red|green|orange|blue|grey(?:\.shade\d+)?)',
+      );
+      final materialMatches = materialColorRegex.allMatches(modifiedContent);
+
+      Logger.debug('  📊 Found ${materialMatches.length} Colors.xxx matches');
+
+      for (final match in materialMatches) {
+        final materialColor = match.group(0)!;
+        final appColorsProp =
+            ColorMapping.getMaterialColorProperty(materialColor);
+
+        if (appColorsProp != null) {
+          final beforeMatch = modifiedContent.substring(0, match.start);
+
+          // Evitar strings y comentarios
+          if (beforeMatch.endsWith("'") ||
+              beforeMatch.endsWith('"') ||
+              beforeMatch.endsWith('//')) {
+            Logger.verbose(
+                '    ⏭️  Skipped (in string/comment): $materialColor');
+            continue;
+          }
+
+          final replacement = 'AppColors.of(context).$appColorsProp';
+          modifiedContent =
+              modifiedContent.replaceFirst(materialColor, replacement);
+
+          _colorsReplaced++;
+          fileReplacements++;
+          _colorUsageCount[appColorsProp] =
+              (_colorUsageCount[appColorsProp] ?? 0) + 1;
+
+          fileChanges.add('$materialColor → $replacement');
+
+          Logger.verbose('    ✅ Replaced: $materialColor → $appColorsProp');
+        }
+      }
+
+      // ── 3. Guardar cambios ────────────────────────────
+      if (modifiedContent != originalContent) {
+        Logger.verbose('  📝 File has $fileReplacements changes');
 
         if (!dryRun) {
-          debugPrint('  ✅ ${file.path}: $fullMatch → $replacement');
+          if (backupDir != null) {
+            await _createBackup(file);
+          }
+
+          await file.writeAsString(modifiedContent);
+          _filesModified++;
+          _fileChanges[file.path] = fileChanges;
+
+          Logger.info('  ✅ Modified: ${file.path} ($fileReplacements changes)');
         } else {
-          debugPrint('  🔍 ${file.path}: $fullMatch → $replacement');
+          _fileChanges[file.path] = fileChanges;
+          Logger.info(
+              '  📝 Would modify: ${file.path} ($fileReplacements changes)');
         }
       } else {
-        if (!_unmappedColors.contains(hexValue)) {
-          _unmappedColors.add(hexValue);
-        }
+        Logger.debug('  ⏭️  No changes needed: ${file.path}');
       }
-    }
-
-    // ── 2. Reemplazar Colors.xxx ──────────────────────
-    final materialColorRegex = RegExp(
-        r'Colors\.(white|black|black87|black54|black45|black38|black26|black12|white70|white60|white54|white38|white24|white12|red|green|orange|blue|grey(?:\.shade\d+)?)');
-    final materialMatches = materialColorRegex.allMatches(modifiedContent);
-
-    for (final match in materialMatches) {
-      final materialColor = match.group(0)!;
-      final appColorsProp =
-          ColorMapping.getMaterialColorProperty(materialColor);
-
-      if (appColorsProp != null) {
-        // Evitar reemplazar dentro de strings o comentarios
-        final beforeMatch = modifiedContent.substring(0, match.start);
-        if (beforeMatch.endsWith("'") ||
-            beforeMatch.endsWith('"') ||
-            beforeMatch.endsWith('//')) {
-          continue;
-        }
-
-        final replacement = 'AppColors.of(context).$appColorsProp';
-        modifiedContent =
-            modifiedContent.replaceFirst(materialColor, replacement);
-        _colorsReplaced++;
-        _colorUsageCount[appColorsProp] =
-            (_colorUsageCount[appColorsProp] ?? 0) + 1;
-
-        if (!dryRun) {
-          debugPrint('  ✅ ${file.path}: $materialColor → $replacement');
-        } else {
-          debugPrint('  🔍 ${file.path}: $materialColor → $replacement');
-        }
-      }
-    }
-
-    // ── 3. Guardar cambios (si no es dry run) ─────────
-    if (modifiedContent != originalContent && !dryRun) {
-      // Crear backup
-      if (backupDir != null) {
-        await _createBackup(file);
-      }
-
-      // Escribir archivo modificado
-      await file.writeAsString(modifiedContent);
-      _filesModified++;
-    } else if (modifiedContent != originalContent && dryRun) {
-      debugPrint(
-          '  📝 ${file.path}: ${_countDifferences(originalContent, modifiedContent)} cambios pendientes');
+    } catch (e, stackTrace) {
+      Logger.error('  ❌ Error processing ${file.path}: $e');
+      Logger.debug('  Stack trace: $stackTrace');
+      _errors++;
+      _errorFiles.add('${file.path}: $e');
     }
   }
 
   Future<void> _createBackup(File file) async {
-    final backupPath = backupDir ?? '$projectRoot/backups';
-    final backupDirObj = Directory(backupPath);
+    Logger.debug('  💾 Creating backup for: ${file.path}');
 
-    if (!await backupDirObj.exists()) {
-      await backupDirObj.create(recursive: true);
+    try {
+      final backupPath = backupDir ?? '$projectRoot/backups';
+      final backupDirObj = Directory(backupPath);
+
+      if (!await backupDirObj.exists()) {
+        await backupDirObj.create(recursive: true);
+        Logger.debug('  📁 Created backup directory: $backupPath');
+      }
+
+      final relativePath = file.path.replaceFirst('$projectRoot/', '');
+      final backupFile = File('$backupPath/$relativePath');
+
+      await backupFile.parent.create(recursive: true);
+      await file.copy(backupFile.path);
+
+      Logger.verbose('  ✅ Backup created: ${backupFile.path}');
+    } catch (e) {
+      Logger.error('  ❌ Error creating backup: $e');
     }
-
-    final relativePath = file.path.replaceFirst('$projectRoot/', '');
-    final backupFile = File('$backupPath/$relativePath');
-
-    await backupFile.parent.create(recursive: true);
-    await file.copy(backupFile.path);
-  }
-
-  int _countDifferences(String original, String modified) {
-    return modified.length - original.length;
   }
 
   void _printReport() {
-    debugPrint('');
-    debugPrint('═' * 60);
-    debugPrint('📊 MIGRATION REPORT');
-    debugPrint('═' * 60);
-    debugPrint('📁 Files scanned: $_filesScanned');
-    debugPrint('📝 Files modified: $_filesModified');
-    debugPrint('🎨 Colors replaced: $_colorsReplaced');
-    debugPrint('');
+    Logger.section('📊 MIGRATION REPORT');
 
+    final elapsedSeconds = Logger.elapsed;
+
+    Logger.info('⏱️  Elapsed time: ${elapsedSeconds}s');
+    Logger.info('📁 Files scanned: $_filesScanned');
+    Logger.info('📝 Files modified: $_filesModified');
+    Logger.info('🚫 Files skipped: $_filesSkipped');
+    Logger.info('🎨 Colors replaced: $_colorsReplaced');
+    Logger.info('❌ Errors: $_errors');
+    Logger.info('');
+
+    if (_filesScanned > 0) {
+      final avgReplacements = _colorsReplaced / _filesScanned;
+      Logger.info(
+          '📈 Average replacements per file: ${avgReplacements.toStringAsFixed(2)}');
+      Logger.info(
+          '📈 Files with changes: ${((_filesModified / _filesScanned) * 100).toStringAsFixed(1)}%');
+    }
+    Logger.info('');
+
+    // TOP AppColors PROPERTIES
     if (_colorUsageCount.isNotEmpty) {
-      debugPrint('📈 TOP AppColors PROPERTIES USED:');
-      debugPrint('─' * 40);
+      Logger.section('📈 TOP AppColors PROPERTIES USED');
       final sorted = _colorUsageCount.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
 
-      for (final entry in sorted.take(10)) {
-        debugPrint('  • ${entry.key}: ${entry.value} veces');
+      for (final entry in sorted.take(15)) {
+        final bar = '█' * ((entry.value / 10).ceil());
+        Logger.info(
+            '  ${entry.key.padRight(20)} ${entry.value.toString().padLeft(4)} $bar');
       }
-      debugPrint('');
+      Logger.info('');
     }
 
+    // UNMAPPED COLORS
     if (_unmappedColors.isNotEmpty) {
-      debugPrint('⚠️  UNMAPPED COLORS (manual review needed):');
-      debugPrint('─' * 40);
+      Logger.section('⚠️  UNMAPPED COLORS (manual review needed)');
       for (final color in _unmappedColors.take(20)) {
-        debugPrint('  • $color');
+        Logger.info('  • $color');
       }
       if (_unmappedColors.length > 20) {
-        debugPrint('  ... and ${_unmappedColors.length - 20} more');
+        Logger.info('  ... and ${_unmappedColors.length - 20} more');
       }
-      debugPrint('');
-      debugPrint(
+      Logger.info('');
+      Logger.info(
           '  💡 Add these to ColorMapping.map in scripts/color_mapping.dart');
-      debugPrint('');
+      Logger.info('');
     }
+
+    // AMBIGUOUS COLORS
+    final ambiguous = ColorMapping.getAmbiguousColors();
+    if (ambiguous.isNotEmpty) {
+      Logger.section('⚠️  AMBIGUOUS COLORS (multiple semantic uses)');
+      for (final entry in ambiguous.entries) {
+        Logger.info('  • ${entry.key}: ${entry.value.join(", ")}');
+      }
+      Logger.info('');
+      Logger.info(
+          '  💡 Review these manually - context determines the correct property');
+      Logger.info('');
+    }
+
+    // ERRORS
+    if (_errors > 0) {
+      Logger.section('❌ ERRORS ($_errors total)');
+      for (final error in _errorFiles.take(10)) {
+        Logger.info('  • $error');
+      }
+      if (_errorFiles.length > 10) {
+        Logger.info('  ... and ${_errorFiles.length - 10} more');
+      }
+      Logger.info('');
+    }
+
+    // FINAL STATUS
+    Logger.section('🏁 FINAL STATUS');
 
     if (dryRun) {
-      debugPrint('🔍 This was a DRY RUN. No files were modified.');
-      debugPrint('');
-      debugPrint('✅ To apply changes, run:');
-      debugPrint('   dart run scripts/migrate_colors.dart --migrate');
+      Logger.info('🔍 This was a DRY RUN. No files were modified.');
+      Logger.info('');
+      Logger.info('✅ To apply changes, run:');
+      Logger.info('   dart run scripts/migrate_colors.dart --migrate');
     } else {
-      debugPrint('✅ Migration completed!');
-      debugPrint('');
-      debugPrint('📋 NEXT STEPS:');
-      debugPrint('  1. Review changed files with git diff');
-      debugPrint(
-          '  2. Ensure BuildContext is available where AppColors.of(context) is used');
-      debugPrint('  3. Run flutter test to verify no regressions');
-      debugPrint(
-          '  4. Commit changes with message: "refactor: migrate colors to AppColors"');
+      Logger.success('Migration completed!');
+      Logger.info('');
+      Logger.info('📋 NEXT STEPS:');
+      Logger.info('  1. Review changed files: git diff');
+      Logger.info('  2. Check for BuildContext availability');
+      Logger.info('  3. Run: flutter analyze');
+      Logger.info('  4. Run: flutter test');
+      Logger.info('  5. Run: flutter run');
+      Logger.info(
+          '  6. Commit: git commit -m "refactor: migrate colors to AppColors"');
     }
 
-    debugPrint('═' * 60);
+    Logger.info('');
+    Logger.info('═' * 60);
+    Logger.info('🏁 End time: ${DateTime.now().toString().substring(0, 19)}');
+    Logger.info('═' * 60);
+
+    // Guardar log si es verbose o debug
+    if (Logger.level.index >= LogLevel.verbose.index) {
+      final logPath =
+          '$projectRoot/migration_log_${DateTime.now().millisecondsSinceEpoch}.txt';
+      Logger.saveToFile(logPath);
+    }
   }
 }
 
@@ -314,47 +465,68 @@ class ColorMigrator {
 // ════════════════════════════════════════════════════
 
 void main(List<String> args) async {
-  // ✅ AHORA (correcto):
-
+  // ✅ Parsear argumentos
   final projectRoot = Directory.current.path;
   final libDir = Directory('$projectRoot/lib');
 
-  // 🔒 VALIDACIÓN: Asegurar que lib/ existe
-  if (!await libDir.exists()) {
-    debugPrint('❌ Error: lib/ directory not found at $libDir');
-    debugPrint('');
-    debugPrint(
-        '💡 Asegúrate de ejecutar el script desde la raíz del proyecto Flutter:');
-    debugPrint('   cd /ruta/a/tu/proyecto');
-    debugPrint('   dart run scripts/migrate_colors.dart --dry-run');
-    exit(1);
-  }
-
-  // 🔒 VALIDACIÓN: Confirmar que es un proyecto Flutter
-  final pubspecFile = File('$projectRoot/pubspec.yaml');
-  if (!await pubspecFile.exists()) {
-    debugPrint('❌ Error: pubspec.yaml not found at $projectRoot');
-    debugPrint('');
-    debugPrint('💡 Ejecuta el script desde la raíz del proyecto Flutter');
-    exit(1);
-  }
-
-  // ✅ PASO 3: Parsear argumentos (ANTES de usar las variables)
   final dryRun = !args.contains('--migrate');
+  final verbose = args.contains('--verbose') || args.contains('-v');
+  final debug = args.contains('--debug') || args.contains('-d');
+  final silent = args.contains('--silent') || args.contains('-s');
   final backupDir = args.contains('--backup-dir')
       ? args[args.indexOf('--backup-dir') + 1]
       : null;
+  final saveLog = args.contains('--save-log');
 
-  debugPrint('✅ Project root: $projectRoot');
-  debugPrint('✅ Scanning directory: ${libDir.path}');
-  debugPrint('');
+  // ✅ Determinar log level
+  LogLevel logLevel = LogLevel.info;
+  if (silent) logLevel = LogLevel.silent;
+  if (verbose) logLevel = LogLevel.verbose;
+  if (debug) logLevel = LogLevel.debug;
 
+  Logger.level = logLevel;
+
+  // ✅ Validaciones
+  if (!await libDir.exists()) {
+    Logger.error('❌ Error: lib/ directory not found at $libDir');
+    exit(1);
+  }
+
+  final pubspecFile = File('$projectRoot/pubspec.yaml');
+  if (!await pubspecFile.exists()) {
+    Logger.error('❌ Error: pubspec.yaml not found at $projectRoot');
+    exit(1);
+  }
+
+  // ✅ Confirmación interactiva
+  if (!dryRun && !silent) {
+    debugPrint('');
+    debugPrint('⚠️  WARNING: This will modify files in ${libDir.path}');
+    debugPrint('');
+    debugPrint('Type "YES" to confirm: ');
+    final confirm = stdin.readLineSync();
+
+    if (confirm != 'YES') {
+      Logger.info('❌ Migration cancelled');
+      exit(0);
+    }
+  }
+
+  // ✅ Ejecutar migrator
   final migrator = ColorMigrator(
     projectRoot: projectRoot,
-    scanDir: libDir, // ✅ Explicitamente pasar lib/ como directorio a escanear
+    scanDir: libDir,
     dryRun: dryRun,
     backupDir: backupDir,
+    logLevel: logLevel,
   );
 
-  // await migrator.run();
+  await migrator.run();
+
+  // ✅ Guardar log si se solicitó
+  if (saveLog) {
+    final logPath =
+        '$projectRoot/migration_log_${DateTime.now().millisecondsSinceEpoch}.txt';
+    Logger.saveToFile(logPath);
+  }
 }

@@ -51,6 +51,19 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color overlayLoading;
 
   // ════════════════════════════════════════════
+  //  GETTERS ALIAS (para compatibilidad)
+  // ════════════════════════════════════════════
+
+  /// ✅ Alias para textSecondary (backward compatibility)
+  Color get neutralText => textSecondary;
+
+  /// ✅ Alias para textDisabled (dark variant)
+  Color get neutralTextDark => textDisabled;
+
+  /// ✅ Alias para border
+  Color get neutralDivider => border;
+
+  // ════════════════════════════════════════════
   //  COLORES SEMÁNTICOS DE DOMINIO
   // ════════════════════════════════════════════
 

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -406,7 +407,7 @@ class _LogoPicker extends StatelessWidget {
               },
               child: CircleAvatar(
                 radius: AppTheme.avatarRadiusDefault,
-                backgroundColor: AppTheme.primary,
+                backgroundColor: AppColors.of(context).primary,
                 child: const Icon(Icons.edit,
                     color: AppTheme.appBarForeground,
                     size: AppTheme.avatarRadiusDefault),

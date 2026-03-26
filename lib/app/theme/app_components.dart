@@ -17,7 +17,7 @@ abstract final class AppComponents {
       contentPadding: AppSpacing.all(AppSpacing.lg),
       border: _border(Colors.grey.shade300),
       enabledBorder: _border(Colors.grey.shade300),
-      focusedBorder: _border(AppColors.primary, width: 2),
+      focusedBorder: _border(Color(0xFF5E7E99), width: 2),
       errorBorder: _border(Colors.red),
       focusedErrorBorder: _border(Colors.red, width: 2),
       hintStyle: const TextStyle(color: Colors.grey),
