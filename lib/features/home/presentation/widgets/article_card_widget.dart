@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/utils/article_permissions.dart'; // Import permissions
 import 'package:conectasoc/features/home/presentation/widgets/clickable_category_widget.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +34,7 @@ class ArticleCardWidget extends StatelessWidget {
       case ArticleStatus.anulado:
         return AppTheme.anulado;
       default:
-        return AppTheme.background;
+        return AppColors.of(context).iconLabel;
     }
   }
 
@@ -69,7 +69,7 @@ class ArticleCardWidget extends StatelessWidget {
         //   ),
         // ],
         // border: Border.all(
-        //   color: AppTheme.background, // Colors.grey.withValues(alpha: 0.2),
+        //   color: AppColors.of(context).iconLabel, // Colors.grey.withValues(alpha: 0.2),
         //   width: 1,
         // ),
       ),
@@ -96,7 +96,6 @@ class ArticleCardWidget extends StatelessWidget {
           child: Padding(
             padding: AppTheme.paddingCard,
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Imagen principal a la izquierda
                 if (article.coverUrl.isNotEmpty)
@@ -153,7 +152,7 @@ class ArticleCardWidget extends StatelessWidget {
                                 style: TextStyle(
                                   fontWeight: AppTheme.fontWeightBold,
                                   fontSize: isLongTitle ? 12.0 : 16.0,
-                                  color: AppTheme.textPrimary,
+                                  color: AppColors.of(context).textPrimary,
                                 ),
                               ),
                         const SizedBox(height: 6),
@@ -252,7 +251,8 @@ class ArticleCardWidget extends StatelessWidget {
                     (context.watch<HomeBloc>().state as HomeLoaded).isEditMode)
                   IconButton(
                     icon: const Icon(Icons.edit_note,
-                        size: AppTheme.iconSizeXs, color: AppTheme.primary),
+                        size: AppTheme.iconSizeXs,
+                        color: AppColors.of(context).primary),
                     onPressed: () async {
                       await context.pushNamed(RouteNames.articleEdit,
                           pathParameters: {'id': article.id});
@@ -327,7 +327,9 @@ class _ShimmerBoxState extends State<_ShimmerBox>
         width: widget.width,
         height: widget.height,
         decoration: BoxDecoration(
-          color: AppTheme.neutralText.withValues(alpha: _animation.value),
+          color: AppColors.of(context)
+              .neutralText
+              .withValues(alpha: _animation.value),
           borderRadius: BorderRadius.circular(AppTheme.spaceXxs),
         ),
       ),

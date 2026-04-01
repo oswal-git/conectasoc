@@ -1,6 +1,6 @@
 // lib/features/auth/presentation/pages/splash_page.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class SplashPage extends StatelessWidget {
@@ -9,7 +9,7 @@ class SplashPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primary,
+      backgroundColor: AppColors.of(context).primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -19,7 +19,7 @@ class SplashPage extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppTheme.onDarkPrimary,
+                color: AppColors.of(context).onDarkPrimary,
                 borderRadius: AppTheme.borderRadiusLogo,
                 boxShadow: [
                   BoxShadow(
@@ -50,7 +50,8 @@ class SplashPage extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.spaceXxl),
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.onDarkPrimary),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.of(context).onDarkPrimary),
             ),
           ],
         ),

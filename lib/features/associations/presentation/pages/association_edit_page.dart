@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:conectasoc/app/theme/app_theme.dart';
 import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +95,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
             onPressed: () => context.pop(true),
             child: Text(
               l10n.discardChanges,
-              style: AppTheme.destructiveAction,
+              style: AppTextStylesTheme.buttonDestructive,
             ),
           ),
         ],
@@ -157,11 +156,11 @@ class _AssociationEditViewState extends State<AssociationEditView> {
                   return IconButton(
                     icon: state.isSaving
                         ? const SizedBox(
-                            width: AppTheme.loadingIndicatorSize,
-                            height: AppTheme.loadingIndicatorSize,
+                            width: loadingIndicatorSize,
+                            height: loadingIndicatorSize,
                             child: CircularProgressIndicator(
-                              strokeWidth: AppTheme.loadingStrokeWidth,
-                              color: AppTheme.appBarForeground,
+                              strokeWidth: kStrokeWidthThin,
+                              color: AppColors.surface,
                             ),
                           )
                         : const Icon(Icons.save),
@@ -257,7 +256,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
   Widget _buildForm(BuildContext context, AssociationEditLoaded state,
       AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      padding: AppSpacingTheme.paddingPage,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -269,7 +268,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(LogoChanged(bytes));
             },
           ),
-          const SizedBox(height: AppTheme.spaceMd),
+          AppSizedBoxTheme.fieldVerticalDoubleSeparator,
           TextFormField(
             controller: _shortNameController,
             decoration: InputDecoration(labelText: l10n.shortName),
@@ -278,7 +277,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(ShortNameChanged(value));
             },
           ),
-          const SizedBox(height: AppTheme.spaceSm),
+          AppSizedBoxTheme.fieldVerticalSeparator,
           // --- Selector de Persona de Contacto ---
           if (state.associationUsers.isNotEmpty) ...[
             AppDropdownWidget<String>(
@@ -311,9 +310,9 @@ class _AssociationEditViewState extends State<AssociationEditView> {
                 return null;
               },
             ),
-            const SizedBox(height: AppTheme.spaceSm),
+            AppSizedBoxTheme.fieldVerticalSeparator,
           ],
-          const SizedBox(height: AppTheme.spaceSm),
+          AppSizedBoxTheme.fieldVerticalSeparator,
           TextFormField(
             controller: _longNameController,
             decoration: InputDecoration(labelText: l10n.longName),
@@ -322,7 +321,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(LongNameChanged(value));
             },
           ),
-          const SizedBox(height: AppTheme.spaceSm),
+          AppSizedBoxTheme.fieldVerticalSeparator,
           TextFormField(
             controller: _emailController,
             decoration: InputDecoration(labelText: l10n.email),
@@ -332,7 +331,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(EmailChanged(value));
             },
           ),
-          const SizedBox(height: AppTheme.spaceSm),
+          AppSizedBoxTheme.fieldVerticalSeparator,
           TextFormField(
             controller: _contactNameController,
             decoration: InputDecoration(labelText: l10n.contactName),
@@ -343,7 +342,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
                   .add(ContactNameChanged(value));
             },
           ),
-          const SizedBox(height: AppTheme.spaceSm),
+          AppSizedBoxTheme.fieldVerticalSeparator,
           TextFormField(
             controller: _phoneController,
             decoration: InputDecoration(labelText: l10n.phone),
@@ -353,7 +352,7 @@ class _AssociationEditViewState extends State<AssociationEditView> {
               context.read<AssociationEditBloc>().add(PhoneChanged(value));
             },
           ),
-          const SizedBox(height: AppTheme.spaceXxl),
+          AppSizedBoxTheme.fieldVerticalLastSeparator,
         ],
       ),
     );
@@ -386,13 +385,12 @@ class _LogoPicker extends StatelessWidget {
       child: Stack(
         children: [
           CircleAvatar(
-            radius: AppTheme.avatarRadiusLarge,
-            backgroundColor: AppTheme.border,
+            radius: AppRadiusTheme.avatarRadius,
+            backgroundColor: AppColors.border,
             backgroundImage: backgroundImage,
             child: backgroundImage == null
                 ? Icon(Icons.business,
-                    size: AppTheme.iconSizeMedium,
-                    color: AppTheme.imageIconHint)
+                    size: AppRadiusTheme.avatarRadius, color: AppColors.hint)
                 : null,
           ),
           Positioned(
@@ -406,11 +404,11 @@ class _LogoPicker extends StatelessWidget {
                 }
               },
               child: CircleAvatar(
-                radius: AppTheme.avatarRadiusDefault,
-                backgroundColor: AppColors.of(context).primary,
+                radius: AppRadiusTheme.avatarRadius,
+                backgroundColor: AppColors.primary,
                 child: const Icon(Icons.edit,
-                    color: AppTheme.appBarForeground,
-                    size: AppTheme.avatarRadiusDefault),
+                    color: AppColors.surface,
+                    size: AppRadiusTheme.avatarRadius),
               ),
             ),
           ),

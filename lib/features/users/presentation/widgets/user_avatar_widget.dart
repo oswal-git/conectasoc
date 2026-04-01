@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/auth/domain/entities/user_entity.dart';
 import 'package:conectasoc/features/users/domain/usecases/usecases.dart';
 import 'package:conectasoc/injection_container.dart';
@@ -29,8 +29,8 @@ class UserAvatarWidget extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircleAvatar(
             radius: radius,
-            child: const CircularProgressIndicator(
-                strokeWidth: AppTheme.loadingStrokeWidth),
+            child:
+                const CircularProgressIndicator(strokeWidth: kStrokeWidthThin),
           );
         }
 

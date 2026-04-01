@@ -2,7 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:conectasoc/app/router/router.dart';
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
@@ -202,7 +202,7 @@ class HomeDrawer extends StatelessWidget {
           ),
         ),
         decoration: const BoxDecoration(
-          color: AppTheme.primary,
+          color: AppColors.of(context).primary,
         ),
       );
     }
@@ -215,20 +215,19 @@ class HomeDrawer extends StatelessWidget {
         accountName: Text(user.displayName),
         accountEmail: Text(''),
         currentAccountPicture: CircleAvatar(
-          backgroundImage: null,
           child: Text((user.displayName.substring(0,
                   user.displayName.length >= 3 ? 3 : user.displayName.length))
               .toUpperCase()),
         ),
         decoration: const BoxDecoration(
-          color: AppTheme.primary,
+          color: AppColors.of(context).primary,
         ),
       );
     }
     // Header para usuarios no logueados
     return const DrawerHeader(
       decoration: BoxDecoration(
-        color: AppTheme.primary,
+        color: AppColors.of(context).primary,
       ),
       child: Text(
         'ConectaSoc',

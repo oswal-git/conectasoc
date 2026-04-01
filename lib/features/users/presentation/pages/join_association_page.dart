@@ -1,6 +1,6 @@
 // lib/features/users/presentation/pages/join_association_page.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/users/presentation/bloc/bloc.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -39,14 +39,14 @@ class JoinAssociationView extends StatelessWidget {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
-              content: Text(state.message), backgroundColor: AppTheme.error));
+              content: Text(state.message), backgroundColor: AppColors.error));
       }
       if (state is UserUpdateSuccess) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(const SnackBar(
               content: Text('¡Te has unido a la asociación!'),
-              backgroundColor: AppTheme.success));
+              backgroundColor: AppColors.success));
         context.pop();
       }
     }, child: BlocBuilder<UserBloc, UserState>(
@@ -79,13 +79,13 @@ class JoinAssociationView extends StatelessWidget {
                     ListTile(
                       title: Text(
                         association.longName,
-                        style: AppTheme.listCaptionTitle,
+                        style: AppTextStylesTheme.labelLarge,
                       ),
                       subtitle: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
                           association.shortName,
-                          style: AppTheme.listItemTitle,
+                          style: AppTextStylesTheme.textItem,
                         ),
                       ),
                       trailing: isJoining

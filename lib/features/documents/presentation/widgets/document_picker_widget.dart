@@ -1,4 +1,5 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
+import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -40,15 +41,15 @@ class DocumentPickerWidget extends StatelessWidget {
         // Etiqueta de sección
         Row(
           children: [
-            const Icon(Icons.attach_file, size: AppTheme.iconSizeSmall),
-            AppTheme.sizedBoxWidthIconBar,
+            const Icon(Icons.attach_file, size: AppSpacingTheme.xs),
+            const SizedBox(width: AppSpacingTheme.xs),
             Text(
               l10n.linkDocument,
-              style: AppTheme.labelField(context),
+              style: AppTextStylesTheme.labelLarge,
             ),
           ],
         ),
-        AppTheme.sizedBoxHeightSeparatorXs,
+        const SizedBox(height: AppSpacingTheme.xs),
 
         // Documento ya enlazado
         if (currentDocumentLink != null)
@@ -89,19 +90,16 @@ class _LinkedDocumentCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: extColor.withAlpha(40)),
-        borderRadius: AppTheme.borderRadiusDefault,
+        borderRadius: AppRadiusTheme.container,
         color: extColor.withAlpha(50),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Thumbnail
           ClipRRect(
-            borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(AppTheme.radiusDefault)),
-            child: SizedBox(
-              width: AppTheme.spaceBoxImageWidth,
-              height: AppTheme.spaceBoxImageHeigjt,
+            borderRadius:
+                BorderRadius.horizontal(left: AppRadiusTheme.clipRadius),
+            child: SizedBoxWidget(
               child: documentLink.urlThumb.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: documentLink.urlThumb,

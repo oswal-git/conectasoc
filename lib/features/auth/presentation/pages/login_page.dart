@@ -1,6 +1,6 @@
 // lib/features/auth/presentation/pages/login_page.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/auth/presentation/widgets/widgets.dart';
 import 'package:conectasoc/app/router/router.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,7 @@ class LoginPage extends StatelessWidget {
             ..showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: AppTheme.error,
+                backgroundColor: AppColors.of(context).errorText,
               ),
             );
         }
@@ -45,7 +45,7 @@ class LoginPage extends StatelessWidget {
                         Icon(
                           Icons.people_alt_outlined,
                           size: AppTheme.iconSizeApp,
-                          color: AppTheme.primary,
+                          color: AppColors.of(context).primary,
                         ),
                         const SizedBox(height: AppTheme.spaceSm),
 
@@ -55,7 +55,7 @@ class LoginPage extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: AppTheme.loginTitle(context),
                         ),
-                        const SizedBox(height: AppTheme.spaceXxs),
+                        AppSizedBoxTheme.fieldVerticalTinySeparator,
 
                         Text(
                           'Inicia sesión en tu cuenta',
@@ -75,7 +75,9 @@ class LoginPage extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                                child: Divider(color: AppTheme.neutralDivider)),
+                                child: Divider(
+                                    color:
+                                        AppColors.of(context).neutralDivider)),
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: AppTheme.spaceSm),
@@ -85,7 +87,9 @@ class LoginPage extends StatelessWidget {
                               ),
                             ),
                             Expanded(
-                                child: Divider(color: AppTheme.neutralDivider)),
+                                child: Divider(
+                                    color:
+                                        AppColors.of(context).neutralDivider)),
                           ],
                         ),
 
@@ -110,7 +114,7 @@ class LoginPage extends StatelessWidget {
                           ),
                         ),
 
-                        const SizedBox(height: AppTheme.spaceXxs),
+                        AppSizedBoxTheme.fieldVerticalTinySeparator,
 
                         // BOTÓN USUARIO LOCAL
                         TextButton(
@@ -122,7 +126,7 @@ class LoginPage extends StatelessWidget {
                             decoration: const BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: AppTheme.primary,
+                                  color: AppColors.of(context).primary,
                                   width: 1.5,
                                 ),
                               ),

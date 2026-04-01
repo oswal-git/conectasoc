@@ -1,6 +1,7 @@
 // lib/features/auth/presentation/pages/email_verification_page.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
@@ -75,7 +76,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al reenviar email: $e'),
-            backgroundColor: AppTheme.error,
+            backgroundColor: AppColors.of(context).errorText,
           ),
         );
       }
@@ -103,7 +104,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('El email aún no ha sido verificado'),
-                backgroundColor: AppTheme.warning,
+                backgroundColor: AppColors.of(context).warningText,
               ),
             );
           }
@@ -114,7 +115,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al verificar: $e'),
-            backgroundColor: AppTheme.error,
+            backgroundColor: AppColors.of(context).errorText,
           ),
         );
       }
@@ -138,7 +139,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
               Icon(
                 Icons.mark_email_unread_outlined,
                 size: AppTheme.iconSizeLarge,
-                color: AppTheme.primary,
+                color: AppColors.of(context).primary,
               ),
               const SizedBox(height: AppTheme.spaceLg),
 
@@ -166,7 +167,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 style: AppTheme.verificationEmail(context),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: AppTheme.spaceMd),
+              AppSizedBoxTheme.fieldVerticalDoubleSeparator,
 
               // Instrucciones
               Container(
@@ -227,13 +228,14 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 Container(
                   padding: const EdgeInsets.all(AppTheme.spaceXs),
                   decoration: BoxDecoration(
-                    color: AppTheme.successBg,
+                    color: AppColors.of(context).successTextBg,
                     borderRadius: AppTheme.borderRadiusDefault,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: AppTheme.successIcon),
+                      Icon(Icons.check_circle,
+                          color: AppColors.of(context).successTextIcon),
                       const SizedBox(width: AppTheme.spaceXs),
                       const Text('¡Email reenviado!'),
                     ],
@@ -247,7 +249,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                           width: AppTheme.iconSizeSmall,
                           height: AppTheme.iconSizeSmall,
                           child: CircularProgressIndicator(
-                              strokeWidth: AppTheme.loadingStrokeWidth),
+                              strokeWidth: kStrokeWidthThin),
                         )
                       : const Icon(Icons.refresh),
                   label: Text(_isResending

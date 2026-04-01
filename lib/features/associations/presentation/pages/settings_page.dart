@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +75,8 @@ class SettingsPage extends StatelessWidget {
           children: [
             Text('Categorías', style: AppTheme.sectionTitle(context)),
             IconButton(
-              icon: const Icon(Icons.add_circle, color: AppTheme.success),
+              icon: const Icon(Icons.add_circle,
+                  color: AppColors.of(context).successText),
               onPressed: () => _showAddDialog(context, isCategory: true),
             ),
           ],
@@ -104,7 +105,8 @@ class SettingsPage extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.delete,
-                  color: AppTheme.error, size: AppTheme.iconSizeSmall),
+                  color: AppColors.of(context).errorText,
+                  size: AppTheme.iconSizeSmall),
               onPressed: () =>
                   context.read<SettingsBloc>().add(DeleteCategory(category.id)),
             ),
@@ -135,7 +137,7 @@ class SettingsPage extends StatelessWidget {
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete,
-                                    color: AppTheme.error,
+                                    color: AppColors.of(context).errorText,
                                     size: AppTheme.iconSizeSmall),
                                 onPressed: () => context
                                     .read<SettingsBloc>()

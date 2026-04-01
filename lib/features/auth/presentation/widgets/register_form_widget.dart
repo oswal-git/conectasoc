@@ -1,6 +1,6 @@
 // lib/features/auth/presentation/widgets/register_form.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/auth_bloc.dart';

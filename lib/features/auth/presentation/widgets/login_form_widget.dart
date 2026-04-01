@@ -1,6 +1,6 @@
 // lib/features/auth/presentation/widgets/login_form.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
@@ -90,7 +90,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               return null;
             },
           ),
-          // const SizedBox(height: AppTheme.spaceXxs),
+          // AppSizedBoxTheme.fieldVerticalTinySeparator,
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
@@ -101,7 +101,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                   decoration: const BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: AppTheme.primary,
+                        color: AppColors.of(context).primary,
                         width: 1.5,
                       ),
                     ),

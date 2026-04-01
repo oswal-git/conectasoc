@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/widgets/user_friendly_error_widget.dart';
 import 'package:conectasoc/features/home/presentation/widgets/article_card_widget.dart';
 import 'package:conectasoc/features/users/domain/entities/entities.dart';

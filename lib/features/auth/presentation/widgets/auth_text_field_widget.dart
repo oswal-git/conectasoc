@@ -1,6 +1,6 @@
 // lib/features/auth/presentation/widgets/auth_text_field.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class AuthTextFieldWidget extends StatelessWidget {
@@ -43,8 +43,7 @@ class AuthTextFieldWidget extends StatelessWidget {
         hintText: hint,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
-        fillColor:
-            enabled ? AppTheme.textFieldEnabled : AppTheme.textFieldDisabled,
+        fillColor: enabled ? AppColors.enabled : AppColors.disabled,
         contentPadding: contentPadding,
         // border: OutlineInputBorder(
         //   borderRadius: AppTheme.borderRadiusDefault,
@@ -66,14 +65,14 @@ class AuthTextFieldWidget extends StatelessWidget {
         // errorBorder: OutlineInputBorder(
         //   borderRadius: AppTheme.borderRadiusDefault,
         //   borderSide: const BorderSide(
-        //     color: AppTheme.error,
+        //     color: AppColors.of(context).errorText,
         //     width: 1.5,
         //   ),
         // ),
         // focusedErrorBorder: OutlineInputBorder(
         //   borderRadius: AppTheme.borderRadiusDefault,
         //   borderSide: const BorderSide(
-        //     color: AppTheme.error,
+        //     color: AppColors.of(context).errorText,
         //     width: 2,
         //   ),
         // ),

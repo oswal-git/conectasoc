@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:conectasoc/app/router/route_names.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -44,7 +44,7 @@ class WelcomePage extends StatelessWidget {
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: AppTheme.onDarkPrimary,
+                        color: AppColors.of(context).onDarkPrimary,
                         borderRadius: AppTheme.borderRadiusLogoLg,
                         boxShadow: [
                           BoxShadow(
@@ -57,7 +57,7 @@ class WelcomePage extends StatelessWidget {
                       child: const Icon(
                         Icons.people,
                         size: AppTheme.iconSizeMedium,
-                        color: AppTheme.primary,
+                        color: AppColors.of(context).primary,
                       ),
                     ),
 
@@ -184,7 +184,7 @@ class _ModeCard extends StatelessWidget {
                       title,
                       style: AppTheme.cardTitle,
                     ),
-                    const SizedBox(height: AppTheme.spaceXxs),
+                    AppSizedBoxTheme.fieldVerticalTinySeparator,
                     Text(
                       description,
                       style: AppTheme.cardDescription,
@@ -195,7 +195,7 @@ class _ModeCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: AppTheme.iconSizeXs,
-                color: AppTheme.neutralText,
+                color: AppColors.of(context).neutralText,
               ),
             ],
           ),

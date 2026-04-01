@@ -1,6 +1,6 @@
 // lib/features/home/presentation/widgets/association_provider.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/associations/domain/usecases/usecases.dart';
 import 'package:conectasoc/l10n/app_localizations.dart';
@@ -72,7 +72,8 @@ class _AssociationProviderWidgetState extends State<AssociationProviderWidget> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.error_outline,
-                  color: AppTheme.error, size: AppTheme.iconSizeError),
+                  color: AppColors.of(context).errorText,
+                  size: AppTheme.iconSizeError),
               const SizedBox(height: 16),
               Text(
                 l10n.errorLoadingAssociations(_error ?? ''),

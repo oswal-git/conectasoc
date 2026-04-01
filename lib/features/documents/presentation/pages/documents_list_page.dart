@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -206,7 +206,6 @@ class _DocumentListViewState extends State<DocumentListView> {
                 child: AppDropdownWidget<String>(
                   label: l10n.category,
                   value: state.selectedCategoryId,
-                  isExpanded: true,
                   variant: AppDropdownVariant.dense,
                   items: [
                     AppDropdownItem(
@@ -233,7 +232,6 @@ class _DocumentListViewState extends State<DocumentListView> {
                   value: state.selectedSubcategoryId,
                   label: l10n.subcategory,
                   variant: AppDropdownVariant.dense,
-                  isExpanded: true,
                   items: [
                     AppDropdownItem(
                       value: null,
@@ -435,7 +433,7 @@ class _DocumentListTile extends StatelessWidget {
 
     if (canEdit) {
       return IconButton(
-        icon: const Icon(Icons.edit, color: AppTheme.primary),
+        icon: const Icon(Icons.edit, color: AppColors.primary),
         onPressed: () async {
           final result = await context.pushNamed<bool>(
             RouteNames.documentEdit,

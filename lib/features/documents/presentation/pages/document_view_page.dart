@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/utils/utils.dart';
 import 'package:conectasoc/services/snackbar_service.dart';
 import 'package:flutter/material.dart';
@@ -296,7 +296,9 @@ class _DocumentViewContent extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: AppTheme.iconSizeSmall, color: AppTheme.iconLabel),
+        Icon(icon,
+            size: AppTheme.iconSizeSmall,
+            color: AppColors.of(context).iconLabel),
         AppTheme.sizedBoxWidthSeparator,
         Expanded(
           child: Column(

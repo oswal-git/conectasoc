@@ -5,7 +5,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';

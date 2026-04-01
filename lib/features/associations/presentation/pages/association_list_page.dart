@@ -1,5 +1,5 @@
 import 'package:conectasoc/app/router/router.dart';
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/associations/domain/entities/association_entity.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:conectasoc/features/associations/presentation/bloc/bloc.dart';
@@ -145,7 +145,7 @@ class _AssociationListItem extends StatelessWidget {
         },
         background: Container(
           decoration: BoxDecoration(
-            color: AppTheme.error,
+            color: AppColors.error,
             borderRadius: AppTheme.borderRadiusDefault,
           ),
           alignment: Alignment.centerRight,
@@ -163,7 +163,7 @@ class _AssociationListItem extends StatelessWidget {
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppTheme.border,
+              backgroundColor: AppColors.border,
               backgroundImage:
                   association.logoUrl != null && association.logoUrl!.isNotEmpty
                       ? CachedNetworkImageProvider(association.logoUrl!)
@@ -174,7 +174,7 @@ class _AssociationListItem extends StatelessWidget {
                           'assets/images/generi_asoc-32.png',
                           width: 40,
                           height: 40,
-                          color: AppTheme.imageIconHint,
+                          color: AppColors.hint,
                           colorBlendMode: BlendMode.srcIn,
                           fit: BoxFit.contain,
                         )

@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/articles/domain/entities/category_entity.dart';
 import 'package:conectasoc/features/articles/domain/entities/subcategory_entity.dart';
 import 'package:conectasoc/features/home/presentation/bloc/home_bloc.dart';
@@ -102,7 +102,7 @@ class CategoryFilterBarWidget extends StatelessWidget {
             padding: AppTheme.paddingHorizontalXxs,
             child: ChoiceChip(
               label: Text(item.name, style: AppTheme.filterFieldText(context)),
-              backgroundColor: AppTheme.primary,
+              backgroundColor: AppColors.of(context).primary,
               selected: selectedItem?.id == item.id,
               onSelected: (_) => onItemSelected(item),
             ),
@@ -136,7 +136,7 @@ class CategoryFilterBarWidget extends StatelessWidget {
                 height: 38,
                 width: 38,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary,
+                  color: AppColors.of(context).primary,
                   border: Border.all(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -158,7 +158,7 @@ class CategoryFilterBarWidget extends StatelessWidget {
           final item = items[index - 1];
           return ChoiceChip(
             label: Text(item.name, style: AppTheme.filterFieldText(context)),
-            backgroundColor: AppTheme.primary,
+            backgroundColor: AppColors.of(context).primary,
             selected: selectedItem?.id == item.id,
             onSelected: (_) => onItemSelected(item),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

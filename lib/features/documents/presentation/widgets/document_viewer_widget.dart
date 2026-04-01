@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -291,7 +291,6 @@ class DocumentViewerWidget extends StatelessWidget {
       // Intentar descargar
       final launched = await launchUrl(
         uri,
-        mode: LaunchMode.platformDefault,
       );
 
       if (!launched && context.mounted) {

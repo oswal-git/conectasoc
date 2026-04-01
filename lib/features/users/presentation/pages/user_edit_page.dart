@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -158,7 +158,7 @@ class _UserEditViewState extends State<_UserEditView> {
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(
-                              strokeWidth: AppTheme.loadingStrokeWidth,
+                              strokeWidth: kStrokeWidthThin,
                               color: Colors.white,
                             ),
                           )
@@ -630,7 +630,7 @@ class _MembershipSection extends StatelessWidget {
                 }).toList(),
                 onChanged: (value) => selectedAssociationId = value,
               ),
-              const SizedBox(height: AppTheme.spaceSm),
+              AppSizedBoxTheme.fieldVerticalSeparator,
               AppDropdownWidget<String>(
                 value: selectedRole,
                 label: l10n.roleTitle,
@@ -648,8 +648,7 @@ class _MembershipSection extends StatelessWidget {
           ),
           actions: [
             TextButton(
-                onPressed: () => context.pop(),
-                child: Text(l10n.cancel)),
+                onPressed: () => context.pop(), child: Text(l10n.cancel)),
             ElevatedButton(
               onPressed: () {
                 if (selectedAssociationId != null) {

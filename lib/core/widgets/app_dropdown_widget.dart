@@ -1,6 +1,6 @@
 // lib/shared/widgets/app_dropdown_widget.dart
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 /// Variante visual del dropdown.
@@ -107,7 +107,7 @@ class AppDropdownWidget<T> extends StatelessWidget {
             child: Text(
               item.label,
               overflow: TextOverflow.ellipsis,
-              style: isDense ? AppTheme.dropdownDenseItem : null,
+              style: isDense ? AppTextStylesTheme.dropdownDenseItem : null,
             ),
           );
         }).toList();
@@ -117,10 +117,10 @@ class AppDropdownWidget<T> extends StatelessWidget {
             labelText: label,
             isDense: true,
             enabled: enabled,
-            border: const OutlineInputBorder(
-              borderRadius: AppTheme.borderRadiusDefault,
+            border: OutlineInputBorder(
+              borderRadius: AppRadiusTheme.input,
             ),
-            contentPadding: AppTheme.paddingDropdownDense,
+            contentPadding: AppSpacingTheme.paddingInput,
           )
         : InputDecoration(
             labelText: label,

@@ -1,7 +1,7 @@
 // lib/features/auth/presentation/pages/local_user_setup_page.dart
 
 import 'package:conectasoc/app/router/router.dart';
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/associations/domain/entities/entities.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
@@ -71,7 +71,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.message),
-                      backgroundColor: AppTheme.error,
+                      backgroundColor: AppColors.of(context).errorText,
                     ),
                   );
                 }
@@ -83,7 +83,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.message),
-                      backgroundColor: AppTheme.error,
+                      backgroundColor: AppColors.of(context).errorText,
                     ),
                   );
                 }
@@ -130,7 +130,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                         ),
                       ),
 
-                      const SizedBox(height: AppTheme.spaceMd),
+                      AppSizedBoxTheme.fieldVerticalDoubleSeparator,
 
                       // NOMBRE
                       AuthTextFieldWidget(
@@ -146,15 +146,15 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                         },
                       ),
 
-                      const SizedBox(height: AppTheme.spaceMd),
+                      AppSizedBoxTheme.fieldVerticalDoubleSeparator,
 
                       _buildAssociationDropdown(),
 
-                      const SizedBox(height: AppTheme.spaceMd),
+                      AppSizedBoxTheme.fieldVerticalDoubleSeparator,
 
                       _buildLanguageDropdown(),
 
-                      const SizedBox(height: AppTheme.spaceMd),
+                      AppSizedBoxTheme.fieldVerticalDoubleSeparator,
 
                       // BOTÓN CONTINUAR
                       BlocBuilder<AuthBloc, AuthState>(
@@ -178,9 +178,9 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                                     height: AppTheme.loadingIndicatorSize,
                                     width: AppTheme.loadingIndicatorSize,
                                     child: CircularProgressIndicator(
-                                      strokeWidth: AppTheme.loadingStrokeWidth,
+                                      strokeWidth: kStrokeWidthThin,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          AppTheme.onDarkPrimary),
+                                          AppColors.of(context).onDarkPrimary),
                                     ),
                                   )
                                 : const Text(
@@ -212,7 +212,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                               style: AppTheme.infoBannerBody,
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: AppTheme.spaceXxs),
+                            AppSizedBoxTheme.fieldVerticalTinySeparator,
                             TextButton(
                               onPressed: () {
                                 GoRouter.of(context).go(RouteNames.register);
@@ -221,7 +221,7 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
                                 decoration: const BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                      color: AppTheme.primary,
+                                      color: AppColors.of(context).primary,
                                       width: 1.5,
                                     ),
                                   ),
@@ -260,13 +260,14 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
           return Container(
             padding: const EdgeInsets.all(AppTheme.spaceSm),
             decoration: BoxDecoration(
-              color: AppTheme.warningBg,
+              color: AppColors.of(context).warningTextBg,
               borderRadius: AppTheme.borderRadiusDefault,
-              border: Border.all(color: AppTheme.warningBorder),
+              border:
+                  Border.all(color: AppColors.of(context).warningTextBorder),
             ),
             child: Text(
               'No hay asociaciones disponibles. Debes registrarte para crear una.',
-              style: AppTheme.warningBannerBody,
+              style: AppColors.of(context).warningTextBannerBody,
               textAlign: TextAlign.center,
             ),
           );
@@ -277,7 +278,6 @@ class _LocalUserSetupViewState extends State<LocalUserSetupView> {
           hint: 'Selecciona tu asociación',
           value: _selectedAssociationId,
           prefixIcon: Icon(Icons.business_outlined),
-          isExpanded: true,
           customItems: _associations.map((assoc) {
             final displayText = assoc.shortName != assoc.longName
                 ? '${assoc.shortName} (${assoc.longName})'

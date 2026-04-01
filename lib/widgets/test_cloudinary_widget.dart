@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/services/cloudinary_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -274,8 +274,7 @@ class _TestCloudinaryPageState extends State<TestCloudinaryPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(
-              strokeWidth: AppTheme.loadingStrokeWidth),
+          const CircularProgressIndicator(strokeWidth: kStrokeWidthThin),
           const SizedBox(height: 16),
           const Text(
             'Procesando imagen...',
@@ -443,7 +442,6 @@ class _TestCloudinaryPageState extends State<TestCloudinaryPage> {
       response = await CloudinaryService.uploadImage(
         imageBytes: imageBytes,
         filename: image.name,
-        imageType: CloudinaryImageType.general,
         tags: {
           'test': 'true',
           'platform': kIsWeb ? 'web' : 'mobile',

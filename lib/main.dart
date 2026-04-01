@@ -1,7 +1,7 @@
 // lib/main.dart
 
 import 'dart:async';
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/utils/utils.dart';
 import 'package:flutter/material.dart';
 

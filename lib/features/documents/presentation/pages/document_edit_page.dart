@@ -1,4 +1,4 @@
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/core/widgets/widgets.dart';
 import 'package:conectasoc/features/auth/presentation/bloc/bloc.dart';
 import 'package:conectasoc/features/documents/domain/entities/entities.dart';
@@ -81,7 +81,8 @@ class _DocumentEditViewState extends State<DocumentEditView> {
           ),
           TextButton(
             onPressed: () => context.pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+            style: TextButton.styleFrom(
+                foregroundColor: AppColors.of(context).errorText),
             child: const Text('Descartar'),
           ),
         ],
@@ -189,7 +190,8 @@ class _DocumentEditViewState extends State<DocumentEditView> {
         padding: AppTheme.paddingContainer,
         child: Row(
           children: [
-            const Icon(Icons.description, color: AppTheme.primary, size: 40),
+            const Icon(Icons.description,
+                color: AppColors.of(context).primary, size: 40),
             AppTheme.sizedBoxWidthSeparator,
             Expanded(
               child: Column(
@@ -278,7 +280,7 @@ class _DocumentEditViewState extends State<DocumentEditView> {
       subtitle:
           const Text('Los usuarios podrán descargar o compartir el archivo'),
       value: state.canDownload,
-      activeThumbColor: AppTheme.primary,
+      activeThumbColor: AppColors.of(context).primary,
       onChanged: (value) => context
           .read<DocumentEditBloc>()
           .add(EditDownloadPermissionChanged(value)),

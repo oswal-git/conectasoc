@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:conectasoc/app/theme/app_theme.dart';
+import 'package:conectasoc/app/theme/theme.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_bloc.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_event.dart';
 import 'package:conectasoc/features/articles/presentation/bloc/edit/article_edit_state.dart';
@@ -255,7 +255,7 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                          strokeWidth: AppTheme.loadingStrokeWidth,
+                          strokeWidth: kStrokeWidthThin,
                           color: Colors.white,
                         ),
                       ),
@@ -371,8 +371,6 @@ class _ArticleEditViewState extends State<ArticleEditView> {
                   maxCharCount: 100,
                   height: 100,
                   iconButtonFactor: parIconButtonFactor,
-                  showFontSize: false,
-                  showFontFamily: false,
                 );
               },
             ),
